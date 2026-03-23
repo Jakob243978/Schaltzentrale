@@ -34,6 +34,23 @@ Direkte MCP-Server (nicht Composio):
 - Jedes Projekt hat `requirements.txt`, `.env.example` und `CLAUDE.md`
 - Antworten kurz und direkt halten
 
+## Session-Workflow
+
+### Session starten
+Wenn Jakob "Session starten" sagt oder eine neue Session beginnt:
+```powershell
+cd C:\Users\Jakob\claude_projects\Schaltzentrale && .\pull_all.ps1
+```
+Alle Repos werden auf den neuesten Stand gebracht.
+
+### Session beenden
+Wenn Jakob **"Session beenden"** sagt:
+1. `commit_all.ps1` ausfuehren — committet und pusht alle Repos mit Aenderungen
+2. Kurze Zusammenfassung ausgeben: welche Repos wurden gepusht, was hat sich geaendert
+```powershell
+cd C:\Users\Jakob\claude_projects\Schaltzentrale && .\commit_all.ps1
+```
+
 ## Wichtige Pfade
 
 - Globale Claude-Einstellungen: `C:\Users\Jakob\.claude\settings.json`
