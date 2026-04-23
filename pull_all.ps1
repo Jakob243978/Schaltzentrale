@@ -2,7 +2,7 @@
 # Ausfuehren: .\pull_all.ps1
 
 $BaseDir = "C:\Users\$env:USERNAME\claude_projects"
-$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "GuestAI", "HomeAssistant")
+$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB")
 
 Write-Host "=== Session Start: Pull alle Repos ===" -ForegroundColor Cyan
 
