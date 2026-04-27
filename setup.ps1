@@ -20,7 +20,8 @@ Write-Host "`n[2/3] Agenten-Repos pruefen / klonen..."
 $Repos = @(
     @{ Name = "Termindokumentierer"; Url = "https://github.com/Jakob243978/Termindokumentierer.git" },
     @{ Name = "Assistenz";           Url = "https://github.com/Jakob243978/Assistenz.git" },
-    @{ Name = "Workflow Builder";    Url = "https://github.com/Jakob243978/Workflow-Builder.git" }
+    @{ Name = "Workflow Builder";    Url = "https://github.com/Jakob243978/Workflow-Builder.git" },
+    @{ Name = "SocialMediaBuilder";  Url = "https://github.com/Jakob243978/SocialMediaBuilder.git" }
 )
 
 foreach ($repo in $Repos) {
@@ -39,7 +40,7 @@ Write-Host "`n[3/3] Python-Abhaengigkeiten installieren..."
 
 $PythonProjects = @("Termindokumentierer")
 foreach ($proj in $PythonProjects) {
-    $req = Join-Path $BaseDir $proj "requirements.txt"
+    $req = Join-Path (Join-Path $BaseDir $proj) "requirements.txt"
     if (Test-Path $req) {
         Write-Host "  pip install fuer $proj..."
         pip install -r $req --quiet

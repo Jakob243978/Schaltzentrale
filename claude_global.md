@@ -14,6 +14,7 @@
 | **Termindokumentierer** | `claude_projects/Termindokumentierer` | Fireflies-Transkripte -> Google Calendar Zusammenfassungen + Action Items |
 | **Assistenz** | `claude_projects/Assistenz` | (in Entwicklung) |
 | **Workflow Builder** | `claude_projects/Workflow Builder` | (in Entwicklung) |
+| **SocialMediaBuilder** | `claude_projects/SocialMediaBuilder` | Taegliche Content-Pipeline IG/TikTok aus Markdown + Memory -> Trello |
 | **Schaltzentrale** | `claude_projects/Schaltzentrale` | Meta-Projekt: Uebersicht, Setup, Dokumentation aller Agenten |
 
 ## MCP-Verbindungen (via Composio)
@@ -23,6 +24,7 @@ Folgende MCP-Verbindungen sind eingerichtet und aktiv:
 - **Fireflies** (Composio) — Meeting-Transkripte und Ask-Fred
 - **Gmail** (Composio)
 - **Canva** (Composio)
+- **Trello** (Composio) — Content-Karten fuer SocialMediaBuilder (TODO: Verbindung in claude.ai/Composio einrichten)
 
 Direkte MCP-Server (nicht Composio):
 - **Google Calendar** (claude.ai native)
@@ -44,12 +46,19 @@ cd C:\Users\Jakob\claude_projects\Schaltzentrale && .\pull_all.ps1
 Alle Repos werden auf den neuesten Stand gebracht.
 
 ### Session beenden
-Wenn Jakob **"Session beenden"** sagt:
-1. `commit_all.ps1` ausfuehren — committet und pusht alle Repos mit Aenderungen
-2. Kurze Zusammenfassung ausgeben: welche Repos wurden gepusht, was hat sich geaendert
+Wenn Jakob **"Session beenden"** sagt, in dieser Reihenfolge:
+
+**Schritt 1 — SocialMediaBuilder Impact-Q&A** (vor dem Commit, damit das Ergebnis mit gepusht wird):
+Jakob die acht Fragen aus `SocialMediaBuilder/CLAUDE.md` (Abschnitt "End-of-Session Q&A Workflow") stellen.
+- Wenn Jakob sagt **"nichts dazu" / "nichts heute" / "skip"** o.Ae., direkt zu Schritt 2 springen — keine Datei anlegen, nicht weiter nachfragen.
+- Sonst Antworten in `claude_projects/SocialMediaBuilder/sessions/Session_YYYY-MM-DD_Impact.md` ablegen (Datum = heute).
+
+**Schritt 2 — Commit & Push:**
 ```powershell
 cd C:\Users\Jakob\claude_projects\Schaltzentrale && .\commit_all.ps1
 ```
+
+**Schritt 3 — Zusammenfassung:** kurz ausgeben, welche Repos gepusht wurden und was sich geaendert hat.
 
 ## Wichtige Pfade
 

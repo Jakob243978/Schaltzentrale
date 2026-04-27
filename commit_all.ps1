@@ -7,7 +7,7 @@ param(
 )
 
 $BaseDir = "C:\Users\$env:USERNAME\claude_projects"
-$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB")
+$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB")
 
 Write-Host "=== Session Ende: Commit & Push alle Repos ===" -ForegroundColor Cyan
 Write-Host "  Commit-Message: $Message`n"
