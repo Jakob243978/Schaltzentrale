@@ -49,9 +49,18 @@ Alle Repos werden auf den neuesten Stand gebracht.
 Wenn Jakob **"Session beenden"** sagt, in dieser Reihenfolge:
 
 **Schritt 1 — SocialMediaBuilder Impact-Q&A** (vor dem Commit, damit das Ergebnis mit gepusht wird):
-Jakob die acht Fragen aus `SocialMediaBuilder/CLAUDE.md` (Abschnitt "End-of-Session Q&A Workflow") stellen.
-- Wenn Jakob sagt **"nichts dazu" / "nichts heute" / "skip"** o.Ae., direkt zu Schritt 2 springen — keine Datei anlegen, nicht weiter nachfragen.
-- Sonst Antworten in `claude_projects/SocialMediaBuilder/sessions/Session_YYYY-MM-DD_Impact.md` ablegen (Datum = heute).
+
+**1a. Vor dem Q&A: Substanz holen.** Schau dir kurz an, was in dieser Session veraendert wurde — Git-Diff, neue/aktualisierte Files. Bei Tech-Sessions: lies CLAUDE.md, SETUP.md, TESTS.md des betroffenen Projekts an. Du sollst **konkret** wissen, was gebaut wurde, bevor du Jakob fragst.
+
+**1b. Das Q&A nicht oberflaechlich abfragen.** Stelle die acht Fragen aus `SocialMediaBuilder/CLAUDE.md` ("End-of-Session Q&A Workflow"), aber wenn eine Antwort oberflaechlich bleibt, hak nach:
+- "Was war das eigentliche Aha-Erlebnis?"
+- "Welcher Aspekt war neu gegenueber vorher?"
+- "Was haettest du frueher anders gemacht?"
+- Frag konkret nach Zahlen, Tools, Geraeten, Kosten — nicht im Allgemeinen bleiben.
+
+**1c. Skip-Regel:** Wenn Jakob sagt **"nichts dazu" / "nichts heute" / "skip"** o.Ae., direkt zu Schritt 2 springen — keine Datei anlegen, nicht weiter nachfragen.
+
+**1d. Ablegen** unter `claude_projects/SocialMediaBuilder/sessions/Session_YYYY-MM-DD_Impact.md` (Datum = heute). Die Antworten muessen so detailliert sein, dass der SocialMediaBuilder daraus spaeter substanzielle Content-Karten ziehen kann — nicht nur Stichworte.
 
 **Schritt 2 — Commit & Push:**
 ```powershell
