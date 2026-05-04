@@ -6,7 +6,7 @@ param(
     [string]$Message = "Session sync $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
 )
 
-$BaseDir = "C:\Users\$env:USERNAME\claude_projects"
+$BaseDir = Split-Path $PSScriptRoot -Parent
 $Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB")
 
 Write-Host "=== Session Ende: Commit & Push alle Repos ===" -ForegroundColor Cyan

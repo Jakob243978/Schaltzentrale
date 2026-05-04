@@ -4,7 +4,7 @@
 
 - Name: Jakob
 - Arbeitet mit mehreren Claude-Agenten fuer Automatisierung und Produktivitaet
-- Projekte liegen unter `C:\Users\Jakob\claude_projects\` (Windows)
+- Projekte liegen unter dem Schaltzentrale-Eltern-Verzeichnis (z.B. `C:\Users\Jakob\claude_projects\` oder `C:\claude_projekte\`). Die Skripte ermitteln den Pfad via `$PSScriptRoot` automatisch.
 - Sprache: Deutsch (Antworten immer auf Deutsch)
 
 ## Agenten-Uebersicht
@@ -41,7 +41,7 @@ Direkte MCP-Server (nicht Composio):
 ### Session starten
 Wenn Jakob "Session starten" sagt oder eine neue Session beginnt:
 ```powershell
-cd C:\Users\Jakob\claude_projects\Schaltzentrale && .\pull_all.ps1
+cd <pfad-zu-Schaltzentrale>; .\pull_all.ps1
 ```
 Alle Repos werden auf den neuesten Stand gebracht.
 
@@ -64,13 +64,14 @@ Wenn Jakob **"Session beenden"** sagt, in dieser Reihenfolge:
 
 **Schritt 2 — Commit & Push:**
 ```powershell
-cd C:\Users\Jakob\claude_projects\Schaltzentrale && .\commit_all.ps1
+cd <pfad-zu-Schaltzentrale>; .\commit_all.ps1
 ```
+Skripte ermitteln das Repo-Eltern-Verzeichnis selbst (`$PSScriptRoot`-Parent), funktionieren also rechner-unabhaengig.
 
 **Schritt 3 — Zusammenfassung:** kurz ausgeben, welche Repos gepusht wurden und was sich geaendert hat.
 
 ## Wichtige Pfade
 
-- Globale Claude-Einstellungen: `C:\Users\Jakob\.claude\settings.json`
-- Diese Datei (Quelle): `C:\Users\Jakob\claude_projects\Schaltzentrale\claude_global.md`
-- Deployed nach: `C:\Users\Jakob\.claude\CLAUDE.md`
+- Globale Claude-Einstellungen: `~\.claude\settings.json` (z.B. `C:\Users\Jakob\.claude\settings.json` oder `C:\Users\LG\.claude\settings.json`)
+- Diese Datei (Quelle): `<Schaltzentrale>\claude_global.md`
+- Deployed nach: `~\.claude\CLAUDE.md`

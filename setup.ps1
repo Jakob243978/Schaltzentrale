@@ -3,7 +3,7 @@
 # Ausfuehren: .\setup.ps1
 
 $ErrorActionPreference = "Stop"
-$BaseDir = "C:\Users\$env:USERNAME\claude_projects"
+$BaseDir = Split-Path $PSScriptRoot -Parent
 $ClaudeDir = "C:\Users\$env:USERNAME\.claude"
 
 Write-Host "=== Schaltzentrale Setup ===" -ForegroundColor Cyan

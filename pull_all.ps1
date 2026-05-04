@@ -1,7 +1,7 @@
 # Session Start: Alle Repos auf den neuesten Stand bringen
 # Ausfuehren: .\pull_all.ps1
 
-$BaseDir = "C:\Users\$env:USERNAME\claude_projects"
+$BaseDir = Split-Path $PSScriptRoot -Parent
 $Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB")
 
 Write-Host "=== Session Start: Pull alle Repos ===" -ForegroundColor Cyan
