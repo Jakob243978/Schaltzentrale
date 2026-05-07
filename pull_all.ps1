@@ -2,7 +2,7 @@
 # Ausfuehren: .\pull_all.ps1
 
 $BaseDir = Split-Path $PSScriptRoot -Parent
-$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB")
+$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB", "PropertyDesk")
 
 Write-Host "=== Session Start: Pull alle Repos ===" -ForegroundColor Cyan
 
