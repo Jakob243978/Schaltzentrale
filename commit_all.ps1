@@ -7,7 +7,7 @@ param(
 )
 
 $BaseDir = Split-Path $PSScriptRoot -Parent
-$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB", "PropertyDesk", "DropboxCheck")
+$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB", "PropertyDesk", "DropboxCheck", "ZeitenAbgleich", "vault")
 
 Write-Host "=== Session Ende: Commit & Push alle Repos ===" -ForegroundColor Cyan
 Write-Host "  Commit-Message: $Message`n"
@@ -17,6 +17,22 @@ foreach ($repo in $Repos) {
     if (-not (Test-Path "$path\.git")) {
         Write-Host "  Uebersprungen (nicht vorhanden): $repo" -ForegroundColor Yellow
         continue
+    }
+
+    # Size-Check fuer vault: warne bei untracked/modified Files >5 MB
+    if ($repo -eq "vault") {
+        $bigFiles = git -C $path status --porcelain | ForEach-Object {
+            $file = $_.Substring(3).Trim('"')
+            $fullPath = Join-Path $path $file
+            if ((Test-Path $fullPath -PathType Leaf) -and ((Get-Item $fullPath).Length -gt 5MB)) {
+                "{0} ({1:N1} MB)" -f $file, ((Get-Item $fullPath).Length / 1MB)
+            }
+        }
+        if ($bigFiles) {
+            Write-Host "  WARNUNG: vault enthaelt Files >5 MB:" -ForegroundColor Red
+            $bigFiles | ForEach-Object { Write-Host "    - $_" -ForegroundColor Red }
+            Write-Host "  Pruefe .gitignore (PDF/XLSX/MP4 sollten ignoriert sein)." -ForegroundColor Yellow
+        }
     }
 
     $status = git -C $path status --porcelain 2>&1
