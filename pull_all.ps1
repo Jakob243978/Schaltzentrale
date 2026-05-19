@@ -40,4 +40,8 @@ if (Test-Path $MemoryPath) {
     }
 }
 
+# Projekt-CLAUDE.mds ins Vault spiegeln (read-only Snapshots)
+Write-Host ""
+& "$PSScriptRoot\sync_claudes.ps1"
+
 Write-Host "`n=== Alle Repos aktuell ===" -ForegroundColor Cyan
