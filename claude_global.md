@@ -70,8 +70,31 @@ Skripte ermitteln das Repo-Eltern-Verzeichnis selbst (`$PSScriptRoot`-Parent), f
 
 **Schritt 3 — Zusammenfassung:** kurz ausgeben, welche Repos gepusht wurden und was sich geaendert hat.
 
+## Obsidian-Vault & Skill-Bootstrap
+
+Das Vault unter `<BaseDir>\vault\` ist die zentrale querybare KI-Wissensbasis (Memory + Researcher + Bases + Synthese-Notes). Alle .md-Dateien dort folgen Obsidian-Konvention (Frontmatter, Wikilinks `[[...]]`, Callouts `> [!type]`, Bases).
+
+**Skill-Bootstrap-Regel (deterministisch, nicht auf Auto-Discovery verlassen):**
+
+Bei JEDEM Task, der eine .md-Datei in `<BaseDir>\vault\` betrifft, ODER wenn der User Memory / Wikilinks / Callouts / Frontmatter / Bases / Obsidian erwähnt:
+
+1. **Lade VORHER explizit** `~\.claude\skills\obsidian-skills\skills\obsidian-markdown\SKILL.md` per Read-Tool.
+2. Bei `.base`-Files zusätzlich `~\.claude\skills\obsidian-skills\skills\obsidian-bases\SKILL.md`.
+3. Bei `.canvas`-Files zusätzlich `~\.claude\skills\obsidian-skills\skills\json-canvas\SKILL.md`.
+
+Hintergrund: Auto-Discovery hat bei Immobewertung wiederholt nicht zuverlässig getriggert — explizite Bootstrap-Anweisung loest das Problem deterministisch.
+
+**Skill-Quelle (Single Source of Truth):** `<Schaltzentrale>\skills_sources\obsidian-skills\`. Deployment nach `~\.claude\skills\` via `setup.ps1` (robocopy /MIR). Manuelle Skill-Installation im `~\.claude\skills\` NICHT mehr nötig — wenn Skill fehlt: `pull_all.ps1` zeigt Warnung, dann `setup.ps1` ausführen.
+
+**Memory-Standort:**
+- **Default (heute):** `~\.claude\projects\c--Users-<USER>-claude-projects\memory\` (Claude-Code-Default-Pfad)
+- **Geplant (Stufe 3):** Junction auf `<BaseDir>\vault\Memory\` — dann ist Vault canonical, Git-synct über Vault-Repo
+- Pull_all.ps1 zeigt am Ende ob Junction aktiv ist
+
 ## Wichtige Pfade
 
 - Globale Claude-Einstellungen: `~\.claude\settings.json` (z.B. `C:\Users\Jakob\.claude\settings.json` oder `C:\Users\LG\.claude\settings.json`)
 - Diese Datei (Quelle): `<Schaltzentrale>\claude_global.md`
 - Deployed nach: `~\.claude\CLAUDE.md`
+- Vault: `<BaseDir>\vault\` (Obsidian-Vault, Git-Repo: `github.com/Jakob243978/vault`)
+- Skill-Sources: `<Schaltzentrale>\skills_sources\` → `~\.claude\skills\` via setup.ps1
