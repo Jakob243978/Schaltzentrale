@@ -1,30 +1,72 @@
 # Spiegelt alle Projekt-CLAUDE.md-Files nach vault/Docs/<projekt>_CLAUDE.md
 # Read-only Snapshot — Source of Truth bleibt das jeweilige Repo.
+# Haengt automatisch eine "Verwandte Memorys"-Sektion an, basierend auf
+# vault/Memory/*.md-Files mit passendem project:-Frontmatter.
 # Wird von pull_all.ps1 am Ende aufgerufen.
-# Standalone aufrufbar: .\sync_claudes.ps1
 
 $BaseDir = Split-Path $PSScriptRoot -Parent
-$VaultDocs = Join-Path $BaseDir "vault\Docs"
+$VaultRoot = Join-Path $BaseDir "vault"
+$VaultDocs = Join-Path $VaultRoot "Docs"
+$VaultMemory = Join-Path $VaultRoot "Memory"
 
 Write-Host "=== Sync CLAUDE.mds nach vault\Docs\ ===" -ForegroundColor Cyan
 
-# Vault muss vorhanden sein
-if (-not (Test-Path (Join-Path $BaseDir "vault"))) {
+if (-not (Test-Path $VaultRoot)) {
     Write-Host "  ABBRUCH: vault\ fehlt - sync nicht moeglich" -ForegroundColor Red
     return
 }
-
-# Docs-Folder anlegen falls fehlt
 if (-not (Test-Path $VaultDocs)) {
     New-Item -ItemType Directory -Path $VaultDocs | Out-Null
 }
 
-# Alle Top-Level-Projekte unter BaseDir scannen (exclude vault selbst, .obsidian, Backup-Ordner)
+# ---------------------------------------------------------------
+# Project-Key-Aliases: ein Repo kann mehrere Memory-project:-Werte anziehen
+# Beispiel: KundenAB-Repo enthaelt BeyerImmo-Workflows -> Memorys haben project: beyerimmo
+# Format: 'repo-key' = @('mem-key1', 'mem-key2', ...)
+# Defaults: jeder Repo-Key matched auch sich selbst (lowercase).
+# ---------------------------------------------------------------
+$ProjectAliases = @{
+    'kundenab'         = @('beyerimmo', 'kundenab')
+    'homeassistant'    = @('homeassistant', 'heizung-restore', 'heizung_restore', 'ha')
+    'immobewertung'    = @('immobewertung', 'ankaufsprofil', 'ankaufsprofil-idee', 'ankaufsprofil_idee')
+    'dropboxcheck'     = @('dropboxcheck', 'lr-import', 'lr_import')
+    'workflow_builder' = @('workflow-builder', 'workflowbuilder', 'workflow_builder')
+}
+
+# ---------------------------------------------------------------
+# Memory-Index aufbauen (einmal scannen, dann je Projekt filtern)
+# ---------------------------------------------------------------
+$memoryIndex = @()
+if (Test-Path $VaultMemory) {
+    foreach ($memFile in Get-ChildItem $VaultMemory -File -Filter *.md) {
+        if ($memFile.Name -eq 'MEMORY.md') { continue }
+        $content = Get-Content $memFile.FullName -Raw -Encoding UTF8
+        if ($content -match '(?s)^---\r?\n(.*?)\r?\n---') {
+            $fm = $matches[1]
+            $proj  = if ($fm -match '(?m)^project:\s*(.+?)\s*$') { $matches[1].Trim('"').Trim("'").Trim().ToLower() } else { $null }
+            $type  = if ($fm -match '(?m)^type:\s*(.+?)\s*$')    { $matches[1].Trim().ToLower() } else { 'other' }
+            $desc  = if ($fm -match '(?m)^description:\s*(.+?)\s*$') { $matches[1].Trim('"').Trim("'").Trim() } else { '' }
+
+            $memoryIndex += [PSCustomObject]@{
+                FileName  = $memFile.BaseName
+                Project   = $proj
+                Type      = $type
+                Desc      = $desc
+            }
+        }
+    }
+}
+Write-Host "  Memory-Index: $($memoryIndex.Count) Files indexiert" -ForegroundColor DarkGray
+
+# ---------------------------------------------------------------
+# Repos scannen und CLAUDE.mds spiegeln
+# ---------------------------------------------------------------
 $ExcludeDirs = @("vault", "obsidian", "lightroom-mcp")
 $projects = Get-ChildItem $BaseDir -Directory | Where-Object {
     $_.Name -notin $ExcludeDirs -and
     $_.Name -notlike "_*" -and
-    $_.Name -notlike "obsidian_BACKUP_*"
+    $_.Name -notlike "obsidian_BACKUP_*" -and
+    $_.Name -notlike ".*"
 }
 
 $syncedCount = 0
@@ -39,23 +81,21 @@ foreach ($proj in $projects) {
     }
 
     $repoName = $proj.Name
-    # Dateiname-safe: Leerzeichen durch Unterstriche ersetzen
     $safeName = $repoName -replace ' ', '_'
     $targetPath = Join-Path $VaultDocs "${safeName}_CLAUDE.md"
 
-    # Original lesen
+    # Original lesen + ggf. Frontmatter strippen
     $originalContent = Get-Content $sourcePath -Raw -Encoding UTF8
-
-    # Wenn Original schon Frontmatter hat, strippen (sonst doppelter Frontmatter im Spiegel)
     if ($originalContent -match '(?s)^---\r?\n.*?\r?\n---\r?\n') {
         $bodyContent = $originalContent -replace '(?s)^---\r?\n.*?\r?\n---\r?\n', ''
     } else {
         $bodyContent = $originalContent
     }
 
-    # Mirror-Header mit Frontmatter + Warnung
+    # Mirror-Header
     $timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-    $tagsLine = "tags: [typ/claude-md-mirror, project/$($safeName.ToLower())]"
+    $projKeyForTag = $safeName.ToLower()
+    $tagsLine = "tags: [typ/claude-md-mirror, project/$projKeyForTag]"
     $mirrorHeader = @"
 ---
 title: $repoName - CLAUDE.md (gespiegelt)
@@ -75,10 +115,48 @@ aliases:
 
 "@
 
-    $finalContent = $mirrorHeader + $bodyContent
-    # UTF8 ohne BOM
+    # ---- Cross-Ref Sektion: Memorys mit passendem project: ----
+    $repoKey = $safeName.ToLower()
+    $memProjectKeys = if ($ProjectAliases.ContainsKey($repoKey)) {
+        $ProjectAliases[$repoKey]
+    } else {
+        @($repoKey)
+    }
+
+    $relatedByType = [ordered]@{
+        project   = @()
+        feedback  = @()
+        reference = @()
+        user      = @()
+    }
+    foreach ($mem in $memoryIndex) {
+        if ($null -eq $mem.Project) { continue }
+        if ($memProjectKeys -contains $mem.Project) {
+            $entry = "- [[../Memory/$($mem.FileName)|$($mem.FileName)]]"
+            if ($mem.Desc) { $entry += " - $($mem.Desc)" }
+            $bucket = if ($relatedByType.Contains($mem.Type)) { $mem.Type } else { 'project' }
+            $relatedByType[$bucket] += $entry
+        }
+    }
+
+    $totalRelated = ($relatedByType.Values | ForEach-Object { $_.Count } | Measure-Object -Sum).Sum
+    $crossRefSection = ""
+    if ($totalRelated -gt 0) {
+        $crossRefSection = "`n`n---`n`n## Verwandte Memorys (auto-generiert)`n`n"
+        $crossRefSection += "> [!info] Quelle`n> Auto-injected von ``sync_claudes.ps1`` aus ``vault/Memory/*.md`` mit ``project: $($memProjectKeys -join ', ')`` im Frontmatter.`n`n"
+        foreach ($t in @('project', 'feedback', 'reference', 'user')) {
+            if ($relatedByType[$t].Count -gt 0) {
+                $crossRefSection += "### $($t.Substring(0,1).ToUpper() + $t.Substring(1))`n"
+                $crossRefSection += ($relatedByType[$t] -join "`n") + "`n`n"
+            }
+        }
+    }
+
+    $finalContent = $mirrorHeader + $bodyContent + $crossRefSection
     [System.IO.File]::WriteAllText($targetPath, $finalContent, [System.Text.UTF8Encoding]::new($false))
-    Write-Host "  OK: $repoName -> Docs\${safeName}_CLAUDE.md" -ForegroundColor Green
+
+    $relMsg = if ($totalRelated -gt 0) { " (+$totalRelated verwandte Memorys)" } else { "" }
+    Write-Host "  OK: $repoName -> Docs\${safeName}_CLAUDE.md$relMsg" -ForegroundColor Green
     $syncedCount++
 }
 

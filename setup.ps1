@@ -166,6 +166,44 @@ if ($EnableMemoryJunction) {
 }
 
 # ---------------------------------------------------------------
+# 4b. Researcher-Junction sicherstellen (idempotent, immer)
+#     vault/Researcher zeigt auf claude_projects/Researcher (Repo-canonical).
+# ---------------------------------------------------------------
+$ResearcherRepo = Join-Path $BaseDir "Researcher"
+$ResearcherVaultPath = Join-Path $BaseDir "vault\Researcher"
+
+if ((Test-Path $ResearcherRepo) -and (Test-Path (Join-Path $BaseDir "vault"))) {
+    Write-Host "`n[4b/5] Researcher-Junction sicherstellen..."
+    if (Test-Path $ResearcherVaultPath) {
+        $item = Get-Item $ResearcherVaultPath -Force
+        if ($item.LinkType -eq "Junction") {
+            Write-Host "  Junction bereits aktiv -> $($item.Target | Select-Object -First 1)" -ForegroundColor Yellow
+        } else {
+            if ($DryRun) {
+                Write-Host "  ${DryPrefix}Remove vault\Researcher (war kein Junction)" -ForegroundColor Yellow
+                Write-Host "  ${DryPrefix}mklink /J vault\Researcher -> $ResearcherRepo" -ForegroundColor Yellow
+            } else {
+                Remove-Item $ResearcherVaultPath -Recurse -Force
+                cmd /c mklink /J "$ResearcherVaultPath" "$ResearcherRepo" | Out-Null
+                $linkItem = Get-Item $ResearcherVaultPath -Force
+                if ($linkItem.LinkType -eq "Junction") {
+                    Write-Host "  OK: Junction gesetzt vault\Researcher -> $ResearcherRepo" -ForegroundColor Green
+                } else {
+                    Write-Host "  FEHLER: Junction nicht erstellt" -ForegroundColor Red
+                }
+            }
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "  ${DryPrefix}mklink /J vault\Researcher -> $ResearcherRepo (neu)" -ForegroundColor Yellow
+        } else {
+            cmd /c mklink /J "$ResearcherVaultPath" "$ResearcherRepo" | Out-Null
+            Write-Host "  OK: Junction (neu) vault\Researcher -> $ResearcherRepo" -ForegroundColor Green
+        }
+    }
+}
+
+# ---------------------------------------------------------------
 # 5. Python-Abhaengigkeiten installieren
 # ---------------------------------------------------------------
 Write-Host "`n[5/5] Python-Abhaengigkeiten installieren..."
