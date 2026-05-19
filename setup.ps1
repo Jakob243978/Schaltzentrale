@@ -91,7 +91,23 @@ if (-not (Test-Path $SkillsSource)) {
 if ($EnableMemoryJunction) {
     Write-Host "`n[4/5] Memory-Junction setzen..."
 
-    $MemoryDefaultPath = "$ClaudeDir\projects\c--Users-$env:USERNAME-claude-projects\memory"
+    # Claude-Code-Projektname aus $BaseDir ableiten: ':', '\' und '_' -> '-'
+    # PC1: C:\Users\LG\claude_projects -> C--Users-LG-claude-projects
+    # PC2: C:\claude_projekte           -> C--claude-projekte
+    $projectFolderName = ($BaseDir -replace '[:\\_]', '-')
+    $MemoryDefaultPath = "$ClaudeDir\projects\$projectFolderName\memory"
+
+    # Fallback: falls abgeleiteter Pfad nicht existiert, im projects-Verzeichnis nach
+    # einem Ordner mit memory-Subordner suchen (case-insensitive, deckt PC1-Eigenart c--... ab)
+    if (-not (Test-Path $MemoryDefaultPath)) {
+        $candidate = Get-ChildItem "$ClaudeDir\projects" -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -ieq $projectFolderName -and (Test-Path (Join-Path $_.FullName 'memory')) } |
+            Select-Object -First 1
+        if ($candidate) {
+            $MemoryDefaultPath = Join-Path $candidate.FullName 'memory'
+            Write-Host "  Hinweis: Pfad case-insensitive aufgeloest -> $MemoryDefaultPath" -ForegroundColor Yellow
+        }
+    }
     $MemoryVaultPath = Join-Path $BaseDir "vault\Memory"
     $BackupTimestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $BackupPath = "$ClaudeDir\projects\_memory_backup_$BackupTimestamp"
