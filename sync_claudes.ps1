@@ -65,7 +65,8 @@ $ExcludeDirs = @("vault", "obsidian", "lightroom-mcp")
 $projects = Get-ChildItem $BaseDir -Directory | Where-Object {
     $_.Name -notin $ExcludeDirs -and
     $_.Name -notlike "_*" -and
-    $_.Name -notlike "obsidian_BACKUP_*" -and
+    $_.Name -notlike "*_BACKUP_*" -and
+    $_.Name -notlike "*_backup_*" -and
     $_.Name -notlike ".*"
 }
 
