@@ -1,0 +1,43 @@
+# SDD-Verifier Configuration
+# Pro Projekt einmalig anpassen, in docs/sdd-config.yaml ablegen.
+# Wird vom Verifier-Subagent (Slash-Command /sdd-verify) als ERSTES gelesen.
+
+sdd_verifier:
+  # Wie werden Tests gestartet? (Pflicht)
+  test_command: "python -m pytest tests/ -v"
+
+  # Sanity-Check der App, lief sie nach Aenderungen noch? (Empfohlen)
+  health_check: "python -c 'print(\"OK\")'"
+
+  # Wo liegen die Tickets? (Default: docs/tickets/)
+  ticket_path: "docs/tickets/"
+
+  # Wo werden Verify-Reports abgelegt? (Default: docs/tickets/verify/)
+  verify_report_path: "docs/tickets/verify/"
+
+  # Manuelle PO-Abnahme — wann braucht ein EARS-Satz Jakobs Klick-Test?
+  #
+  # Optionen:
+  #   ui_only  (Default, empfohlen) — Klick-Anleitung nur fuer UI-EARS-Saetze.
+  #            Backend-/Worker-EARS werden ueber Verifier-Output (Tests +
+  #            health_check + Diff) automatisch abgenommen. Klassifizierung:
+  #            siehe SKILL.md F.4 (Implementierung unter frontend/, Browser-
+  #            Vokabular, [ui]-Tag oder im Zweifel ui).
+  #   true     — Klick-Anleitung fuer JEDES Ticket Pflicht (alte v0.2-Default,
+  #            sinnvoll wenn das Projekt fast nur UI-Tickets hat).
+  #   false    — Keine Klick-Anleitung im Report (sinnvoll fuer reine Worker-/
+  #            CLI-Projekte ohne Frontend; Verifier-Output ist alleiniger
+  #            Abnahme-Beleg).
+  #
+  # Hintergrund (Lesson Learned T009): UI-EARS koennen vom Verifier nicht
+  # zuverlaessig gepruefet werden — er hat keine Browser-Capability. Fuer UI-EARS
+  # bleibt PO-Manual-Test der Sicherheitsanker. Fuer Backend-EARS reicht der
+  # Verifier-Output — den manuell zu wiederholen ist verschwendete PO-Zeit.
+  manual_verify_required: ui_only
+
+  # Property-Based Testing (Hypothesis) als Add-on fuer Daten-Worker.
+  # Pro Projekt ADR-pflichtig, default off.
+  property_based_tests_enabled: false
+
+  # Soft-Disable: falls Verifier in einem Projekt temporaer deaktiviert werden soll
+  enabled: true
