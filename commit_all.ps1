@@ -40,8 +40,16 @@ foreach ($repo in $Repos) {
         Write-Host "  $repo - $($status.Count) Aenderung(en)..."
         git -C $path add -A
         git -C $path commit -m $Message
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  FEHLER: Commit fehlgeschlagen ($repo, Exit $LASTEXITCODE)" -ForegroundColor Red
+            continue
+        }
         git -C $path push
-        Write-Host "  OK: $repo gepusht" -ForegroundColor Green
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "  OK: $repo gepusht" -ForegroundColor Green
+        } else {
+            Write-Host "  FEHLER: Push fehlgeschlagen ($repo, Exit $LASTEXITCODE) - Commit liegt lokal vor" -ForegroundColor Red
+        }
     } else {
         Write-Host "  Keine Aenderungen: $repo" -ForegroundColor Yellow
     }

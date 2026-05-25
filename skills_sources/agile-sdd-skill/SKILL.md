@@ -86,6 +86,39 @@ idea --> spec --> in_progress --> review --> done
 - **review**: Implementierung fertig, Tests gruen, Verifier-Pass + (bei UI-EARS) manuelle PO-Abnahme stehen aus
 - **done**: Abgenommen, CHANGELOG aktualisiert, Code-Kommentare gesetzt
 
+### PO-Skill-Hook (Status-Uebergang `idea` -> `spec`)
+
+Wenn der `po-skill` im Projekt aktiv ist (erkennbar an
+`docs/PROJECT_VISION.md` + `## Skill: PO`-Block in `CLAUDE.md`), gilt **vor**
+dem Setzen von Status `spec`:
+
+1. Pruefe ob das Ticket-Frontmatter ein Feld
+   `vision_principle: <principle_id>` enthaelt.
+2. Pruefe ob `<principle_id>` in `docs/PROJECT_VISION.md` als
+   `Kern-Prinzip` existiert (Slug-Match).
+3. Wenn **nein**:
+   - **Default (Warning):** Hinweis an User:
+     *"Kein `vision_principle` referenziert — `/po-challenge` empfohlen
+     bevor Implementierung startet. Status-Uebergang trotzdem moeglich,
+     wenn du sicher bist."*
+   - **Strict-Mode** (`docs/po-config.yaml: strict_vision_principle: true`
+     oder ENV `PO_SKILL_STRICT=1`): Hard-Block. Status bleibt `idea` bis
+     Prinzip ergaenzt ist.
+
+Beim Status-Uebergang `in_progress` -> `done` setzt der Implementer
+automatisch:
+
+```yaml
+outcome_review_at: <heute + outcome_review_days aus docs/po-config.yaml>
+```
+
+(Default `outcome_review_days: 14`.) Damit `/po-verify-outcome --all-due`
+spaeter den Termin findet.
+
+Wenn der `po-skill` **nicht aktiv** ist (keine `PROJECT_VISION.md`), bleibt
+der Status-Flow unveraendert — kein Vision-Prinzip-Check, kein
+Outcome-Review.
+
 `review` ist **obligatorischer Zwischenschritt** vor `done`, nicht optional. In
 `review` laeuft:
 1. Verifier-Pass (`/sdd-verify TICKET-NNN`) — Verify-Report wird unter

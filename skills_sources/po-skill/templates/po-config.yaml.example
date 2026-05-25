@@ -1,0 +1,46 @@
+# PO-Skill-Konfiguration pro Projekt
+# Wird von /po-challenge, /po-prioritize, /po-verify-outcome gelesen.
+# Ableitung beim /po-init.
+
+po_skill:
+  # Tage nach `done`, ab denen /po-verify-outcome sinnvoll laeuft.
+  # Default 14 — kurz genug fuer schnelle Feedback-Schleife,
+  # lang genug damit der Effekt sich zeigt.
+  outcome_review_days: 14
+
+  # Stunden, die eine neue Idee per Default im Cooldown bleibt.
+  # Default 48 — zwei Schlafphasen, deckt "war-da-eine-Sprachnachricht-Hype"
+  # ab. Akute Ideen (Bug, Live-Blocker, Audit) skipt der Skill automatisch.
+  cooldown_default_hours: 48
+
+  # Wenn true: SDD-Hook blockt `idea` -> `spec` HART wenn kein
+  # `vision_principle:` referenziert ist. Default false (Warning).
+  # Aequivalent zu ENV `PO_SKILL_STRICT=1`.
+  strict_vision_principle: false
+
+  # MoSCoW -> Effort-Punkte fuer RICE-Score. Mappt T-Shirt-Groesse aus dem
+  # Ticket-Frontmatter (`Geschaetzter Aufwand: XS|S|M|L|XL`).
+  rice_effort_mapping:
+    XS: 1
+    S: 2
+    M: 3
+    L: 5
+    XL: 8
+
+  # MoSCoW-Fallback fuer Reach/Impact/Confidence (wenn Ticket diese Felder
+  # nicht explizit setzt). Optional — Skill markiert fehlende Felder im
+  # /po-prioritize-Output mit `?` statt zu raten.
+  moscow_default:
+    Must:
+      reach: 8
+      impact: 8
+      confidence: 0.7
+    Should:
+      reach: 5
+      impact: 6
+      confidence: 0.6
+    Could:
+      reach: 3
+      impact: 4
+      confidence: 0.5
+    # Wont wird nicht priorisiert
