@@ -1,0 +1,47 @@
+# PO-Skill-Konfiguration — Skill-Entwicklungs-Repo (skill_dev)
+# Wird von /po-challenge, /po-prioritize, /po-verify-outcome gelesen.
+# Abgeleitet vom Template ~/.claude/skills/po-skill/templates/po-config.yaml.example
+# beim Initial-Setup via TICKET-083 (2026-05-25).
+
+po_skill:
+  # Tage nach `done`, ab denen /po-verify-outcome sinnvoll laeuft.
+  # Skills haben oft laengere Outcome-Horizonte als Projekt-Features
+  # (man merkt erst nach Wochen, ob ein Skill in 2 Projekten wirklich
+  # was bringt). Default-Konservativ: 14 — Ueberschreibung pro Ticket
+  # via `outcome_review_at:` moeglich.
+  outcome_review_days: 14
+
+  # Stunden, die eine neue Skill-Idee per Default im Cooldown bleibt.
+  # 48 — Skill-Ideen sind besonders anfaellig fuer
+  # "cool-zu-haben-aber-keiner-braucht-es"-Falle. Cooldown wirkt
+  # disziplinierend.
+  cooldown_default_hours: 48
+
+  # Wenn true: SDD-Hook blockt `idea` -> `spec` HART wenn kein
+  # `vision_principle:` referenziert ist. Default false (Warning) —
+  # bei SKILL-Tickets aber strenger als bei Projekt-Tickets, weil
+  # der Verortungs-Fehler hier teurer ist.
+  strict_vision_principle: false
+
+  # MoSCoW -> Effort-Punkte fuer RICE-Score
+  rice_effort_mapping:
+    XS: 1
+    S: 2
+    M: 3
+    L: 5
+    XL: 8
+
+  # MoSCoW-Fallback fuer Reach/Impact/Confidence (optional)
+  moscow_default:
+    Must:
+      reach: 8
+      impact: 8
+      confidence: 0.7
+    Should:
+      reach: 5
+      impact: 6
+      confidence: 0.6
+    Could:
+      reach: 3
+      impact: 4
+      confidence: 0.5

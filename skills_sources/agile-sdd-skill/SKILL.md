@@ -131,6 +131,30 @@ Outcome-Review.
 
 Tickets wechseln niemals zurueck von `done` zu einem anderen Status. Korrekturen erzeugen ein neues Ticket.
 
+### Status-Transition `review` → `done` — Auto-Doku-Hook (TICKET-078 + TICKET-079)
+
+Beim Setzen eines Tickets auf `done` MUSS der Implementer (oder Operator)
+unmittelbar danach die folgenden zwei Generatoren laufen lassen, **wenn
+das Projekt sie hat** (Opt-in: greift nur wenn die Worker-Module existieren):
+
+1. `python -m workers.feature_map_generator` — re-generiert `docs/FEATURE_MAP.md`
+   aus allen `done`-Tickets (Heuristik nach Job-Kategorie + Vision-Prinzip).
+2. `python -m workers.project_overview_generator` — re-generiert
+   `docs/PROJECT_OVERVIEW.html` (Vision + Prinzip-Karten + Feature-Mapping +
+   Live-DB-Stats). Standalone-HTML, oeffnet auch ohne Backend im Browser.
+
+Implementer-Bericht enthaelt die HTML-Update-Bestaetigung als Pflicht-Zeile
+(z.B. "Feature-Map + Projekt-Uebersicht regeneriert: 47 done-Tickets,
+HTML-Datei aktualisiert"). Bei Fehlern: nicht das `done` blocken, aber im
+Bericht klar als WARN markieren — die Generatoren sind best-effort.
+
+Pruefung am Bootstrap (`A.8` Verify-Status): Wenn `docs/PROJECT_VISION.md`
+existiert UND es done-Tickets gibt aber `docs/FEATURE_MAP.md` oder
+`docs/PROJECT_OVERVIEW.html` fehlen / aelter als das juengste done-Ticket
+sind, schlaegt der Agent dem User aktiv vor, die beiden Generatoren einmal
+zu laufen. Strict-Mode (Hard-Block) ist nicht vorgesehen — die Datei-Pflege
+darf nie das eigentliche Ticket-Arbeit blockieren.
+
 ### Code-Referenz-Pattern
 
 Jede Stelle im Code die ein Ticket implementiert bekommt einen Kommentar:
