@@ -1,0 +1,334 @@
+/* personal_branding · shared/editorial.css
+ *
+ * Editorial-Stil für Vorträge und Tutorials.
+ * Single source of truth — extrahiert aus deploy/vortrag/index.html.
+ *
+ * Verwendung in Slide-Files (im jeweiligen Unterordner):
+ *   <link rel="stylesheet" href="../shared/editorial.css">
+ *
+ * Bei neuen Vorträgen IMMER referenzieren, nicht inline kopieren.
+ * Slide-spezifische Overrides als minimaler <style>-Block im File OK.
+ */
+
+:root {
+    --bg: #faf7f2;
+    --ink: #0a0e27;
+    --ink-soft: #3a3f5c;
+    --ink-muted: #6b6f87;
+    --accent: #f25d3e;
+    --accent-deep: #d4422a;
+    --accent-soft: #fde6df;
+    --rule: #e8e2d8;
+    --warm-white: #ffffff;
+  }
+
+  html, body, .reveal {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .reveal {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 400;
+    font-feature-settings: 'ss01', 'cv11';
+    font-size: 30px;
+  }
+
+  /* Slide-Layout */
+  .reveal .slides > section,
+  .reveal .slides > section > section {
+    padding: 1.4em 2.5em 1.4em 5em;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    height: 100%;
+    overflow: hidden;
+  }
+  .reveal section.center,
+  .reveal section.dark,
+  .reveal section.accent { padding-left: 2.5em; }
+
+  .reveal section.center { text-align: center; align-items: center; }
+
+  /* Number-Marker — left column reserved by padding-left */
+  .reveal .num {
+    position: absolute;
+    top: 1.4em;
+    left: 1.8em;
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 1.6em;
+    color: var(--accent);
+    font-variation-settings: 'opsz' 144, 'SOFT' 0;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  /* Sublabel */
+  .reveal .tag {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.55em;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 1em;
+  }
+  .reveal .tag.soft { color: var(--ink-muted); }
+
+  /* Headlines — Display-Größen */
+  .reveal h1, .reveal h2, .reveal h3 {
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .reveal h1 { font-size: 3.4em; font-weight: 800; margin-bottom: 0.4em; }
+  .reveal h2 { font-size: 2.6em; font-weight: 800; border-bottom: none; padding-bottom: 0; margin-bottom: 0.5em; }
+  .reveal h3 { font-size: 1.2em; font-weight: 600; color: var(--ink-soft); margin-top: 0.5em; }
+
+  /* Serif-Italic Akzent */
+  .reveal .serif {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    letter-spacing: -0.01em;
+  }
+
+  /* Lead */
+  .reveal .lead {
+    font-size: 1.2em;
+    color: var(--ink-soft);
+    font-weight: 400;
+    line-height: 1.4;
+    margin-bottom: 0.8em;
+    max-width: 28em;
+  }
+  .reveal .lead.large { font-size: 1.4em; max-width: 30em; }
+
+  /* Body */
+  .reveal p { font-size: 1.05em; line-height: 1.5; color: var(--ink); margin: 0.5em 0; }
+  .reveal p.muted { color: var(--ink-muted); }
+
+  /* Section-Slides */
+  .reveal section.dark { color: var(--bg); }
+  .reveal section.dark h1, .reveal section.dark h2 { color: var(--bg); }
+  .reveal section.dark .lead, .reveal section.dark p { color: rgba(250, 247, 242, 0.88); }
+  .reveal section.dark .tag { color: var(--accent); }
+  .reveal section.dark .num { color: rgba(255,255,255,0.4); }
+
+  .reveal section.accent h1, .reveal section.accent h2 { color: var(--ink); }
+  .reveal section.accent .tag { color: var(--ink); }
+  .reveal section.accent .lead, .reveal section.accent p { color: var(--ink); }
+  .reveal section.accent .num { color: rgba(10,14,39,0.35); }
+
+  /* Editorial Rule */
+  .reveal .rule {
+    width: 3em;
+    height: 4px;
+    background: var(--accent);
+    margin: 0 0 1.2em 0;
+    border: none;
+    border-radius: 2px;
+  }
+
+  /* Items */
+  .reveal .items { margin: 0.4em 0; padding: 0; list-style: none; }
+  .reveal .items > li {
+    padding: 0.45em 0;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 2.2em 1fr;
+    align-items: baseline;
+    gap: 0.5em;
+    font-size: 1em;
+    line-height: 1.35;
+  }
+  .reveal .items > li:last-child { border-bottom: 1px solid var(--rule); }
+  .reveal .items > li::before {
+    content: attr(data-num);
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 1em;
+    color: var(--accent);
+    font-variation-settings: 'opsz' 144;
+  }
+  .reveal section.dark .items > li { border-color: rgba(255,255,255,0.18); }
+  .reveal section.dark .items > li:last-child { border-bottom-color: rgba(255,255,255,0.18); }
+  .reveal section.accent .items > li { border-color: rgba(10,14,39,0.2); color: var(--ink); }
+  .reveal section.accent .items > li:last-child { border-bottom-color: rgba(10,14,39,0.2); }
+
+  /* Compare two-col */
+  .reveal .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5em; margin: 0.8em 0; align-items: start; }
+  .reveal .compare .col p.headline { font-size: 1.5em; font-weight: 700; line-height: 1.2; color: var(--ink); }
+  .reveal .compare .col.alt p.headline { color: var(--accent-deep); }
+  .reveal section.dark .compare .col p.headline { color: var(--bg); }
+  .reveal section.dark .compare .col.alt p.headline { color: var(--accent); }
+
+  /* Stat */
+  .reveal .stat-block { display: flex; flex-direction: column; align-items: flex-start; margin: 0.4em 0; }
+  .reveal section.center .stat-block { align-items: center; }
+  .reveal .stat-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 5em;
+    line-height: 0.9;
+    color: var(--ink);
+    letter-spacing: -0.05em;
+    font-variation-settings: 'opsz' 144, 'SOFT' 0;
+  }
+  .reveal section.dark .stat-num { color: var(--bg); }
+  .reveal .stat-label { font-size: 1.1em; color: var(--ink-soft); margin-top: 0.5em; max-width: 22em; font-weight: 500; }
+  .reveal section.dark .stat-label { color: rgba(250,247,242,0.88); }
+  .reveal section.accent .stat-label { color: var(--ink); }
+
+  /* Chain */
+  .reveal .chain { display: flex; align-items: center; gap: 0.7em; margin: 1em 0; flex-wrap: wrap; }
+  .reveal .chain .step {
+    font-size: 1em;
+    font-weight: 600;
+    padding: 0.5em 0.9em;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ink);
+  }
+  .reveal .chain .step.end { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .reveal .chain .arrow { color: var(--ink-muted); font-weight: 700; }
+
+  /* Statement / Pull-Quote */
+  .reveal .statement {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.5em;
+    color: var(--ink);
+    line-height: 1.3;
+    border-left: 3px solid var(--accent);
+    padding-left: 1em;
+    margin: 0.8em 0;
+    max-width: 26em;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+  }
+  .reveal section.dark .statement { color: var(--bg); }
+
+  /* Mindset-Card — die markanten Sätze */
+  .reveal .mindset {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.7em 1.1em;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 6px;
+    margin: 0.4em 0.4em 0.4em 0;
+    letter-spacing: -0.01em;
+  }
+  .reveal .mindset.accent { background: var(--accent); color: var(--ink); }
+  .reveal .mindset.outline { background: transparent; border: 2px solid var(--ink); color: var(--ink); }
+
+  /* Mindset-Line — große editorial Quote-Statements */
+  .reveal .mindset-line {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 1.6em;
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 0.5em 0;
+    letter-spacing: -0.01em;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    border-left: 4px solid var(--accent);
+    padding-left: 0.8em;
+    max-width: 22em;
+  }
+  .reveal .mindset-line .em {
+    font-style: normal;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .reveal .mindset-line .serif {
+    color: var(--accent);
+  }
+
+  /* Formel-Meme für Mitarbeiter-Slide */
+  .reveal .formula {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 1.4em;
+    line-height: 1.6;
+    text-align: center;
+    margin: 0.6em 0;
+    letter-spacing: -0.01em;
+  }
+  .reveal .formula .op { color: var(--accent); font-weight: 600; font-style: italic; padding: 0 0.2em; }
+  .reveal .formula .boom {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-style: normal;
+    color: var(--accent-deep);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85em;
+  }
+  .reveal .formula .pers {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0.1em 0.5em;
+    border-radius: 4px;
+    font-size: 0.8em;
+    letter-spacing: 0.02em;
+    margin: 0 0.15em;
+  }
+  .reveal .formula .pers.weak { background: var(--ink-muted); }
+
+  /* QR Slide */
+  .reveal .qr-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.5em 0;
+    padding: 1.2em;
+    background: var(--bg);
+    border-radius: 12px;
+  }
+  .reveal #qrcode img,
+  .reveal #qrcode canvas { display: block; }
+  .reveal .price-strike {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 2em;
+    color: var(--ink-muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    letter-spacing: -0.02em;
+  }
+  .reveal .price-free {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.1em;
+    letter-spacing: -0.01em;
+  }
+
+  /* Fragments */
+  .reveal .fragment { margin-bottom: 0.4em; }
+
+  /* Slide-Nummer ausblenden */
+  .reveal .slide-number { display: none; }
+
+  /* Mobile */
+  @media (max-width: 800px) {
+    .reveal .slides > section { padding: 2em 2em; }
+    .reveal .num { top: 1.5em; left: 1.8em; }
+    .reveal { font-size: 32px; }
+  }

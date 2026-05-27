@@ -404,7 +404,192 @@ Bei Phase 1 (Slide-Inventur, siehe Workflow oben) **zusätzlich entscheiden**:
 - **Charakter-Foto und Footer NICHT auf jeder Slide** — Title/Section: Foto. Content-Slides: nur Footer. Schluss-Slide: Foto zurück
 - **Sandi-Footer auf eigenen Decks ersetzen** durch eigenen Brand-String (z.B. „Jakob Sebov – DQM @ dm" — bis Jakobs CI da ist)
 
-## Best Practices (bis CI für Jakob Sebov vorliegt)
+## Optional: Editorial-Mode — Jakob Sebov Personal Brand
+
+> **Wann?** Für Jakobs eigene Personal-Brand-Decks: Vorträge, Workshop-Präsis, Tutorial-Slides, alles unter `jakse-automations.com`. Der Stil ist warm, redaktionell, mit klarer Hierarchie (großer Number-Marker links, Sublabel-Tag, Trennstrich, dann Headline mit Italic-Akzenten).
+> **Quelle / Single Source of Truth:** `assets/editorial.css` (mitgeliefert im Skill) — identisch mit `personal_branding/deploy/shared/editorial.css`.
+> **Wechselbar:** Phase 1 (Slide-Inventur) explizit entscheiden — Editorial bei Personal-Brand-Inhalten, Default für Stakeholder/Status, Sandi für Workshop-Übungen.
+
+### Charakter-Merkmale auf einen Blick
+- **Cremig-warmes Beige** als Hintergrund (`#faf7f2`), tiefes Navy (`#0a0e27`) als Text, **Coral** (`#f25d3e`) als einziger Akzent
+- **Inter** (sans-serif) für Body, **Fraunces** (Italic-Serif, variable Font) für Akzente in Headlines (`<span class="serif">…</span>`)
+- **Number-Marker** links oben (groß, Fraunces, Coral) — strukturiert das Deck wie ein Magazin-Artikel
+- **Sublabel "Tag"** unter dem Number-Marker — kleines, uppercase, Coral-farbenes Label, das die Slide-Funktion bezeichnet
+- **Editorial Rule** (3em breiter Coral-Strich) zwischen Tag und Headline
+- **Headline mit Italic-Serif-Akzent** für *ein* Schlüsselwort: „Smoobu kriegt einen *Webhook*."
+- **Großzügiges Whitespace links** (padding-left: 5em für num-Marker)
+- **Slide-Ratio: 1920×1080**, margin 0.05 (anders als Default 1280×720)
+- **Drei Section-Modes:** Standard (Beige), `.dark` (Navy voll-flächig, weiße Schrift), `.accent` (Coral voll-flächig, Navy-Schrift) — für Title-, Section-Divider-, Statement-Slides
+
+### Farbpalette Editorial (CSS-Variablen aus `editorial.css`)
+
+```css
+:root {
+  --bg: #faf7f2;          /* cremiges Beige — Standard-Hintergrund */
+  --ink: #0a0e27;         /* tiefes Navy — Standard-Text */
+  --ink-soft: #3a3f5c;    /* abgeschwächtes Navy — Lead/Subtext */
+  --ink-muted: #6b6f87;   /* grauer Ink — sehr leise Texte */
+  --accent: #f25d3e;      /* Coral — der einzige Farb-Akzent */
+  --accent-deep: #d4422a; /* dunkleres Coral — für strong/em */
+  --accent-soft: #fde6df; /* fast-weiß Coral — Hintergründe */
+  --rule: #e8e2d8;        /* sehr helles Beige — Trennlinien */
+  --warm-white: #ffffff;  /* reines Weiß — Karten-Hintergründe */
+}
+```
+
+### Setup im HTML-File
+
+```html
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="PFAD/zu/editorial.css">  <!-- Kopie aus skill-assets oder Shared-CSS-Pfad -->
+</head>
+```
+
+Reveal-Initialisierung:
+```js
+Reveal.initialize({
+  hash: true,
+  transition: 'fade',
+  backgroundTransition: 'fade',
+  width: 1920,
+  height: 1080,
+  margin: 0.05,         // Personal-Brand-Default (nicht 0.10)
+  minScale: 0.2,
+  maxScale: 2.0,
+  center: false,
+  controls: true,
+  progress: true,
+  plugins: [ RevealNotes ],
+});
+```
+
+### CSS-Klassen-Bibliothek (was wann verwenden)
+
+| Klasse | Zweck | Beispiel |
+|---|---|---|
+| `<span class="num">` | Slide-Nummer links oben (Fraunces, Coral, groß) | `<span class="num">07</span>` |
+| `<p class="tag">` | Sublabel unter num (uppercase, Coral, klein) | `<p class="tag">Block 1 · Gästekommunikation</p>` |
+| `<hr class="rule">` | 3em Coral-Trennstrich zwischen Tag und Headline | direkt nach dem Tag |
+| `<span class="serif">` | Italic-Serif-Akzent in Headline (Fraunces) | `<h2>Smoobu kriegt einen <span class="serif">Webhook</span>.</h2>` |
+| `<p class="lead">` | Untertitel unter h2 (1.2em, ink-soft) | `<p class="lead">Hier kommt die Erklärung.</p>` |
+| `<p class="lead large">` | Größerer Lead (1.4em) | für Statements unter Titel |
+| `<ul class="items">` mit `<li data-num="A">` | Liste mit Fraunces-Markern (A, B, 1, ·) | `<li data-num="1"><strong>Name</strong> — Beschreibung</li>` |
+| `<p class="statement">` | Pull-Quote (Fraunces italic, Coral-Border links) | für Kernsätze, Mantras |
+| `<div class="compare">` mit `<div class="col">` / `<div class="col alt">` | Zwei-Spalter-Vergleich | API ↔ Webhook, Vorher ↔ Nachher |
+| `<div class="chain">` mit `<div class="step">` / `<span class="arrow">` | Verkettete Prozess-Schritte mit Pfeilen | Event → Daten → Entscheidung → Aktion |
+| `<div class="stat-block">` mit `<div class="stat-num">` + `<p class="stat-label">` | Große Statistik (Fraunces, 5em) | "< 1 %" mit Erklärung darunter |
+| `<div class="formula">` mit `<span class="op">` | Formel-Layout (Fraunces, zentriert) | „**Wenn** X passiert, **und** Y gilt, **dann** Z" |
+| `<p class="mindset-line">` | Großes Editorial-Quote-Statement | für emotionale Closing-Sätze |
+| `<span class="mindset">` | Kleines Inline-Label (Inter Bold, dunkler Background) | inline-Tags wie Buttons |
+
+### Section-Modes
+
+| Section-Class | Wann | Visual |
+|---|---|---|
+| `<section>` (kein class) | Standard Content-Slide | Cremiger Hintergrund, Navy-Schrift |
+| `<section class="dark">` | Title-Slide, Section-Divider, Mindset-Closing | Navy voll-flächig, weiße Schrift, Coral-Akzente |
+| `<section class="accent">` | Coral-Statement-Slide, dramatische Pointe | Coral voll-flächig, Navy-Schrift |
+| `<section class="center">` | text-align: center + vertikal zentriert | Mit `.dark` oder `.accent` für Title-Slides |
+
+### Editorial-Pattern-Templates (5 Layouts decken ~95 % ab)
+
+**1. Title-Slide (Dark + Center)**
+```html
+<section class="dark center" data-background-color="#0a0e27">
+  <p class="tag" style="font-size: 0.5em; opacity: 0.7;">EVENT-KONTEXT · DATUM</p>
+  <h1 style="font-size: 3.4em; line-height: 1.05; max-width: 18em; margin-top: 1em;">
+    Hauptaussage mit <span class="serif" style="color: var(--accent);">Italic-Akzent.</span>
+  </h1>
+  <p class="lead" style="margin-top: 1em; max-width: 32em; opacity: 0.85;">Untertitel-Satz, der die Hauptaussage erweitert.</p>
+  <p style="margin-top: 2.5em; font-size: 0.55em; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.6;">Sprecher · Datum · Ort</p>
+</section>
+```
+
+**2. Standard Content-Slide (mit num + tag + rule + items)**
+```html
+<section>
+  <span class="num">07</span>
+  <p class="tag">Block-Kontext · Slot-Beschreibung</p>
+  <hr class="rule">
+  <h2>Vollständige Headline mit <span class="serif">Akzent</span>.</h2>
+  <p class="lead" style="margin-top: 0.6em;">Optionaler Untertitel-Satz für Kontext.</p>
+  <ul class="items" style="margin-top: 0.8em;">
+    <li class="fragment fade-in" data-num="1"><strong>Punkt 1</strong> — Erklärung dazu</li>
+    <li class="fragment fade-in" data-num="2"><strong>Punkt 2</strong> — Erklärung dazu</li>
+    <li class="fragment fade-in" data-num="3"><strong>Punkt 3</strong> — Erklärung dazu</li>
+  </ul>
+  <p class="fragment fade-in statement" style="margin-top: 0.8em;">Kernsatz als Pull-Quote — Klammer für die Punkte oben.</p>
+  <aside class="notes">Speaker-Häppchen.</aside>
+</section>
+```
+
+**3. Section-Divider / Statement-Slide (Coral voll-flächig)**
+```html
+<section class="accent" data-background-color="#f25d3e">
+  <span class="num" style="color: rgba(10,14,39,0.35);">04</span>
+  <p class="tag" style="color: var(--ink);">SLOT-LABEL</p>
+  <hr class="rule" style="background: var(--ink);">
+  <h1 style="font-size: 3.6em; max-width: 18em; line-height: 1.05;">
+    Dramatischer Statement-Satz mit <span class="serif">Italic-Akzent.</span>
+  </h1>
+  <p class="lead" style="color: var(--ink); margin-top: 0.8em;">Optionale Erklärung.</p>
+</section>
+```
+
+**4. Stat-Heavy-Slide (Big Number)**
+```html
+<section class="accent center" data-background-color="#f25d3e">
+  <p class="tag" style="color: var(--ink);">SLOT-LABEL</p>
+  <h1 style="font-size: 3.6em; max-width: 18em; line-height: 1.05; color: var(--ink);">Setup für die Zahl.</h1>
+  <div class="stat-block fragment fade-in" style="margin-top: 1em;">
+    <div class="stat-num" style="color: var(--ink);">800</div>
+    <p class="stat-label" style="color: var(--ink);">Bewerbungen pro Saison.</p>
+  </div>
+  <p class="fragment fade-in statement" style="margin-top: 1em; color: var(--ink); border-left-color: var(--ink);">Pointe nach der Zahl.</p>
+</section>
+```
+
+**5. Two-Column Compare-Slide (API ↔ Webhook, Vorher ↔ Nachher)**
+```html
+<section>
+  <span class="num">05</span>
+  <p class="tag">Vergleichs-Kontext</p>
+  <hr class="rule">
+  <h2>Headline, die den Vergleich rahmt.</h2>
+  <div class="compare" style="margin-top: 0.8em;">
+    <div class="col">
+      <p class="headline" style="font-size: 1.3em;">Spalte A</p>
+      <p class="lead">Beschreibung A — was hier passiert.</p>
+    </div>
+    <div class="col alt">
+      <p class="headline" style="font-size: 1.3em;">Spalte B</p>
+      <p class="lead">Beschreibung B — was hier passiert.</p>
+    </div>
+  </div>
+  <p class="fragment fade-in statement" style="margin-top: 1em;">Kernsatz, der den Vergleich auflöst.</p>
+</section>
+```
+
+### Workflow-Erweiterung: Editorial-Decision in Phase 1
+
+Bei Phase 1 (Slide-Inventur) zusätzlich entscheiden:
+- Ist das ein **Vortrag / Workshop / Tutorial für Jakobs Personal Brand**? → Editorial-Mode
+- Liegen URLs unter `jakse-automations.com` oder Sub-Pfaden davon? → Editorial-Mode
+- **Mixed:** Editorial-Mode für die Inhalts-Slides + einzelne Sandi-Slides nur für Workshop-Übungen, wenn beide Modes benötigt werden
+
+### Disziplin-Hinweise für Editorial-Mode
+- **Eine Italic-Serif-Hervorhebung pro Headline** — `<span class="serif">…</span>` für *ein* Schlüsselwort, nicht für drei
+- **Statement-Klasse sparsam** — wenn jede Slide einen Statement hat, verliert er Wirkung. 1 pro 3–4 Slides ist der Default
+- **Coral als einziger Akzent** — keine anderen Akzentfarben dazu mischen
+- **Num-Marker konsekutiv durch das Deck** — bei Sub-Slides Pattern `14·1`, `14·2` oder Symbole wie `↻` für Reflexions-Slides
+- **Tag pro Slide** — auch wenn nur Slot-Label oder Zeit-Info. Macht die Navigation klar
+- **Speakernotes immer** — auch wenn nur ein Satz. Erzwingt didaktische Disziplin
+
+
 
 ### Setup — Single-file HTML, CDN, reveal.js v4
 - Use `reveal.js 4.6.1` (LTS, stable) from cdnjs
