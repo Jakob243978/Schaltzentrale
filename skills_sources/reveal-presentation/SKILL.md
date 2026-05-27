@@ -130,6 +130,14 @@ Use `S` to open the speaker view (notes + next-slide preview).
 - **Max 80 Zeichen** — passt in zwei Zeilen bei der definierten Schriftgröße
 - Wenn die Aussage länger wird → die Aussage ist nicht klar genug; nochmal schärfen
 
+### Spaltenbreite zuerst prüfen (vor Text-Splitting)
+
+Wenn ein Bullet/Statement unschön bricht: **erst max-width der Liste prüfen**, dann erst den Text splitten. Häufiger Fehler: Inline `style="max-width: 28em"` ist zu eng für den Inhalt — der Text wird gesplittet obwohl er bei 40em-50em problemlos in eine Zeile passt.
+
+**Faustregel:** Wenn ein 80-Zeichen-Bullet unschön bricht und auf der Slide noch Platz wäre, erst `max-width` auf 40-50em hoch. Erst wenn das nicht reicht (oder die Slide visuell unausgeglichen wird), den Text aufsplitten (siehe nächste Sektion).
+
+**Slide-Höhe respektieren:** Reveal-Default 1920×1080 oder 1280×720. Bei vielen Bullets + Steve-Card + Statement zählen — passt das alles ins Viewport, oder wird die letzte Zeile abgeschnitten? Im Zweifel: Statement weglassen oder als zusätzliches Item integrieren.
+
 ### Satz-an-Sinneinheit-umbrechen (gegen unschöne Auto-Wraps)
 
 Lange Bullet-Texte / Aussagen bei breiten Spalten brechen sonst mitten im Satz oder zwischen sinngemäß zusammengehörenden Worten — wirkt schlampig. Disziplin:
