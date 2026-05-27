@@ -130,6 +130,66 @@ Use `S` to open the speaker view (notes + next-slide preview).
 - **Max 80 Zeichen** — passt in zwei Zeilen bei der definierten Schriftgröße
 - Wenn die Aussage länger wird → die Aussage ist nicht klar genug; nochmal schärfen
 
+### Satz-an-Sinneinheit-umbrechen (gegen unschöne Auto-Wraps)
+
+Lange Bullet-Texte / Aussagen bei breiten Spalten brechen sonst mitten im Satz oder zwischen sinngemäß zusammengehörenden Worten — wirkt schlampig. Disziplin:
+
+- **Bullet-Items mit längerer Erklärung:** Hauptbegriff fett + `<br>` + Erklärung als gedämpfter Sub-Text in eigenem `<span>`:
+  ```html
+  <li data-num="1">
+    <strong>Rechnungen zu prüfen</strong><br>
+    <span style="font-size: 0.9em; color: var(--ink-soft);">Paulinas Bereich — Steve hat hier nicht durchgewunken.</span>
+  </li>
+  ```
+- **Lange Statement-Sätze:** an natürlicher Satz-/Gedanken-Grenze brechen — nach Doppelpunkt, vor Konjunktion, nach Hauptaussage. Mit `<br>` + Sub-Text-Klasse:
+  ```html
+  <p><strong>Parallel im Hintergrund:</strong> Jede PDF landet zusätzlich im Lake.<br>
+  <span style="color: var(--ink-soft);">Compliance-Backup — unabhängig vom DATEV-Pfad.</span></p>
+  ```
+- **Compare-Tabellen-Items mit Erklärung:** Aktion oben, Begründung im Sub-Text — nie ein langer Satz in einer Zelle, sondern Action + Why getrennt:
+  ```html
+  <li data-num="1">Original in „Verarbeitet" suchen.<br>
+    <span style="color: var(--ink-muted);">Irene informieren falls schon bezahlt.</span></li>
+  ```
+- **Faustregel:** wenn ein Bullet/Statement länger als ~80-100 Zeichen wird **und** in einer schmalen Spalte sitzt → splitten in Haupt-Aussage + Sub-Text.
+- **NICHT:** ein einzelner langer `<p>` mit mehreren Sätzen — das bricht garantiert unschön. Lieber zwei Absätze oder einer mit `<br>`.
+
+### Umlaute richtig schreiben (deutsche Stakeholder-Texte)
+
+Für **stakeholder-sichtbare Texte** (Slides, Visible-HTML, Speaker-Notes wenn gezeigt) **echte deutsche Umlaute** verwenden — nicht `oe/ae/ue/ss` als ASCII-Notlösung:
+
+| ❌ ASCII-Notation | ✅ Umlaut |
+|---|---|
+| `ueber`, `Ueber` | `über`, `Über` |
+| `pruefen`, `Pruefung` | `prüfen`, `Prüfung` |
+| `moegli`, `Moegli` | `mögli`, `Mögli` |
+| `aend`, `Aend` | `änd`, `Änd` |
+| `Schluess`, `schluess` | `Schlüss`, `schlüss` |
+| `loes`, `Loes` | `lös`, `Lös` |
+| `koen`, `Koen` | `kön`, `Kön` |
+| `muess`, `Muess` | `müss`, `Müss` |
+| `fuer`, `Fuer` | `für`, `Für` |
+| `naech`, `Naech` | `näch`, `Näch` |
+| `spaeter`, `Spaeter` | `später`, `Später` |
+| `Geschaefts` | `Geschäfts` |
+| `woechentlich` | `wöchentlich` |
+| `Saetze` | `Sätze` |
+| `Faelle` | `Fälle` |
+| `zurueck` | `zurück` |
+
+**Wo erlaubt bleibt:**
+- **Quellcode** (Variablennamen, Slugs, Vision-Principle-IDs wie `eingangskanaele-zentralisieren`) — ASCII-only ist Konvention
+- **Frontmatter-Slugs** in Tickets/ADRs (`vision_principle: bus-faktor-zaehlt`)
+- **CSS-/HTML-Attributnamen, Klassen, IDs**
+- **Speakernotes-MD-Datei** wenn Standalone — pragmatisch, kein Stakeholder schaut da rein
+
+**Charset-Sanity:** HTML braucht `<meta charset="UTF-8">` im `<head>`. Beim Schreiben in PowerShell/Python: `Set-Content -Encoding utf8` bzw. `open(..., encoding='utf-8')`. Bei Editor-Diffs prüfen ob nicht durch Encoding-Drift Umlaute verloren gehen (z.B. Windows-1252-Saves).
+
+### Sicherheits-Check vor PDF-Export/Print
+
+- `?print-pdf` öffnen + scrollen: bricht ein Bullet unschön? Splitten.
+- Über `&` in HTML-Attributen kein Problem (Browser rendert HTML-Entities), aber im sichtbaren Text mit `&amp;` schreiben falls direkt im HTML steht.
+
 ## Optional: Sandi-Style — Workshop / Branding / Coaching Vibe
 
 > **Wann?** Wenn die Präsi *warmer, persönlicher, einladender* sein soll als der Default-Business-Look. Typische Fälle: Coaching-Sessions, Branding-Workshops, Personal-Brand-Decks, Hausaufgaben-Slides, „Date with your Superfan"-Übungen, kreative Strategiearbeit, alles wo der Zuhörer *aktiv mitmachen* soll.
