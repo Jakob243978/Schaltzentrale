@@ -1,2 +1,6 @@
 # Claude Code lokale Einstellungen
 .claude/settings.local.json
+
+# Auto-extrahierte Skill-Assets (aus PDF erzeugbar, gehören nicht ins Repo)
+skills_sources/**/_extracted_pages/
+skills_sources/**/_extracted_pages_small/
