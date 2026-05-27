@@ -5,6 +5,60 @@ eingetragen. Jakob reviewt dieses Log asynchron.
 
 ---
 
+## 2026-05-27 — SKILL-007 angelegt (Reveal-Visual-Review aus BeyerImmo-Live-Schmerz)
+
+**Trigger:** Jakob-Auftrag aus Schaltzentrale-Session abends 2026-05-27 —
+direkt nach 1h Feedback-Loops auf BeyerImmo-Onboarding-Praesi
+(`KundenAB/BeyerImmo/onboarding/onboarding_office_team.html`). Drei
+visuelle Bugs (CSS-Grid auf `.reveal .items > li`, Slide-Hoehe-Overflow,
+Sub-Text-Pattern) waren aus HTML-Quellcode allein nicht erkennbar.
+Ad-hoc-Loesung mit Chromium-headless-Screenshots hat funktioniert →
+Pattern soll in Skill wandern.
+**Implementer-Modell:** claude-opus-4-7 (1M context), reine Doku-/
+Ticket-Aenderung im Meta-Layer
+**Status:** Ticket angelegt, Skill-Code unveraendert (folgt im
+Implementer-Pass)
+
+**Autonome Entscheidungen:**
+- **SKILL-007 Status `spec` direkt** (nicht `idea`): Live-Material
+  liegt vor (BeyerImmo-Beispiel, validierte Methode), 48h-Cooldown
+  nicht sinnvoll bei akuter Schmerz-Erfahrung mit direktem Auftrag.
+  Vision-Match eindeutig (`lessons-aus-live-use-zurueckfuehren` +
+  `dogfood-zwingt-qualitaet`).
+- **MoSCoW = Should** (nicht Must): Skill funktioniert ohne Phase 4
+  weiter; Erweiterung ist Reibungs-Reduktion, nicht Existenz-
+  notwendig. Konsistent mit SKILL-003/SKILL-006-Einordnung.
+- **Pre-Conditions-Format verwendet** (analog SKILL-004/SKILL-006):
+  Dogfood auch fuer dieses Ticket — auch wenn SKILL-004 noch nicht
+  done ist, ist das neue Format als optionale Best-Practice schon
+  zulaessig (Warning-only-Design erlaubt das).
+- **Skill-Source unveraendert**: Implementer-Pass folgt; dieses
+  Ticket ist Spec-Layer.
+- **Inhaltliche Review explizit Out-of-Scope**: Jakob hat das
+  ausdruecklich gesagt — Faktentreue/Story-Bogen/Tonalitaet bleiben
+  manuell, kein Skill-Scope.
+- **PowerShell-Variante des Wrapper-Scripts mit aufgenommen** (Teil
+  B): globaler CLAUDE.md gibt PowerShell als Default-Shell auf
+  Windows, Bash-only-Script waere unvollstaendig.
+
+**Artefakte angelegt:**
+- `skill_dev/docs/tickets/SKILL-007.md` (Reveal-Presentation Visual-
+  Review-Pass, spec, Should)
+- `skill_dev/ROADMAP.md` (Eintrag in Should-Sektion)
+- `skill_dev/docs/governance_log.md` (dieser Eintrag)
+
+**PO-Abnahme noetig:**
+- SKILL-007 Vision-Prinzip-Match gegen SKILLS_VISION.md
+  gegenpruefen (Annahme: `lessons-aus-live-use` + `dogfood` passen,
+  ggf. Schaerfung wenn Jakob abweicht)
+- Reihenfolge im Sprint: parallel zu SKILL-004/SKILL-006 bearbeitbar,
+  Skill-Code (`reveal-presentation/`) ist unabhaengig vom agile-sdd-
+  Skill — kein Blocker
+- Optional: reveal-presentation v0.1-Anker in `skill-versions.md`
+  als Vorgriff (SKILL-005 deckt das nicht explizit ab)
+
+---
+
 ## 2026-05-26 — Jakob-Entscheidung: SKILL-006 hochgestuft + SKILL-004 ohne Strict-Mode
 
 **Trigger:** Jakobs Review der drei Tickets aus der Knowledge-

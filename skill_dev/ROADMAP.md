@@ -21,6 +21,7 @@ sind es. Hier nur Uebersicht fuer Sprint-Planung + Status-Check.
 | SKILL-002 | Refactor T078/T079 in PO-Skill (Vision↔Features-Bridge generalisieren) | spec — wartet auf T078+T079 done in Immobewertung | `skill-muss-multi-projekt-tauglich-sein` + `lessons-aus-live-use-zurueckfuehren` |
 | SKILL-003 | Anti-Pattern "Iterative Artefakt-Generierung" + Implementer-Hygiene | spec | `lessons-aus-live-use-zurueckfuehren` + `skill-schlanker-als-was-er-ersetzt` |
 | SKILL-006 | KNOWN_FAILURES.md als Pflicht-Datei + Bootstrap-Eintrag (Living Runbook) | spec — parallel zu SKILL-004 bearbeitbar (Jakob-Entscheidung 2026-05-26) | `lessons-aus-live-use-zurueckfuehren` + `skill-muss-multi-projekt-tauglich-sein` |
+| SKILL-007 | Reveal-Presentation Skill: Visual-Review-Step nach Build (Chromium-Screenshot-Pass) | spec — unabhaengig bearbeitbar (anderer Skill als agile-sdd) | `lessons-aus-live-use-zurueckfuehren` + `dogfood-zwingt-qualitaet` |
 
 ## Could (offene Ideen, noch keine SKILL-Tickets)
 
@@ -66,3 +67,8 @@ sind es. Hier nur Uebersicht fuer Sprint-Planung + Status-Check.
 5. SKILL-002 abwarten, bis T078/T079 in Immobewertung done sind.
 6. SKILL-003 (Implementer-Hygiene) kann sofort angegangen werden —
    Pattern-Datei + Memory-Save sind kleine Stueck-Arbeit.
+7. **NEU 2026-05-27 (BeyerImmo-Onboarding-Live-Schmerz):**
+   - SKILL-007 (Reveal Visual-Review-Pass) — Should, M-Aufwand.
+     Unabhaengig vom agile-sdd-Skill bearbeitbar (anderer Skill-
+     Source), kein Blocker. Optional: reveal-presentation v0.1-
+     Anker in `docs/skill-versions.md` als Vorgriff anlegen.
