@@ -65,31 +65,67 @@ def test_ears_g1_skills_vision_md_exists_and_parsable():
 # ---------------------------------------------------------------------------
 # EARS-G-2: docs/tickets/SKILL-*.md Liste ist nicht leer
 # ---------------------------------------------------------------------------
-# TICKET-083, Teil G, Case 2
+# TICKET-083, Teil G, Case 2 (angepasst 2026-05-29: Sub-Struktur pro Skill)
 def test_ears_g2_skill_tickets_listed():
     """Nach der Migration aus T080/T081/T082 muss `docs/tickets/` mindestens
-    3 SKILL-NNN.md-Files enthalten."""
+    3 SKILL-NNN.md-Files enthalten.
+
+    Seit 2026-05-29 liegen Tickets pro Skill in Sub-Verzeichnissen
+    (`docs/tickets/<skill>/SKILL-NNN.md`), daher rekursive Suche.
+    """
     assert TICKETS.exists(), f"Tickets-Ordner fehlt: {TICKETS}"
 
-    skill_tickets = sorted(TICKETS.glob("SKILL-*.md"))
+    skill_tickets = sorted(TICKETS.rglob("SKILL-*.md"))
     assert len(skill_tickets) >= 3, (
-        f"Erwartet >=3 SKILL-NNN.md-Files in {TICKETS}, gefunden: "
-        f"{[p.name for p in skill_tickets]}"
+        f"Erwartet >=3 SKILL-NNN.md-Files (rekursiv) in {TICKETS}, gefunden: "
+        f"{[str(p.relative_to(TICKETS)) for p in skill_tickets]}"
     )
 
-    # Erwartete Migrations-Tickets
+    # Erwartete Migrations-Tickets (irgendwo im Tickets-Baum)
     expected = {"SKILL-001.md", "SKILL-002.md", "SKILL-003.md"}
     actual_names = {p.name for p in skill_tickets}
     missing = expected - actual_names
     assert not missing, f"Erwartete Tickets fehlen: {missing}"
 
-    # Jedes Ticket muss eine Migrations-Note + Status-Zeile enthalten.
+    # Eindeutigkeit: Jede SKILL-NNN.md darf nur einmal existieren —
+    # globale Nummerierung ueber alle Skill-Unterverzeichnisse hinweg
+    # (Konvention aus docs/tickets/README.md).
+    name_counts: dict[str, int] = {}
+    for p in skill_tickets:
+        name_counts[p.name] = name_counts.get(p.name, 0) + 1
+    duplicates = {n: c for n, c in name_counts.items() if c > 1}
+    assert not duplicates, (
+        f"Doppelte SKILL-Nummern gefunden: {duplicates}. "
+        f"Nummern muessen global eindeutig sein."
+    )
+
+    # Status-Zeile ist Pflicht in JEDEM SKILL-Ticket.
+    # 'Migriert'-Marker nur fuer die urspruenglichen Migrations-Tickets
+    # SKILL-001/002/003 (aus T080/T081/T082). Neuere SKILL-Tickets sind
+    # nativ angelegt und brauchen den Marker nicht.
     for ticket in skill_tickets:
         text = ticket.read_text(encoding="utf-8")
-        assert "Migriert" in text, f"{ticket.name}: 'Migriert'-Marker fehlt"
         assert re.search(r"\*\*Status:\*\*\s+\w+", text), (
             f"{ticket.name}: Status-Zeile (**Status:** xxx) fehlt"
         )
+        if ticket.name in expected:
+            assert "Migriert" in text, f"{ticket.name}: 'Migriert'-Marker fehlt"
+
+
+# ---------------------------------------------------------------------------
+# EARS-G-2b: docs/tickets/README.md erklaert die Sub-Struktur
+# ---------------------------------------------------------------------------
+# Eingefuehrt 2026-05-29 mit der Tickets-Sub-Struktur-Migration.
+def test_ears_g2b_tickets_readme_explains_substructure():
+    """`docs/tickets/README.md` muss die Sub-Struktur-Konvention dokumentieren
+    (Nummerierungs-Regel, Cross-Cutting-Pfad, Mapping)."""
+    readme = TICKETS / "README.md"
+    assert readme.exists(), f"docs/tickets/README.md fehlt unter {readme}"
+
+    text = readme.read_text(encoding="utf-8").lower()
+    # Pflicht-Begriffe der Konvention (case-insensitive)
+    for needle in ["cross-cutting", "global", "verify/", "skill-nnn"]:
+        assert needle in text, f"README.md erwaehnt '{needle}' nicht"
 
 
 # ---------------------------------------------------------------------------
@@ -144,3 +180,34 @@ def test_bonus_claude_md_mentions_skill_blocks():
         "CLAUDE.md sollte auf skills_sources/ als Code-Pfad hinweisen"
     )
     assert "setup.ps1" in text, "CLAUDE.md sollte setup.ps1-Hinweis enthalten"
+
+
+# ---------------------------------------------------------------------------
+# SKILL-007: Visual-Review-Step fuer reveal-presentation
+# ---------------------------------------------------------------------------
+# Stellt sicher, dass nach Implementierung von SKILL-007 die 4 Artefakte
+# physisch im reveal-presentation-Skill-Source liegen.
+def test_skill_007_visual_review_artifacts_exist():
+    """SKILL-007 Akzeptanzkriterium: Phase-4-Doku in SKILL.md, beide
+    Wrapper-Scripts (.sh + .ps1) in tools/, Pattern-Doku in patterns/."""
+    reveal = REPO_ROOT.parent / "skills_sources" / "reveal-presentation"
+    assert reveal.exists(), f"reveal-presentation Skill-Source fehlt: {reveal}"
+
+    expected = [
+        reveal / "tools" / "screenshot_slides.sh",
+        reveal / "tools" / "screenshot_slides.ps1",
+        reveal / "patterns" / "visual-review.md",
+    ]
+    missing = [p for p in expected if not p.exists()]
+    assert not missing, f"SKILL-007 Artefakte fehlen: {[str(p) for p in missing]}"
+
+    # Phase 4 Sektion muss in SKILL.md angekommen sein
+    skill_md = reveal / "SKILL.md"
+    assert skill_md.exists(), f"SKILL.md fehlt: {skill_md}"
+    text = skill_md.read_text(encoding="utf-8")
+    assert "Phase 4" in text and "Visual-Review-Pass" in text, (
+        "SKILL.md ohne Phase-4-Sektion (Visual-Review-Pass)"
+    )
+    assert "patterns/visual-review.md" in text, (
+        "SKILL.md verlinkt nicht patterns/visual-review.md"
+    )

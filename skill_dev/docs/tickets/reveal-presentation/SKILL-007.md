@@ -1,6 +1,6 @@
 # SKILL-007: Reveal-Presentation Skill — Visual-Review-Step nach Build (Chromium-Screenshot-Pass)
 
-**Status:** spec
+**Status:** review
 **Erstellt:** 2026-05-27
 **MoSCoW:** Should
 **Geschaetzter Aufwand:** M

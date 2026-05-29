@@ -5,6 +5,142 @@ eingetragen. Jakob reviewt dieses Log asynchron.
 
 ---
 
+## 2026-05-29 — Tickets-Sub-Struktur eingefuehrt (Vorbereitung paralleler Skill-Arbeit)
+
+**Trigger:** Jakob-Auftrag (Schaltzentrale-Session) — bei 9 SKILL-Tickets in
+flacher Liste + Start eines vierten Skills (`n8n-human-readable`, Sub-Agent 2)
+wurde die Substruktur faellig. Sub-Agents sollen pro Skill-Kontext lesen
+koennen, ohne fremde Tickets zu screenen.
+**Implementer-Modell:** claude-opus-4-7 (1M context), reine Meta-/
+Struktur-Aenderung im Skill-Dev-Repo — kein Skill-Code-Touch in
+`skills_sources/`.
+**Status:** Migration durchgefuehrt, Smoke-Tests angepasst.
+
+**Autonome Entscheidungen:**
+- **Globale Ticket-Nummerierung beibehalten** (nicht pro Skill von 1):
+  SKILL-001 … SKILL-009 bleiben einzigartig. Begruendung: Memory-Eintraege,
+  governance_log und Commit-Referenzen nennen `SKILL-NNN` ohne Skill-Pfad
+  — Pro-Skill-Nummerierung wuerde Konflikte (zwei `SKILL-001.md`) und
+  Mehrdeutigkeit in Logs verursachen. Konvention in
+  `docs/tickets/README.md` fixiert.
+- **Skill-Zuordnung pro Ticket** (Mapping):
+  - SKILL-001 (PO-Skill bauen) → `po-skill/`
+  - SKILL-002 (Vision↔Features-Bridge) → `po-skill/`
+  - SKILL-003 (Implementer-Hygiene) → `agile-sdd-skill/`
+  - SKILL-004 (EARS-Pre-Conditions) → `agile-sdd-skill/`
+  - SKILL-005 (Skill-Versions-Anker) → `cross-cutting/` (betrifft agile-sdd + po-skill)
+  - SKILL-006 (KNOWN_FAILURES.md) → `agile-sdd-skill/`
+  - SKILL-007 (Reveal-Visual-Review) → `reveal-presentation/`
+  - SKILL-008 (Reveal-Wrapper-Fixes) → `reveal-presentation/`
+  - SKILL-009 (inbox/-Konvention) → `agile-sdd-skill/`
+- **Reserved-Verzeichnisse fuer Skills ohne Ticket**: `obsidian-skills/`,
+  `operator-templates/`, `n8n-human-readable/` — leer mit `.gitkeep`, damit
+  das erste Ticket direkt am richtigen Platz landet. Sub-Agent 2 legt sein
+  Ticket fuer `n8n-human-readable` dort ab.
+- **Verifier-Reports pro Skill** (`<skill>/verify/`): nicht ein zentrales
+  verify/, sondern pro Skill-Unterverzeichnis. Vorteil: Verifier-Subagent
+  liest nur den eigenen Skill-Kontext.
+- **Prinzip 7 in SKILLS_VISION.md ergaenzt**
+  (`skill-tickets-leben-im-skill-unterverzeichnis`) + Aktualisiert-Log-
+  Eintrag. Sub-Struktur ist damit als Vision-Konvention fixiert, nicht
+  nur als ad-hoc-Layout.
+- **Smoke-Tests angepasst**: `test_ears_g2_skill_tickets_listed` greppt
+  jetzt rekursiv (`TICKETS.rglob("SKILL-*.md")`) statt flach, damit die
+  Migration nicht den Test zerschiesst. Erwartungs-Set (SKILL-001/002/003)
+  bleibt erhalten — sie liegen jetzt nur eine Ebene tiefer.
+
+**Artefakte modifiziert/angelegt:**
+- `skill_dev/docs/tickets/README.md` (NEU — Sub-Struktur-Konvention)
+- `skill_dev/docs/tickets/<skill>/` (9 Tickets verschoben in 4 Skill-Unterverzeichnisse)
+- `skill_dev/docs/tickets/{obsidian-skills,operator-templates,n8n-human-readable}/` (NEU, leer)
+- `skill_dev/docs/tickets/{<skill>}/verify/.gitkeep` (pro Skill ein verify/)
+- `skill_dev/CLAUDE.md` (Bootstrap-Sequenz + Verzeichnisstruktur + Konventions-Block updated)
+- `skill_dev/docs/SKILLS_VISION.md` (Prinzip 7 + Aktualisiert-Log)
+- `skill_dev/tests/test_skill_dev_smoke.py` (rglob statt glob, Skill-Pfad-Mapping in Erwartung)
+
+**NICHT angefasst (bewusst):**
+- `skills_sources/` — keine Skill-Code-Aenderung, kein `setup.ps1`-Re-Run noetig.
+- Ticket-Inhalte selbst (Status, Frontmatter, Body) — reine Verschiebung,
+  kein Inhalts-Touch.
+- Ticket-Nummern — Memory + Logs bleiben kompatibel.
+
+**PO-Abnahme noetig:**
+- Vision-Prinzip 7 absegnen (oder schaerfen). Sollte das Mapping fuer
+  ein Ticket abweichen (z.B. SKILL-005 nicht cross-cutting sondern
+  agile-sdd?) — Verschiebung ist trivial.
+- Naming-Check: passt `n8n-human-readable` als Skill-Verzeichnis (vs.
+  `n8n-readable`, `n8n-workflow-readable`)? Sub-Agent 2 sollte das in
+  seinem Ticket konsistent uebernehmen.
+
+---
+
+## 2026-05-28 — SKILL-008 angelegt — Wrapper-Bugs aus SKILL-007 Live-Anwendung
+
+**Trigger:** Erst-Anwendung von SKILL-007 auf BeyerImmo-Onboarding-
+Praesi (16 Slides) am 2026-05-28. Beide Visual-Review-Wrapper scheiterten
+Windows-spezifisch: `screenshot_slides.sh` produzierte 16 Chromium-404-
+PNGs wegen MSYS-`/tmp/`-Pfad in der URL, `screenshot_slides.ps1` brach
+nach Slide 00 mit NativeCommandError ab (chrome.exe-stderr-Zeile triggert
+PS-5.1-Quirk trotz erfolgreichem Screenshot). Recovery in der Session
+via bash-Inline-Call mit Windows-Pfad — Phase-4-Mechanik selbst hat sich
+bewiesen (Slide-11-Overflow gefangen), nur die Liefer-Vehikel sind kaputt.
+**Implementer-Modell:** claude-opus-4-7 (1M context), reine Ticket-/
+Governance-Aenderung im Meta-Layer, kein Skill-Code-Touch.
+**Status:** Ticket angelegt (spec), SKILL-007 bleibt `review`
+(Phase-4-Logik unveraendert valid).
+
+**Autonome Entscheidungen:**
+- **SKILL-008 Status `spec` direkt** (nicht `idea`): Live-Material
+  liegt vor (BeyerImmo-Beleg + konkrete Reproduktions-Pfade beider
+  Bugs), Fix-Empfehlungen pro Bug bereits formuliert, 48h-Cooldown
+  nicht sinnvoll bei akut blockierender Erfahrung. Vision-Match
+  eindeutig (`lessons-aus-live-use-zurueckfuehren` +
+  `dogfood-zwingt-qualitaet`) — analog SKILL-007.
+- **MoSCoW = Must** (nicht Should): ohne Fix ist SKILL-007 auf Windows
+  praktisch unbenutzbar (Phase 4 laeuft nur via Inline-Workaround).
+  Abweichung von SKILL-007/SKILL-003-Should-Pattern bewusst — die
+  Wrapper sind die einzige automatisierte Schnittstelle zum Phase-4-
+  Verfahren.
+- **Aufwand = S** (klein): zwei kleine Wrapper-Diffs (Empfehlung
+  Variante b je Bug — kleinstes Diff bei robustestem Fix), plus
+  Smoke-Test-Erweiterung mit Mindest-PNG-Groessen-Check. Kein Refactor
+  der Phase-4-Logik selbst.
+- **SKILL-007 NICHT zurueckgestuft** (bleibt `review`): Die Phase-4-
+  Logik hat im Live-Test heute gezeigt, dass sie funktioniert (sobald
+  die Screenshots da waren, hat das Read-Tool den Slide-11-Overflow
+  gefangen). SKILL-008 repariert nur die Liefer-Vehikel, nicht den
+  Mechanismus. Verifier-Report fuer SKILL-007 ist davon unabhaengig.
+- **KNOWN_FIXES-Block** statt KNOWN_FAILURES-Block in Teil D: weil das
+  Ticket die Bugs aktiv behebt — der Block dient als Anker fuer den
+  naechsten Implementer, der einen aehnlichen Quirk sieht, nicht als
+  Symptom-Recovery-Doku.
+
+**Artefakte angelegt:**
+- `skill_dev/docs/tickets/SKILL-008.md` (Wrapper-Fixes, spec, Must)
+- `skill_dev/docs/governance_log.md` (dieser Eintrag)
+
+**NICHT angefasst (bewusst):**
+- `skills_sources/reveal-presentation/tools/screenshot_slides.sh` —
+  Fix-Aktion gehoert in den Implementer-Pass.
+- `skills_sources/reveal-presentation/tools/screenshot_slides.ps1` — dto.
+- `skills_sources/reveal-presentation/SKILL.md` — KNOWN_FIXES-Block
+  ist Implementer-Aufgabe (Teil D), nicht Ticket-Anlage.
+- `skill_dev/docs/tickets/SKILL-007.md` Status — bleibt `review`.
+- `setup.ps1` — kein Skill-Code geaendert, kein Deploy noetig.
+
+**PO-Abnahme noetig:**
+- Vision-Prinzip-Match gegenpruefen (Annahme: `lessons-aus-live-use-zurueckfuehren`
+  + `dogfood-zwingt-qualitaet` — identisch zu SKILL-007, weil beide
+  Tickets aus derselben BeyerImmo-Live-Erfahrung-Ader stammen).
+- MoSCoW = Must bestaetigen (oder ggf. auf Should runterstufen, falls
+  Jakob die manuelle Inline-Recovery-Methode als akzeptablen
+  Dauerzustand ansieht).
+- Reihenfolge im Sprint: SKILL-008 sollte vor dem naechsten echten
+  reveal-presentation-Build laufen, sonst wiederholt sich die heutige
+  Recovery-Schleife.
+
+---
+
 ## 2026-05-27 — SKILL-007 angelegt (Reveal-Visual-Review aus BeyerImmo-Live-Schmerz)
 
 **Trigger:** Jakob-Auftrag aus Schaltzentrale-Session abends 2026-05-27 —

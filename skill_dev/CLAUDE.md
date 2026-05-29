@@ -29,13 +29,16 @@ gearbeitet wird (analog Immobewertung):
 1. `CLAUDE.md` (diese Datei) — Repo-Kontext + Bootstrap-Sequenz
 2. `docs/SKILLS_VISION.md` — die Vision-Constitution fuer Skills
 3. `docs/adr/` — relevante Architektur-Entscheidungen (falls vorhanden)
-4. `docs/tickets/SKILL-NNN.md` — das aktuelle Ticket
-5. `docs/governance_log.md` — autonome KI-Entscheidungen + Verifier-Pass-Log
-6. `docs/tickets/verify/` — Verify-Status (gibt es `review`-Tickets ohne Report?)
-7. **Quer-Read:** `skills_sources/<betroffener-skill>/SKILL.md` — der Skill-Code,
+4. `docs/tickets/README.md` — Sub-Struktur-Konvention (welcher Skill an welchem Pfad)
+5. `docs/tickets/<skill>/SKILL-NNN.md` — das aktuelle Ticket (im passenden Skill-Unterverzeichnis;
+   Cross-Cutting-Tickets unter `docs/tickets/cross-cutting/`)
+6. `docs/governance_log.md` — autonome KI-Entscheidungen + Verifier-Pass-Log
+7. `docs/tickets/<skill>/verify/` — Verify-Status fuer den betroffenen Skill
+   (gibt es `review`-Tickets ohne Report?)
+8. **Quer-Read:** `skills_sources/<betroffener-skill>/SKILL.md` — der Skill-Code,
    den das Ticket aendert. Dieser Pfad liegt im Schwester-Verzeichnis
    `<Schaltzentrale>/skills_sources/`.
-8. **Sanity:** existiert das `<betroffene-skill>` im Source-Tree? Ist es
+9. **Sanity:** existiert das `<betroffene-skill>` im Source-Tree? Ist es
    schon nach `~/.claude/skills/` deployed? `setup.ps1`-Run noetig?
 
 ---
@@ -54,11 +57,15 @@ skill_dev/
 │   ├── po-config.yaml              ← PO-Skill-Konfig (cooldown, outcome-review-days)
 │   ├── po-outcomes.md              ← Outcome-Reviews >=14 Tage nach done
 │   ├── adr/                        ← Architektur-Entscheidungen (Skill-spezifisch)
-│   └── tickets/
-│       ├── SKILL-001.md            ← PO-Skill bauen (migriert aus TICKET-080)
-│       ├── SKILL-002.md            ← Lift-and-Shift T078/T079 (migriert aus TICKET-081)
-│       ├── SKILL-003.md            ← Implementer-Hygiene (migriert aus TICKET-082)
-│       └── verify/                 ← Verifier-Reports (SKILL-NNN-verify-YYYY-MM-DD.md)
+│   └── tickets/                    ← seit 2026-05-29 pro Skill ein Sub-Verzeichnis
+│       ├── README.md               ← Sub-Struktur-Konvention (wohin gehoert ein neues Ticket?)
+│       ├── agile-sdd-skill/        ← SKILL-003, -004, -006, -009 + verify/
+│       ├── po-skill/               ← SKILL-001, -002 + verify/
+│       ├── reveal-presentation/    ← SKILL-007, -008 + verify/
+│       ├── cross-cutting/          ← SKILL-005 (Skill-Versions-Anker, agile-sdd + po-skill)
+│       ├── obsidian-skills/        ← reserved (kein offenes Ticket)
+│       ├── operator-templates/     ← reserved (kein offenes Ticket)
+│       └── n8n-human-readable/     ← neuer Skill (Sub-Agent 2 legt hier Ticket ab)
 └── tests/
     └── test_skill_dev_smoke.py     ← Smoke-Tests (Existenz/Parsebarkeit der Meta-Files)
 ```
@@ -117,7 +124,14 @@ Multi-Stakeholder-Voting.
 
 - **Ticket-Praefix:** `SKILL-NNN` (nicht `TICKET-NNN`) — markiert Skill-Tickets
   eindeutig von Projekt-Tickets. Beim Erstellen weiterzaehlen aus dem
-  bisher hoechsten `SKILL-NNN.md` in `docs/tickets/`.
+  bisher hoechsten `SKILL-NNN.md` **ueber alle Skill-Unterverzeichnisse hinweg**
+  (globale Nummerierung, nicht pro Skill — sonst Konflikte mit Memory +
+  governance_log + Commit-Referenzen). Siehe `docs/tickets/README.md`.
+- **Ticket-Ablage:** seit 2026-05-29 pro Skill ein Sub-Verzeichnis unter
+  `docs/tickets/<skill-name>/`. Skill-Verzeichnisname = exakt der Name aus
+  `skills_sources/`. Cross-Cutting-Tickets (mehrere Skills betroffen) landen
+  in `docs/tickets/cross-cutting/`. Konvention + Mapping in
+  `docs/tickets/README.md`.
 - **Lift-and-Shift-Pattern:** Wenn ein Ticket einen Worker / Generator von
   einem Projekt-Repo ins Skill-Source verschiebt — sofortige Verzeichnis-
   Verschiebung machen, Projekt-Repo bekommt nur einen Plug-in-Hook

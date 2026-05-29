@@ -67,6 +67,44 @@ For each slide:
 
 Use `S` to open the speaker view (notes + next-slide preview).
 
+### Phase 4 — Visual-Review-Pass (Chromium-Screenshots) — PFLICHT
+
+> [!danger] Niemals "fertig" melden ohne Visual-Review-Pass durchgelaufen
+> HTML-Code-Read reicht nicht. Layout-Bugs (CSS-Grid-Auto-Flow, Flex-Overflow, Wort-pro-Zeile-Wraps) sind im Quellcode **nicht** sichtbar — nur im gerenderten Screenshot. Wenn der Screenshot ein Problem zeigt → erst fixen, dann erneut screenshotten. Erst dann an User übergeben.
+
+**Reihenfolge ist fix: Phase 1 → 2 → 3 → 4 → (Loop falls nötig).** Phase 4 ist nicht optional.
+
+**Verfahren:**
+
+1. **Wrapper-Script aufrufen** (legt Temp-HTML mit Fragments-sichtbar-Override an, macht Screenshots pro Slide):
+   ```bash
+   # Git-Bash / Linux / macOS
+   tools/screenshot_slides.sh <presi.html> <n_slides> <output_dir>
+
+   # Windows PowerShell
+   .\tools\screenshot_slides.ps1 -Presi <presi.html> -NSlides <n> -OutputDir <dir>
+   ```
+   Output: `slide_00.png` bis `slide_NN.png`.
+
+2. **Pro Slide mit Read-Tool inspizieren** — Claude kann PNGs lesen. Check-Liste durchgehen (siehe `patterns/visual-review.md`):
+   1. Headline vollständig sichtbar (nicht abgeschnitten)?
+   2. Items/Bullets brechen sinnvoll (kein Wort-pro-Zeile)?
+   3. Slide-Höhe-Overflow (letzte Bullet noch da)?
+   4. Umlaute korrekt gerendert?
+   5. Fragment-Override greift (alle Inhalte sichtbar)?
+   6. Farben/Akzente erkennbar (kein weiß-auf-weiß)?
+
+3. **Auto-Iterations-Loop:**
+   - Bei sichtbarem Problem → CSS/HTML-Fix → einzelne Slide neu screenshotten → erneut lesen
+   - Max **3 Auto-Iterationen pro Slide**
+   - Wenn nach 3 Iterationen noch nicht clean → an User übergeben mit Hypothese (z.B. "Slide hat zuviel Inhalt für 1080p — Aufteilung nötig?")
+
+4. **Wenn alle Slides clean:** kurze Sammel-Bestätigung an User mit Output-Pfad (z.B. "16/16 Slides visuell ok — Screenshots in `/tmp/shots/`. Bereit für inhaltlichen Review?").
+
+**Detail-Doku + Live-Beispiele (BeyerImmo 2026-05-27):** `patterns/visual-review.md`. Drei prototypische Failure-Modes mit Screenshot-Symptom + Recovery dokumentiert.
+
+**Token-Trade-Off:** ~1.5k Tokens pro Screenshot-Read × 16 Slides = ~24k extra pro Build. Spart aber die User-Feedback-Schleifen + Re-Reads (50-100k pro Iteration).
+
 ## Slide-Choreografie: Eine Message pro Slide + Fragment-Reveal
 
 **Leitprinzip:** *Headline-First, Evidence Follows.* Jede Slide trägt **eine prägnante Kernaussage** (Headline / Assertion). Belege, Beispiele und Details folgen visuell darunter — und werden bevorzugt **als Fragments per Klick eingeblendet**, nicht alle auf einmal gezeigt.
@@ -907,6 +945,8 @@ Use this as starting point. Replace `{{TITEL}}`, `{{SUBTITLE}}`, `{{AUTHOR}}`, `
 - [ ] Title-Slide hat Autor + Datum
 - [ ] Slide-Nummer wird gezeigt (`slideNumber: 'c/t'`)
 - [ ] **Bei Sandi-Style:** max 12 Sticky-Notes pro Slide, max 3 Farben, eine Frage als Lead, Sublabel (Übung/Storytelling/Education) gesetzt, Footer mit Herz-Symbol, Charakter-Foto nur auf Title/Section/Closing
+- [ ] **Phase 4 Visual-Review-Pass durchgelaufen** — alle Slides per Chromium-Screenshot inspiziert, keine offenen visuellen Bugs (Headline abgeschnitten, Wort-pro-Zeile, Slide-Overflow, Umlaute kaputt)
+- [ ] **Screenshots liegen in `<output_dir>/`** zur User-Review (Pfad in End-Bestätigung an User mitgeben)
 
 ## Verifikation
 

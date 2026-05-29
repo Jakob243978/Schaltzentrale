@@ -70,6 +70,20 @@ Codebase neu zu lernen.
    zwischen den beiden Schichten ist eine haeufige Fehlerquelle —
    strikte Trennung erzwingen.
 
+7. `skill-tickets-leben-im-skill-unterverzeichnis` — Skill-Tickets in
+   `skill_dev/docs/tickets/` werden pro Skill in ein Sub-Verzeichnis
+   einsortiert (`docs/tickets/<skill-name>/SKILL-NNN.md`,
+   Skill-Verzeichnisname = exakt der Name aus `skills_sources/`).
+   Cross-Cutting-Tickets (mehrere Skills betroffen) landen in
+   `docs/tickets/cross-cutting/`. Ticket-Nummern bleiben **global**
+   weiterzaehlend (nicht pro Skill von vorn), damit Memory-Eintraege,
+   governance_log und Commit-Referenzen eindeutig bleiben. Verifier-
+   Reports liegen pro Skill in `docs/tickets/<skill>/verify/`. Begruendung:
+   bei 3+ parallel entwickelten Skills wird eine flache Ticket-Liste
+   unuebersichtlich, und Sub-Agents koennen sich auf den Skill-Kontext
+   fokussieren ohne durch fremde Tickets zu lesen. Eingefuehrt 2026-05-29
+   bei 9 aktiven SKILL-Tickets + neuem n8n-human-readable-Skill.
+
 ---
 
 ## Outcome-Metriken
@@ -133,6 +147,19 @@ Codebase neu zu lernen.
 ---
 
 ## Aktualisiert (Append-only Log)
+
+## 2026-05-29 — Prinzip 7 ergaenzt (`skill-tickets-leben-im-skill-unterverzeichnis`)
+**Wer:** Reorganisations-Subagent (Opus 4.7 1M context) im Rahmen
+der Tickets-Sub-Struktur-Migration (Vorbereitung paralleler Skill-
+Entwicklung, neuer Skill `n8n-human-readable` startet jetzt).
+**Grund:** Bei 9 SKILL-Tickets + 4. Skill in Arbeit wurde die flache
+Ticket-Liste in `docs/tickets/` unuebersichtlich. Sub-Agents lesen
+fremde Tickets ohne Mehrwert; Skill-Fokus ging verloren.
+**Aenderung:** Prinzip 7 ergaenzt — Tickets liegen pro Skill in einem
+Sub-Verzeichnis, Verifier-Reports in `<skill>/verify/`,
+Ticket-Nummern bleiben global weiterzaehlend, Cross-Cutting in
+eigenem `cross-cutting/`-Verzeichnis. Verzeichnis-Konvention in
+`docs/tickets/README.md` festgeschrieben.
 
 ## 2026-05-25 — Initial-Befuellung (TICKET-083)
 **Wer:** Implementer-Subagent (Opus 4.7 1M) im Rahmen von TICKET-083,
