@@ -10,6 +10,46 @@ Dieser Skill steuert wie ein KI-Agent selbstaendig Software-Projekte entwickelt.
 
 ---
 
+## 0) Governance-Grundregel: Kein Fix ohne Ticket und Code
+
+> [!important] „Wir fixen nichts ohne Ticket und Code dazu." (Jakob, 2026-06-05)
+>
+> **Jede Aenderung an Code, Daten oder Konfiguration MUSS ein Ticket (Spec)
+> haben UND ueber zugehoerigen Code/Commit laufen — bevor sie angewandt wird.**
+> Dieses Prinzip steht ueber allen anderen Workflow-Schritten: ein Ticket ist
+> der Eintrittspunkt jeder Mutation, nicht eine nachtraegliche Dokumentation.
+
+Das gilt **ausdruecklich auch** fuer:
+
+- **Hotfixes / „schnelle" Korrekturen** — Dringlichkeit ist kein Freibrief.
+  Auch der Einzeiler braucht Ticket + Commit.
+- **Daten-Bereinigungen, Backfills, manuelle DB-Eingriffe** — jedes
+  `UPDATE`/`cancel`/Status-Setzen, jede Korrektur „von Hand" in der Datenbank
+  laeuft ueber ein Ticket und einen nachvollziehbaren, wiederholbaren
+  Code-/Skript-Pfad (z.B. ein migrations-/backfill-Skript im Repo), nicht ueber
+  einen Ad-hoc-Befehl in der Konsole.
+- **Konfig-/Infra-Eingriffe** — Konfig-Werte, ENV, Deploy-/Infra-Aenderungen.
+
+**Verboten:** Ad-hoc-Mutation „mal eben direkt in der DB" oder „kurz per Hand"
+ohne Ticket + nachvollziehbaren Code.
+
+**Einzige Ausnahme:** reine **Lese-/Diagnose-Operationen** (read-only `SELECT`,
+Status-Checks, Health-Checks, Log-Auswertung) — die brauchen kein Ticket.
+Sobald eine Operation Zustand veraendert, greift die Grundregel.
+
+**Begruendung:** Nachvollziehbarkeit + Vertrauen. Lehre aus einer Session, in der
+direkte DB-Bereinigungen ohne dediziertes Ticket zu Verwirrung fuehrten — die
+Aenderung war nicht reproduzierbar und nicht im Audit-Trail. Ticket + Commit
+machen jede Mutation auffindbar, begruendet und wiederholbar.
+
+> [!info] Praktische Konsequenz
+> Faellt waehrend einer Session eine noetige Korrektur auf (auch eine winzige
+> Daten-Bereinigung): **zuerst ein Ticket anlegen** (Status `idea`/`spec`,
+> Spec-First-Workflow Abschnitt C), dann die Aenderung als Code/Commit fahren —
+> erst dann anwenden. Nicht „erst fixen, Ticket spaeter".
+
+---
+
 ## A) Agent Bootstrap-Sequenz
 
 Beim Start jeder neuen Session oder nach Erhalt eines neuen Tasks IMMER in dieser Reihenfolge lesen:
@@ -163,6 +203,23 @@ existiert UND es done-Tickets gibt aber `docs/FEATURE_MAP.md` oder
 sind, schlaegt der Agent dem User aktiv vor, die beiden Generatoren einmal
 zu laufen. Strict-Mode (Hard-Block) ist nicht vorgesehen — die Datei-Pflege
 darf nie das eigentliche Ticket-Arbeit blockieren.
+
+### Implementer-Briefing-Standards (Pflicht-Bloecke pro Subagent)
+
+Beim Spawn eines Implementer-Subagents (per Operator, Lead-Claude oder
+direkt durch den User) MUESSEN die passenden Standard-Bloecke aus
+`templates/IMPLEMENTER_BRIEFING_STANDARDS.md` ans Ende des Subagent-
+Briefings kopiert werden. Default-Auswahl:
+
+- **Immer:** Block "Implementer-Hygiene" (Token-Budget, Scope-Hygiene).
+- **Bei Ticket mit Datenmodell-Touch ODER neuen Endpoints:** Block
+  "API-Schema-Mitdenken" (SKILL-010, 2026-06-01). Verhindert die T103a-
+  Anti-Pattern-Klasse (neue Modell-Felder werden nie via API ausgeliefert).
+- **Bei SKILL-NNN-Tickets:** Block "Skill-Code-Pfad" (Source-of-Truth +
+  setup.ps1-Hinweis).
+
+Operator-Templates (`operator-templates` Skill) referenzieren diese Datei
+in ihren Briefing-Bloecken — siehe deren SKILL.md "MCP/API-Schema-Hinweis".
 
 ### Code-Referenz-Pattern
 
@@ -769,6 +826,7 @@ nicht geloescht). Default ist **archivieren, nicht loeschen**.
 | Runbook | `templates/RUNBOOK.md` | Service-Runbook anlegen |
 | Verify-Report | `templates/verify-report.md` | Output-Schema des Verifier-Subagents (Pflicht-Format) |
 | SDD-Config (Beispiel) | `templates/sdd-config.yaml.example` | Vorlage fuer `docs/sdd-config.yaml` pro Projekt |
+| Implementer-Briefing-Standards | `templates/IMPLEMENTER_BRIEFING_STANDARDS.md` | Wiederverwendbare Pflicht-Bloecke (API-Schema-Mitdenken, Hygiene, Skill-Code-Pfad) fuer jeden Implementer-Subagent-Prompt |
 
 Verifier-Subagent: `verifier/VERIFIER.md` (Aufgabenbeschreibung) +
 `verifier/verifier-prompt.md` (System-Prompt). Slash-Command:
