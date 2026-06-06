@@ -4,6 +4,7 @@
 **Erstellt:** YYYY-MM-DD
 **MoSCoW:** [Must | Should | Could | Wont]
 **Geschaetzter Aufwand:** [XS | S | M | L | XL]
+<!-- inbox_source: optional — Pfad zum inbox/-Material, aus dem dieses Ticket entstand (Audit-Trail). Zeile weglassen wenn kein Inbox-Ursprung. -->
 
 ## Was soll erreicht werden? (Business-Ziel)
 

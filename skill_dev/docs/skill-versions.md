@@ -74,8 +74,26 @@ Reibung erzeugt.
   ```
   Tag-Setzen bleibt Jakob vorbehalten — Konvention im Repo: keine
   autonomen Tags durch KI-Agenten.
-- **Naechstes geplantes Bump:** v0.5 via SKILL-004 (EARS-Pre-Conditions
-  als Pflicht im Ticket-Template + Verifier-Check).
+- **Naechstes geplantes Bump:** ~~v0.5 via SKILL-004~~ → siehe Korrektur
+  unten (2026-05-31). v0.5 wurde stattdessen via SKILL-009 (inbox-Konvention,
+  additiv/risikoarm) erreicht; SKILL-004 landet als v0.6.
+
+## agile-sdd-skill v0.5 — 2026-05-31 (via SKILL-009, additiv)
+
+- **Aenderung:** inbox/-Konvention (menschliches Eingangs-Material) — neue
+  SKILL.md-Sektion K + Bootstrap-Punkt 10 (passiver Hinweis) +
+  `inbox_source:`-Frontmatter-Feld + `inbox/`-Setup-Schritt mit
+  `.gitignore`-Default in der "Neues Projekt"-Checkliste + `templates/TICKET.md`.
+- **Risiko:** niedrig — rein additiv, backward-compatible (keine bestehende
+  Mechanik geaendert; alte Tickets ohne `inbox_source` bleiben gueltig).
+- **Versions-Reihenfolge-Hinweis:** SKILL-009 wurde **vor** SKILL-004/006
+  umgesetzt (beide noch `spec`). Da der Skill-Version ein einzelner linearer
+  Zaehler ist, belegt SKILL-009 die v0.5. **SKILL-004 bumpt entsprechend auf
+  v0.6** (ROADMAP-Notiz "v0.5 via SKILL-004" ist damit ueberholt).
+- **Status:** Skill-Quelle geaendert; Deploy via `setup.ps1` ausstehend,
+  Verifier-Pass `/sdd-verify SKILL-009` ausstehend.
+- **Rollback:** v0.4-Anker `fe9337a` (siehe oben) bleibt der saubere
+  Pre-inbox-Stand.
 
 ## po-skill v0.1 — 2026-05-25
 

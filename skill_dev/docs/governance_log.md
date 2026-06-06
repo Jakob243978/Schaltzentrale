@@ -5,6 +5,76 @@ eingetragen. Jakob reviewt dieses Log asynchron.
 
 ---
 
+## 2026-05-31 — SKILL-009 umgesetzt: inbox/-Konvention in agile-sdd-skill (v0.4 → v0.5)
+
+**Ticket:** SKILL-009 (inbox/-Konvention fuer agile-sdd)
+**Implementer-Modell:** claude-opus-4-8 (1M context) — echte Skill-Code-Aenderung
+in `skills_sources/agile-sdd-skill/` (NICHT nur Meta).
+**Status:** SKILL-009 `idea` → `spec` → `review`. Skill-Quelle real geaendert;
+vor `done` fehlen Verifier-Pass + `setup.ps1`-Deploy.
+
+**Trigger:** Jakob-Auftrag (Schaltzentrale-Session). Live-Vorbild aus
+2026-05-28 (Bewerbung-Bot v0.6-Spec: Janina schickte WhatsApp-Material, das
+Jakob unter `workflows/prod/bewerbung-bot/inbox/` ablegte). Konvention soll
+nativ im Skill leben.
+
+**Autonome Entscheidungen — die 3 offenen Klaerungen des Tickets entschieden:**
+- **Klaerung 1 — Bootstrap-Hinweis PASSIV** (nicht aktiv nachfragen): Agent
+  macht Inbox-Material beim Bootstrap nur sichtbar ("X Files in inbox/ warten
+  auf Spec"), unterbricht nicht und blockiert nicht. Aktives Nachfragen wuerde
+  jeden Bootstrap stoeren — Vision `skill-schlanker-als-was-er-ersetzt`.
+- **Klaerung 2 — KEINE Auto-Transkription von Audio**: Agent liest nur nativ
+  Lesbares (PNG/JPG/PDF/Text/Markdown). OGG/MP3-Whisper-Transkription
+  ausgeklammert → bleibt ggf. separater Skill. Haelt SKILL-009 bei Aufwand S.
+  Bei Audio im inbox/: passiver Hinweis + Bitte um Text-Zusammenfassung.
+- **Klaerung 3 — Konvention gilt fuer ALLE agile-sdd-Projekte**, inkl.
+  `skill_dev` selbst (`skill_dev/inbox/`). Kein Sonderfall-Handling.
+
+**Architektur-Entscheidung — .gitignore-Default = ignorieren:**
+Inbox-Material kann sensibel sein (Screenshots mit Kundendaten, private
+Sprachnachrichten). Default beim Projekt-Setup: `inbox/*` ignorieren ausser
+`.gitkeep` (analog fuer `inbox/archive/`). Nur die Ordner-Struktur wird
+getrackt, nicht der Inhalt. Projekte koennen die Regel bewusst lockern, wenn
+unkritisches Material versioniert werden soll — der **Default ist ignorieren**.
+Kein eigenes ADR angelegt: dieses Repo nutzt **kein** `docs/adr/` (existiert
+nicht; etablierter Mechanismus ist dieser Governance-Log — siehe SKILL-006/008).
+Daher Architektur-Entscheidung hier dokumentiert. **ADR:** keins (Repo-Konvention).
+
+**Weitere Entscheidung — kein INBOX_README.md-Template:** Die technischen
+Hinweise des Tickets nannten optional `templates/INBOX_README.md`. Bewusst
+weggelassen: die Konvention lebt vollstaendig in SKILL.md Sektion K; ein
+Parallel-Template waere Redundanz + Pflege-Last bei Aufwand S (Anti-Pattern
+gegen `skill-schlanker-als-was-er-ersetzt`).
+
+**Artefakte modifiziert/neu (`skills_sources/agile-sdd-skill/`):**
+- `SKILL.md` — v0.4→v0.5; Sektion A Bootstrap-Punkt 10 (passiver inbox-Check);
+  Sektion B `inbox_source:` im Ticket-Format; Checkliste "Neues Projekt"
+  Punkt 10 (inbox/ + .gitkeep + .gitignore-Default), alt-10→11; **NEU
+  Sektion K** (vollstaendige inbox-Konvention).
+- `templates/TICKET.md` — optionaler `inbox_source:`-Hinweis im Frontmatter.
+
+**Artefakte modifiziert (`skill_dev/`):**
+- `docs/tickets/agile-sdd-skill/SKILL-009.md` — Status, Vision-Prinzip +
+  Skill-Version im Frontmatter, AC abgehakt + auf Default-Entscheidungen
+  gemappt, Klaerungen als Callouts, Ergebnis-Block.
+- `docs/governance_log.md` — dieser Eintrag.
+
+**NICHT angefasst (bewusst):**
+- `setup.ps1` NICHT ausgefuehrt — Deploy nach `~/.claude/skills/` macht
+  Haupt-Agent/Jakob. Bis dahin wirkt v0.5 NICHT im laufenden Skill.
+- Kein git commit/push.
+- Keine anderen Repos (AgentischesArbeiten, ~/.claude/skills/ unberuehrt).
+- Keine Loeschung bestehender Inhalte.
+
+**Offen / PO-Abnahme noetig:**
+- Verifier-Pass `/sdd-verify SKILL-009` (frische Session) → dann `review` → `done`.
+- `setup.ps1` einmalig ausfuehren (Deploy v0.5).
+- PO: Klaerungen 1–3 + .gitignore-Default + INBOX_README-Verzicht absegnen.
+
+**Review:** ausstehend
+
+---
+
 ## 2026-05-29 — Tickets-Sub-Struktur eingefuehrt (Vorbereitung paralleler Skill-Arbeit)
 
 **Trigger:** Jakob-Auftrag (Schaltzentrale-Session) — bei 9 SKILL-Tickets in

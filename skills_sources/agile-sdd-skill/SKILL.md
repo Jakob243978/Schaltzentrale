@@ -1,6 +1,6 @@
 ---
 name: agile-sdd
-version: 0.4
+version: 0.5
 description: Agile Spec-Driven Development mit KI-Agenten. Aktivieren wenn ein Agent eigenstaendig Software-Features implementieren soll — Ticket-Erstellung, Spec-First-Entwicklung, ADRs, Living Documentation, Governance-Log, EARS-getriebene Verifikation (Verifier-Subagent), Cost-Tracking (Token/USD pro Ticket) und kontrollierte Parallelisierung (Git Worktrees). Verwende diesen Skill wenn der User Features implementieren, Tickets bearbeiten, Architektur-Entscheidungen treffen, einen Verify-Pass starten (`/sdd-verify TICKET-NNN`) oder den Projekt-Status aktualisieren will.
 ---
 
@@ -31,6 +31,14 @@ Beim Start jeder neuen Session oder nach Erhalt eines neuen Tasks IMMER in diese
    Ueberlapp (insbesondere `db/models.py`, `api/main.py`, gemeinsame Worker,
    `CLAUDE.md`, `PROJECT_SPEC.md`): auf ein Ticket beschraenken oder klar
    sequenzieren. Sektion J definiert die Parallelisierungs-Regeln.
+10. **inbox-Check (passiv):** Wenn `inbox/`-Ordner existieren (pro Workflow-/
+    Projekt-Verzeichnis), pruefen ob darin unverarbeitetes Material liegt
+    (alles ausser `.gitkeep` und dem Unterordner `archive/`). Falls ja:
+    **passiver Hinweis** an den User — z.B. *"3 Files in `workflows/prod/x/inbox/`
+    warten auf Spec-Verarbeitung."* **Nicht** aktiv nachfragen, ob jetzt
+    gespec't werden soll, und **nicht** blockieren. Der Hinweis macht das
+    Material sichtbar; die Entscheidung, daraus ein Ticket zu specen, bleibt
+    beim User. Details: Sektion **K**.
 
 Wenn eine Datei nicht existiert: weiter zur naechsten. Nicht stoppen, nicht nachfragen.
 
@@ -55,6 +63,7 @@ Jedes Ticket lebt als eigene Datei unter `docs/tickets/TICKET-NNN.md` (dreistell
 **Erstellt:** YYYY-MM-DD
 **MoSCoW:** [Must | Should | Could | Wont]
 **Geschaetzter Aufwand:** [XS | S | M | L | XL]
+**inbox_source:** [optional — Pfad zum inbox/-Material, aus dem dieses Ticket entstand]
 
 ## Was soll erreicht werden? (Business-Ziel)
 <!-- In einem Satz: Wer profitiert wie davon? -->
@@ -664,6 +673,89 @@ mergt am Ende.
 
 ---
 
+## K) inbox/-Konvention (menschliches Eingangs-Material)
+
+Material, das **nicht** ueber den Standard-Spec-Weg (Chat mit Claude) reinkommt
+— Screenshots, PDFs, weitergeleitete Mails, Notizen, Sprachnachrichten — bekommt
+einen festen Ablageort, **bevor** daraus ein formelles Ticket entsteht. So geht
+es nicht im Chat-Backlog verloren und ist beim Spec-Prozess auffindbar.
+
+### Ablageort: pro Workflow/Projekt
+
+`inbox/` liegt **pro Workflow- bzw. Projekt-Verzeichnis**, nicht zentral —
+sonst vermischt sich Spec-Material aus mehreren Workflows. Beispiele:
+
+```
+workflows/prod/bewerbung-bot/inbox/   ← Material fuer diesen Workflow
+docs/inbox/                           ← oder auf Projekt-Root-Ebene
+```
+
+Die Konvention gilt fuer **alle** agile-sdd-Projekte — inklusive `skill_dev`
+selbst (dort z.B. `skill_dev/inbox/` fuer Skill-Ideen-Material).
+
+### Struktur
+
+```
+inbox/
+├── .gitkeep                ← haelt den Ordner im Repo
+├── <material>              ← eingehendes Material (NICHT committet, siehe .gitignore)
+└── archive/
+    └── .gitkeep            ← verarbeitetes Material nach `done`
+```
+
+### .gitignore (Default — sensibles Material nicht committen)
+
+Inbox-Material kann sensibel sein (Screenshots mit Kundendaten, private
+Sprachnachrichten). Default ist daher: **Inhalt ignorieren, nur Ordner-Struktur
+tracken.** Beim Projekt-Setup in `.gitignore` ergaenzen:
+
+```gitignore
+# inbox: menschliches Eingangs-Material (nicht committen, ausser .gitkeep)
+inbox/*
+!inbox/.gitkeep
+inbox/archive/*
+!inbox/archive/.gitkeep
+```
+
+Will ein Projekt bewusst unkritisches Material mit-versionieren, kann es die
+Regel pro Projekt lockern — der **Default ist ignorieren**.
+
+### Bootstrap-Hinweis (passiv)
+
+Beim Agent-Bootstrap (Sektion A, Punkt 10) prueft der Agent, ob `inbox/`-Ordner
+unverarbeitetes Material enthalten (alles ausser `.gitkeep` und `archive/`).
+Falls ja: **passiver Hinweis**, z.B. *"3 Files in `workflows/prod/x/inbox/`
+warten auf Spec-Verarbeitung."* Der Agent fragt **nicht** aktiv nach, ob jetzt
+gespec't werden soll, und blockiert nicht — er macht das Material nur sichtbar.
+
+### Welche Formate der Agent liest
+
+Der Agent verarbeitet nur, was er **nativ** lesen kann: PNG/JPG (Read-Tool als
+Bild), PDF, Text/Markdown. **Keine Auto-Transkription von Audio** (OGG/MP3) —
+das ist bewusst ausgeklammert (haelt den Scope schlank). Liegen Audio-Files in
+`inbox/`, weist der Agent passiv darauf hin und bittet den User um eine
+Text-Zusammenfassung; eine Whisper-/Transkriptions-Integration ist ggf. ein
+separater Skill, nicht Teil von agile-sdd.
+
+### Ticket-Verknuepfung: `inbox_source:`
+
+Entsteht ein Ticket aus Inbox-Material, traegt der Implementer im Ticket-
+Frontmatter das optionale Feld `inbox_source:` mit dem Datei-Pfad ein
+(Audit-Trail "wo kam die Anforderung her"):
+
+```yaml
+inbox_source: workflows/prod/bewerbung-bot/inbox/anforderungen_janina.png
+```
+
+### Nach `done`: archivieren
+
+Geht das aus dem Material entstandene Ticket auf `done`, verschiebt der
+Implementer das verarbeitete Material nach `inbox/archive/` (Nachvollziehbarkeit
+— gleicher Geist wie `KNOWN_FAILURES_archive.md`: Lern-Material bleibt, wird
+nicht geloescht). Default ist **archivieren, nicht loeschen**.
+
+---
+
 ## Templates-Referenz
 
 | Template | Pfad | Verwenden fuer |
@@ -716,4 +808,15 @@ KI-Autonomie: voll — alle Entscheidungen ins Governance-Log, Jakob reviewed as
    noch nicht enthalten.
 9. `CLAUDE.md` mit Skill-Aktivierungs-Block aktualisieren (inkl. Verifier- und
    SDD-Config-Zeile, siehe Beispiel oben).
-10. Erste Tickets aus bekannten Anforderungen anlegen.
+10. **`inbox/`-Ordner anlegen** (pro Workflow-/Projekt-Verzeichnis) mit
+    `inbox/.gitkeep`. In `.gitignore` ergaenzen, damit eingehendes Material
+    nicht versehentlich committet wird (sensible Screenshots/Sprachnachrichten):
+    ```gitignore
+    # inbox: menschliches Eingangs-Material (nicht committen, ausser .gitkeep)
+    inbox/*
+    !inbox/.gitkeep
+    inbox/archive/*
+    !inbox/archive/.gitkeep
+    ```
+    Details + Konvention: Sektion **K**.
+11. Erste Tickets aus bekannten Anforderungen anlegen.
