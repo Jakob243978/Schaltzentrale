@@ -64,7 +64,46 @@ Reihenfolge:
      - `partial` (Default) — Implementierung im Diff gefunden, wartet auf PO-Klick
      - `fail` — Implementierung fehlt oder ist offensichtlich kaputt (z.B. Syntaxfehler)
 
-6. **Token-Aggregation** (letzter Schritt vor Report-Erstellung):
+6. **API-Schema-Coverage-Check** (SKILL-010, 2026-06-01) — VOR Token-Aggregation.
+
+   Pflicht-Check fuer JEDES Ticket, das ein Datenmodell aendert. Pruefe den
+   Diff auf Hinweise:
+   - Neue Spalten in `db/models.py` (oder analog: `models/*.py`,
+     `schema.prisma`, `entities/*.ts`)?
+   - Neue Foreign-Keys / Relationships?
+   - Neue JSON-/JSONB-Felder?
+
+   Wenn JA, fuehre die folgende Coverage-Pruefung durch:
+   1. Sind die neuen Felder im OpenAPI-Schema sichtbar?
+      ```
+      curl -s http://localhost:8000/openapi.json | grep -i <feldname>
+      ```
+      (Port aus `docs/sdd-config.yaml: health_check` ableiten, sonst 8000.
+      Wenn der Service nicht laeuft: Diff der Pydantic/Response-Schemas
+      lesen — `api/schemas/*.py`, `api/main.py` Response-Models.)
+   2. Sind alle relevanten Response-Schemas (GET/POST/PATCH) **additiv**
+      erweitert? (Keine Feld-Umbenennung — sonst Backwards-Inkompat.)
+   3. Hat das Ticket einen Test, der `/openapi.json` oder das Response-
+      Schema gegen die neuen Felder asserted?
+
+   **Status-Setzen:**
+   - Alle drei Checks gruen → kein Einfluss auf Verify-Status.
+   - Mindestens ein Check rot UND Ticket-Frontmatter hat
+     `api_endpoints_extended: n/a` → kein Einfluss (Implementer hat
+     bewusst markiert, dass keine API-Aenderung noetig ist).
+   - Mindestens ein Check rot UND Frontmatter fehlt oder steht auf `yes`
+     ohne Beleg → Verify-Status MUSS auf `partial` (nicht hoeher), auch
+     wenn EARS-Saetze alle gruen sind. Im Report-Body unter "API-Schema-
+     Coverage" notieren:
+     ```
+     Folge-Ticket `<TICKET>a` fuer API-Schema-Erweiterung empfohlen.
+     Neue Felder: <liste>. Endpoints, die noch nicht ausliefern: <liste>.
+     ```
+
+   Wenn NEIN (kein Modell-Touch im Diff): Sektion im Report mit "n/a —
+   keine Modell-Aenderung im Diff" markieren, kein Status-Einfluss.
+
+7. **Token-Aggregation** (letzter Schritt vor Report-Erstellung):
    Befuelle die fuenf Pflicht-Felder im Report-Frontmatter (`tokens_in_total`,
    `tokens_out_total`, `cache_hit_rate`, `cost_usd`, `verifier_model`).
    Vorgehen in dieser Reihenfolge:

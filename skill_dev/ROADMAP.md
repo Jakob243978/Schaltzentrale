@@ -22,6 +22,7 @@ sind es. Hier nur Uebersicht fuer Sprint-Planung + Status-Check.
 | SKILL-003 | Anti-Pattern "Iterative Artefakt-Generierung" + Implementer-Hygiene | spec | `lessons-aus-live-use-zurueckfuehren` + `skill-schlanker-als-was-er-ersetzt` |
 | SKILL-006 | KNOWN_FAILURES.md als Pflicht-Datei + Bootstrap-Eintrag (Living Runbook) | spec — parallel zu SKILL-004 bearbeitbar (Jakob-Entscheidung 2026-05-26) | `lessons-aus-live-use-zurueckfuehren` + `skill-muss-multi-projekt-tauglich-sein` |
 | SKILL-007 | Reveal-Presentation Skill: Visual-Review-Step nach Build (Chromium-Screenshot-Pass) | spec — unabhaengig bearbeitbar (anderer Skill als agile-sdd) | `lessons-aus-live-use-zurueckfuehren` + `dogfood-zwingt-qualitaet` |
+| SKILL-012 | agile-sdd-skill Verifier: Visual-UI-Check (Playwright, Screenshots + Console-Errors) | spec — Phase 1 (Spec + Skeleton) done am 2026-06-02; Phase 2 (Full-Impl + Smoke-Run) offen; Phase 3 (Visual-Regression) optional | `lessons-aus-live-use-zurueckfuehren` + `dogfood-zwingt-qualitaet` |
 
 ## Could (offene Ideen, noch keine SKILL-Tickets)
 

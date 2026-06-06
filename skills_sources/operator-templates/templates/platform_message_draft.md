@@ -46,9 +46,10 @@ selbst ins ImmoScout-/Kleinanzeigen-Kontaktformular.
   Name des Anbieters steht meist nicht im Inserat-Block.
 - Kompakter Text, Copy-Paste-tauglich, keine Mail-Footer-Signaturen
   (die hängt Jakob beim Posten im Plattform-Postfach manuell an).
-- **Pflicht-Footer** als letzte Zeile: `📋 Bitte kopieren und ins
-  ImmoScout/Kleinanzeigen-Kontaktformular einfügen` — Jakob nutzt
-  ihn als Quick-Check ob er den richtigen Pfad sieht.
+- **KEIN Footer** wie "📋 Bitte kopieren und ins..." — der ist UI-Aufgabe
+  des Frontends, NICHT Teil des Mail-Body. Wenn er im body landet, sieht
+  der Plattform-Empfänger den Hinweistext mit (Live-Befund #52 P20). 
+  Frontend zeigt das als separate UI-Hilfe.
 
 ## Body-Skelett
 
@@ -71,8 +72,6 @@ Ich entscheide zeitnah ohne Finanzierungsvorbehalt.
 Mit freundlichen Grüßen
 Jakob Sebov
 ankauf@jakse-apartments.de
-
-📋 Bitte kopieren und ins ImmoScout/Kleinanzeigen-Kontaktformular einfügen
 ```
 
 ## Was du NIEMALS tun darfst

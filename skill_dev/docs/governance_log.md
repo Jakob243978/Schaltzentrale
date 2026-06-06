@@ -5,6 +5,104 @@ eingetragen. Jakob reviewt dieses Log asynchron.
 
 ---
 
+## 2026-06-05 — Governance-Prinzip „Kein Fix ohne Ticket und Code" im agile-sdd-Skill verankert
+
+**Ticket:** SKILL-013
+**Entscheidung:** Neuer Abschnitt „0) Governance-Grundregel: Kein Fix ohne
+Ticket und Code" in `skills_sources/agile-sdd-skill/SKILL.md` — platziert
+direkt nach der Einleitung und VOR Abschnitt A (Bootstrap-Sequenz), damit das
+Prinzip die prominenteste Stelle im Skill einnimmt und jeder Agent es zuerst
+liest. Prinzip: jede Mutation an Code/Daten/Konfiguration braucht Ticket +
+Code/Commit, bevor sie angewandt wird; ausdruecklich inkl. Hotfixes, Daten-
+Bereinigungen/Backfills/manuelle DB-Eingriffe und Konfig/Infra; einzige
+Ausnahme read-only.
+**Begruendung:** Lehre aus einer Session, in der direkte DB-Bereinigungen ohne
+dediziertes Ticket zu Verwirrung fuehrten (nicht reproduzierbar, kein Audit-
+Trail). Alternative „nur im CLAUDE.md des Projekts verankern" verworfen — die
+Regel ist multi-projekt-relevant (Vision-Prinzip `lessons-aus-live-use-
+zurueckfuehren`) und gehoert daher in den Skill selbst, nicht in ein Projekt-
+Repo. Platzierung als eigener Abschnitt „0)" statt Erweiterung von Abschnitt I
+(Governance-Log), weil es ein Handlungs-Prinzip ist, kein Logging-Format.
+**Betroffene Dateien:**
+- `skills_sources/agile-sdd-skill/SKILL.md` (neuer Abschnitt 0)
+- `skill_dev/docs/tickets/agile-sdd-skill/SKILL-013.md` (NEU)
+- `skill_dev/CHANGELOG.md` (Eintrag)
+- `skill_dev/docs/governance_log.md` (dieser Eintrag)
+**ADR:** keins
+**Deploy:** `setup.ps1` ausgefuehrt — Skill live unter `~/.claude/skills/agile-sdd-skill/`.
+**Review:** ausstehend
+
+---
+
+## 2026-06-01 — operator-templates: 11 fehlende Templates ergaenzt (kein SKILL-Ticket — operative Patch-Aktion)
+
+**Trigger:** Live-Befund aus Immobewertung — zwei Subagents (3-Drafts-Operator, P235-Sequenz) haben gemeldet, dass `templates/draft_mail.md` und `templates/generic.md` lokal fehlen, obwohl `SKILL.md` sie referenziert. Tatsaechlicher Befund war breiter: nur 2 von 13 in der SKILL.md gelisteten Templates existierten (`platform_message_draft.md`, `pdf_vision_ocr.md`).
+
+**Implementer-Modell:** claude-opus-4-7 (1M context). Token-Budget eingehalten (< 60k).
+
+**Autonome Entscheidungen:**
+- **Kein neues SKILL-Ticket angelegt.** Ist eine reine Pattern-Luecke (Files fehlten, SKILL.md war bereits korrekt) — kein methodisches Skill-Problem, das ein Ticket rechtfertigt. Eintrag im CHANGELOG + governance_log reicht. Bei wiederkehrendem Pattern (Templates verlieren sich) sollte ein SKILL-Ticket "operator-templates Coverage-Test" angelegt werden, das via Smoke-Test verhindert, dass SKILL.md mehr Templates referenziert als existieren.
+- **Pattern-Treue zu `platform_message_draft.md` + `pdf_vision_ocr.md`** — alle neuen Templates folgen Briefing-Variablen + 3-Phasen-Aufbau (Skill-Call / Persist-API / Task-Complete) + "Was du NIEMALS tun darfst"-Block.
+- **`extract_kpis.md` explizit OHNE Skill-Call** — Worker ist pure Python (`workers/extract_kpis.py`), Skill-Call waere Token-Verschwendung. Template fordert direkten Worker-Call + Diff-Pruefung.
+- **SKILL-010-Hinweis** ("API-Schema-Mitdenken") in allen 5 `_run`-Templates eingebaut — operative Konsequenz aus SKILL-010-Ticket.
+- **T088-Hard-Check** in `draft_mail.md` eingebaut: bei `intent=='kaufangebot'` Pflicht-Check auf `cascade-state.unterlagen_analyse_status=='fresh'`. Ergaenzt den Cascade-Selector-Server-Side-Check um Subagent-Side-Defense.
+
+**Betroffene Dateien:**
+- `skills_sources/operator-templates/templates/draft_mail.md` (NEU)
+- `skills_sources/operator-templates/templates/generic.md` (NEU)
+- `skills_sources/operator-templates/templates/unterlagen_analyse.md` (NEU)
+- `skills_sources/operator-templates/templates/extract_kpis.md` (NEU)
+- `skills_sources/operator-templates/templates/research.md` (NEU)
+- `skills_sources/operator-templates/templates/triage_reopen.md` (NEU)
+- `skills_sources/operator-templates/templates/expose_parser_run.md` (NEU, T098 Retrofit)
+- `skills_sources/operator-templates/templates/mietlisten_parser_run.md` (NEU, T093 Retrofit)
+- `skills_sources/operator-templates/templates/unterlagen_analyst_run.md` (NEU, T099 Retrofit)
+- `skills_sources/operator-templates/templates/dokument_klassifizierer_run.md` (NEU, T100 Retrofit)
+- `skills_sources/operator-templates/templates/marktanalyse_run.md` (NEU, T095)
+- `skills_sources/operator-templates/templates/risiko_scanner_run.md` (NEU, T096, 2-Call-Stabilitaet)
+- `skill_dev/CHANGELOG.md` (Eintrag)
+- `skill_dev/docs/governance_log.md` (dieser Eintrag)
+
+**Deploy:** `setup.ps1` ausgefuehrt — Skill-Deploy erfolgreich, alle 13 Templates jetzt unter `~/.claude/skills/operator-templates/templates/` deployt.
+
+**Smoke-Test:** Grep `templates/draft_mail.md|templates/generic.md|templates/unterlagen_analyse.md|templates/extract_kpis.md|templates/research.md|templates/triage_reopen.md` in `~/.claude/skills/operator-templates/` zeigt SKILL.md-Referenzen — Files existieren alle.
+
+**Folge-Ticket-Vorschlag (offen, NICHT angelegt):** `SKILL-NNN` "operator-templates Coverage-Smoke-Test" — `skill_dev/tests/`-Case, der pro Skill mit `templates/`-Subdir verifiziert, dass jede in `SKILL.md`-Tabellen-Zeile referenzierte Datei existiert. Verhindert Pattern-Luecken in Zukunft.
+
+---
+
+## 2026-06-01 — SKILL-010 implementiert: API-Schema-Pflicht im SDD-Skill
+
+**Trigger:** Jakob (2026-06-01, nach Live-PO-Klick T097+T101 in Immobewertung) — T103a musste spontan nachgeschoben werden, weil `GET /api/property/{id}` die neuen Region-/JSON-Felder aus T092/T101 nie ausgeliefert hat. Pattern: Modell + Worker + Tests sind gruen, API-Schema wird vergessen.
+
+**Implementer-Modell:** claude-opus-4-7 (1M context). Token-Budget eingehalten (< 60k).
+
+**Autonome Entscheidungen:**
+- **Neue Sektion `## API-Schema-Kontrakt` in TICKET.md auf H2-Ebene** (nicht H3 wie im Ticket-Auftrag formuliert), damit sie zur bestehenden H2-Struktur ("## Akzeptanzkriterien", "## Technische Hinweise") passt. Test entsprechend angepasst (akzeptiert beide Ebenen).
+- **Eigenes File `IMPLEMENTER_BRIEFING_STANDARDS.md`** angelegt (Teil-C-Option B) statt SKILL.md aufzublaeen — Standard-Bloecke sind nun zentral wiederverwendbar fuer Operator-Templates + Lead-Claude + Slash-Commands. SKILL.md verweist auf das File.
+- **VERIFIER-Token-Aggregation auf Schritt 7 verschoben** (war Schritt 6) — API-Schema-Coverage-Check ist jetzt Schritt 6. Reihenfolge logisch: zuerst inhaltliche Pruefung, dann Cost-Tracking.
+- **`partial`-Cap statt Hard-Fail** im Verifier: Wenn API-Schema-Coverage fehlt, wird Status auf `partial` gesetzt + Folge-Ticket-Notiz empfohlen — nicht hart `fail`, damit das Implementer-Ticket nicht blockiert wird (Lueke ist Schema-Symmetrie, nicht Feature-Defekt).
+
+**Betroffene Dateien:**
+- `skills_sources/agile-sdd-skill/templates/TICKET.md`
+- `skills_sources/agile-sdd-skill/verifier/VERIFIER.md`
+- `skills_sources/agile-sdd-skill/templates/IMPLEMENTER_BRIEFING_STANDARDS.md` (NEU)
+- `skills_sources/agile-sdd-skill/SKILL.md`
+- `skills_sources/operator-templates/SKILL.md`
+- `~/.claude/projects/.../memory/feedback_api_schema_pflicht.md` (NEU)
+- `~/.claude/projects/.../memory/MEMORY.md` (Index-Zeile)
+- `skill_dev/tests/test_skill_010_api_schema_check.py` (NEU, 6/6 gruen)
+
+**ADR:** keins (keine Architektur-Entscheidung — reine Skill-Pattern-Erweiterung).
+
+**Verify-Report:** ausstehend — Ticket steht auf `review`. `/sdd-verify SKILL-010` empfohlen.
+
+**Review:** ausstehend (PO-Klick).
+
+**Vorbestehender Pre-Existing-Fund:** `test_skill_dev_smoke.py::test_ears_g2_skill_tickets_listed` ist rot wegen Duplicate `SKILL-010.md` in `n8n-human-readable/`-Sub-Verzeichnis (vom Sub-Agent 2 angelegt, vor dieser Session). Nicht behoben — out of scope SKILL-010. Folge-Ticket fuer Umnummerierung empfohlen.
+
+---
+
 ## 2026-05-29 — Tickets-Sub-Struktur eingefuehrt (Vorbereitung paralleler Skill-Arbeit)
 
 **Trigger:** Jakob-Auftrag (Schaltzentrale-Session) — bei 9 SKILL-Tickets in
