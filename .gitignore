@@ -4,3 +4,7 @@
 # Auto-extrahierte Skill-Assets (aus PDF erzeugbar, gehören nicht ins Repo)
 skills_sources/**/_extracted_pages/
 skills_sources/**/_extracted_pages_small/
+
+# Python cache (nicht versionieren)
+__pycache__/
+*.pyc
