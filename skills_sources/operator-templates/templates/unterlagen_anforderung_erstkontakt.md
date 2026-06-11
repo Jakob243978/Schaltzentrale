@@ -87,6 +87,32 @@ Der Draft MUSS enthalten:
    ankauf@jakse-apartments.de
    ```
 
+## Postanschrift-Regel (T175 — beim Erstkontakt fast immer WEGLASSEN)
+
+Jakobs **vollständige Postanschrift** (`Jakob Sebov, Gasstraße 45, 42657 Solingen`)
+liegt zentral in `workers.imap_backfill.own_postal_address_full()`
+(ENV `IMMO_OWN_POSTAL_ADDRESS_FULL`, render-fertig, mehrzeilig) — **nicht im Body
+hardcoden**, diese Quelle nutzen.
+
+**Standard = WEGLASSEN.** Erstkontakt = Unterlagen anfordern; eine Postanschrift
+ist hier so gut wie nie nötig. Body trägt nur Name + `ankauf@jakse-apartments.de`.
+
+**Aufnehmen NUR, wenn die auslösende Anbieter-Mail explizit danach fragt**
+(Trigger-Kontext: `Postanschrift`, `Widerrufsbelehrung`/`Widerruf`,
+`Selbstauskunft`, `Käufer-Adresse`/`Anschrift des Käufers`, `Ihre Anschrift/
+Adresse`, `ladungsfähige Anschrift`). Dann als klar abgesetzten Block einsetzen
+(Werte aus `own_postal_address_full()`, echte Umlaute):
+
+```
+Meine Postanschrift für die Unterlagen:
+
+Jakob Sebov
+Gasstraße 45
+42657 Solingen
+```
+
+**Konservativ: im Zweifel WEGLASSEN.**
+
 ## Subject-Format (T085-Pattern)
 
 * ImmoScout: `Unterlagenrequest <Typ> <Ort>, <Strasse> (ImmoScout <id>)`

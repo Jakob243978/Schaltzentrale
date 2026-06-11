@@ -40,6 +40,22 @@ Sind Anhaenge da? Oder nichts spannendes?
 }
 ```
 
+## TICKET-176 — Offene Drafts gegen den neuen Stand prüfen (Draft-Hygiene)
+
+Die Triage ist seit T176 auch für **Draft-Hygiene** zuständig, nicht nur für
+Mail-Klassifikation. Das Backend macht den Hauptteil automatisch: beim Zuordnen
+dieser Mail werden offene Drafts, deren Forderung inzwischen erfüllt/überholt
+ist (Exposé/Mietliste/Unterlagen liegen als Document vor ODER diese Mail liefert
+einen Exposé-Download-Link), invalidiert (`cancelled` + Event
+`draft_invalidated_by_inbound`). Gültige Drafts bleiben (keine Über-
+Invalidierung).
+
+**Deine Aufgabe dabei:** Wenn dein `action_type` `attachments_arrived` ist (die
+Mail bringt genau das, was ein offener Draft noch nachfragt), notiere das im
+`claude_note` — der nächste Schritt ist die **Bewertung des Vorhandenen**, NICHT
+eine erneute Nachfrage. Du selbst cancelst KEINE Drafts (das Backend tut es
+deterministisch); du klassifizierst nur und machst den Stand nachvollziehbar.
+
 ## Phase 1: Klassifikation
 
 Lies Subject + body_snippet + attachments_meta und ordne in EINEN der
@@ -52,8 +68,32 @@ folgenden `action_type`:
    - "Eigentuemer hat sich anders entschieden"
    - "Bitte streichen Sie unsere Anfrage"
    - Verkaufs-Bestaetigung an dritte Partei
+   - "Das Objekt ist beim Notar. Sollte sich etwas aendern, melde ich mich."
    → Setze `suggested_status_change` auf einen Vorschlag wie `verworfen`
      oder `wiedervorlage`. JAKOB klickt — du machst KEIN Auto-PATCH.
+
+   **TICKET-177 — Sonderfall „Objekt weg":** Wenn der Anbieter meldet, dass das
+   Objekt weg ist (beim Notar / verkauft / zurueckgezogen / anderweitig
+   vergeben), erkennt das **Backend** beim Persistieren dieses `review-result`
+   automatisch den Subtyp und macht den ausgearbeiteten Business-Schritt:
+   - **Tuer offen** (Anbieter laesst die Beziehung offen — „melde mich gerne",
+     „sollte sich etwas aendern", „vergleichbare Objekte"): es wird ein
+     relationship-erhaltender **Profil-Follow-up-Draft** erzeugt (Suchprofil +
+     „bitte denken Sie an mich"-Ton, KEIN Unterlagen-Nachhaken), die Property
+     wird auf **`wiedervorlage`** geparkt (NICHT verworfen, Re-Wake bleibt),
+     und offene Adress-/Unterlagen-Nachfrage-Drafts werden superseded.
+   - **Endgueltig weg, kein Kontakt erwuenscht** („kein Interesse mehr",
+     „bitte streichen Sie", „endgueltig"): kurze Danke-Notiz + **`verworfen`**,
+     KEIN aufdringlicher Profil-Push.
+
+     → **Deine Aufgabe:** klassifiziere wie gewohnt als `lead_status_update`
+     und setze `suggested_status_change` (`wiedervorlage` bei Tuer offen,
+     `verworfen` bei endgueltig). Der `reason` sollte das Tuer-offen- bzw.
+     Endgueltig-Signal woertlich zitieren — das Backend nutzt Subject + Body
+     fuer die Subtyp-Erkennung (konservativ: im Zweifel Tuer-offen). Du baust
+     den Draft NICHT selbst und PATCHst KEINEN Status — das Backend
+     materialisiert den Schritt deterministisch (Draft bleibt `draft`,
+     kein Auto-Send).
 
 2. **`question_from_seller`** — Makler/Anbieter stellt eine Rueckfrage,
    bittet um Info, will Termin oder Selbstauskunft. Beispiele:
@@ -64,6 +104,23 @@ folgenden `action_type`:
    → Setze `claude_note` mit kurzer Zusammenfassung (1-2 Saetze) +
      `suggested_action_description` mit dem konkreten naechsten Schritt
      (max 200 Zeichen).
+
+   **TICKET-179 — Sonderfall „Telefon-/Rueckruf-Wunsch":** Wenn der Anbieter
+   telefonieren will bzw. um Rueckruf bittet („rufen Sie mich an", „kurzes
+   Telefonat", „telefonisch besprechen", „erreiche ich Sie", „Rueckruf",
+   „melden Sie sich telefonisch"), klassifiziere weiterhin als
+   `question_from_seller`. Das **Backend** erkennt den Telefon-Wunsch beim
+   Persistieren automatisch und erzeugt einen freundlichen **async-Deflection-
+   Draft**: er bedankt sich, lenkt auf **schriftlich** (geht schneller, Jakob
+   entscheidet als Direktkaeufer zuegig), bietet den bestehenden
+   `MITARBEITER_HINWEIS` als **weichen Buero-Fallback** an (NICHT „ruf mich
+   an") und fragt konkret nach dem Anliegen, um den Ball async zurueckzuspielen.
+   Jakob muss nie selbst telefonieren; die Property bleibt im selben Status.
+   → **Deine Aufgabe:** `reason` sollte den Telefon-Wunsch woertlich zitieren
+     (das Backend nutzt Subject + Body fuer die Erkennung). Du baust den Draft
+     NICHT selbst. Setze `suggested_action_description` NICHT auf „zurueckrufen"
+     — der naechste Schritt ist der schriftliche Umlenk-Draft, den das Backend
+     materialisiert (bleibt `draft`, kein Auto-Send).
 
 3. **`attachments_arrived`** — die Hauptbotschaft ist "Dokumente sind
    angekommen". Body ist kurz/Standard ("anbei das Expose"), wichtiger
@@ -115,9 +172,19 @@ curl -X POST {api_base}{persist_endpoint} \
 
 Endpoint-Verhalten:
 - `lead_status_update` → Event `email_review_result` mit Payload-
-  Vorschlag. KEIN Auto-PATCH des Property-Status.
+  Vorschlag. KEIN Auto-PATCH des Property-Status — **AUSSER** der T177-
+  Sonderfall „Objekt weg" (beim Notar/verkauft/zurueckgezogen): dann
+  erzeugt das Backend automatisch den Follow-up-/Danke-Draft + parkt
+  (Tuer offen → `wiedervorlage`) bzw. verwirft (endgueltig → `verworfen`)
+  und superseded offene Nachfrage-Drafts. Im Event landen
+  `objekt_weg_subtype` + `objekt_weg_result` (nachvollziehbar).
 - `question_from_seller` → ClaudeNote-Append + neue Action
-  `manual_followup` (status=pending).
+  `manual_followup` (status=pending). **T179-Sonderfall „Telefon-Wunsch":**
+  traegt die Mail einen Telefon-/Rueckruf-Wunsch, erzeugt das Backend
+  zusaetzlich automatisch den async-Deflection-Draft (auf schriftlich lenken +
+  `MITARBEITER_HINWEIS` als Buero-Fallback + konkret nach dem Anliegen fragen),
+  ohne den Status zu aendern. Im Event landen `telefon_wunsch_subtype` +
+  `telefon_deflection_result` (nachvollziehbar). Draft bleibt `draft`.
 - `attachments_arrived` → ClaudeNote-Append (Hinweis), kein Action.
 - `no_action` → nur Event.
 

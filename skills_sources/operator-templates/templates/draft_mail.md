@@ -23,7 +23,28 @@ klickt.
 
 1. `property_id` aus `AgentTask.payload_json` lesen.
 2. `from db.queries import get_property_full_context` → liefert Property
-   + Anbieter-Felder + bisherige Mails + Bewertung + Notes.
+   + Anbieter-Felder + bisherige Mails + Bewertung + Notes + **`draft_context`**
+   (T176: offene Drafts + jüngste Inbound + Dokument-Liste + jüngster DDR).
+
+### TICKET-176 — Prüfe offene Drafts + aktuellen Stand, ersetze statt stapeln (PFLICHT)
+
+Bevor du einen neuen Draft schreibst, lies `context["draft_context"]`:
+- **`open_drafts`** — gibt es schon einen offenen Draft (`status='draft'`) für
+  diese Property? Dann **ersetzt** dein neuer Draft ihn automatisch beim Insert
+  (Backend-Supersession: alter Draft → `cancelled`, Event `draft_superseded`,
+  `superseded_by=<deine neue id>`). Du **stapelst nicht** — entscheide bewusst:
+  übernimm sinnvolle Infos aus dem alten Draft (carry-forward) oder verwirf sie.
+- **`documents`** — frage NIE nach etwas, das schon da ist. Liegt ein
+  `doc_type='expose'` / `'mietliste'` vor, dann KEINE Exposé-/Mietlisten-
+  Nachfrage (P22-Muster — der veraltete Stand war für Jakob nicht bewertbar).
+- **`latest_inbound`** — die jüngste Anbieter-Mail bestimmt, worauf du
+  antwortest. Schreibe gegen den aktuellen Stand, nicht gegen einen alten.
+- **`latest_ddr`** — bei `empfehlung` GO/STOP gehört kein erneutes Nachfragen,
+  sondern der nächste echte Schritt (Kaufangebot/Absage).
+
+Höchstens **ein** offener Draft je Property (Default). Ausnahme: bewusst
+getrennter Reply-Thread (anderer Empfänger + anderer Thread) — der bleibt
+erhalten.
 3. Prüfe `property.anbieter_email` — muss vorhanden sein, sonst gehoert
    der Task auf `platform_message_draft.md` (Operator-Routing-Bug
    melden, Task auf `failed` mit `error_msg="anbieter_email leer, gehoert auf platform_message"`).
@@ -102,6 +123,37 @@ Mit freundlichen Grüßen
 Jakob Sebov
 ankauf@jakse-apartments.de
 ```
+
+## Postanschrift-Regel (T175 — nur bei Bedarf, sonst NICHT)
+
+Jakobs **vollständige Postanschrift** (`Jakob Sebov, Gasstraße 45, 42657 Solingen`)
+ist zentral hinterlegt:
+`workers.imap_backfill.own_postal_address_full()` (ENV `IMMO_OWN_POSTAL_ADDRESS_FULL`,
+render-fertig, mehrzeilig). **Nicht im Body hardcoden** — diese Quelle nutzen.
+
+**Standard = WEGLASSEN.** Der Draft trägt unter der Signatur normal nur Name +
+`ankauf@jakse-apartments.de`. Eine Postanschrift gehört NICHT in jede Mail.
+
+**Aufnehmen NUR, wenn die auslösende/letzte Anbieter-Mail explizit danach fragt** —
+Trigger-Kontext (Wort kommt im Mail-Text/Betreff vor, sinngemäß):
+`Postanschrift`, `Widerrufsbelehrung`/`Widerruf`, `Selbstauskunft`,
+`Käufer-Adresse`/`Anschrift des Käufers`, `Ihre Anschrift/Adresse`,
+`ladungsfähige Anschrift`, `Meldeadresse`, `Wohnanschrift`.
+
+Wenn der Trigger zutrifft, einen klar abgesetzten Adress-Block einsetzen, z.B.:
+
+```
+Meine Postanschrift für die Unterlagen:
+
+Jakob Sebov
+Gasstraße 45
+42657 Solingen
+```
+
+(Werte aus `own_postal_address_full()` — echte Umlaute, kein ASCII-Ersatz.)
+
+**Konservativ: im Zweifel WEGLASSEN** (Jakob: „präsent halten, aber nicht
+grundsätzlich versenden"). Kein Trigger erkennbar -> keine Anschrift im Body.
 
 ## Persist via API
 

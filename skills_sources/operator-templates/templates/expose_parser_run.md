@@ -73,6 +73,27 @@ Skill liefert JSON-Block (```json ... ```) mit:
 }
 ```
 
+## ⚠️ TICKET-178 — Wertbestimmende Kern-Felder MITLIEFERN (NEU)
+
+Frueher galt: „KP/JNKM/WFL nie aus dem Exposé setzen." **Das war die Wurzel
+P287** — eine Property blieb blind INSUFFICIENT_DATA, obwohl die Daten im PDF
+standen. Seit T178 gilt: **Was belegbar im Exposé steht, ziehst du in die
+Property.** Extrahiere zusaetzlich (nur was WIRKLICH im Text steht):
+
+- `asking_price` — Kaufpreis. **Steht dort „Auf Anfrage" / „auf Nachfrage" /
+  kein Preis → Feld WEGLASSEN (NULL, nicht raten).** Die erste Einwertung soll
+  trotzdem aus dem Rest moeglich sein.
+- `jnkm_ist` — Jahres-Netto-Kaltmiete IST p.a. (NICHT Soll/Potenzial). Aus
+  Mietaufstellung/„Ist-Miete".
+- `wfl_m2` — Wohnflaeche, `we_count` — Anzahl Wohneinheiten,
+  `baujahr` — Baujahr.
+- `stadt`, `plz`, `stadtteil` — Lage (PLZ bevorzugt, der Endpoint zieht
+  stadt/stadtteil aus dem PLZ-Mapping nach).
+- `heizung` (Klartext, z.B. „Gas-Zentralheizung"), `energieklasse`.
+
+**Vision-Regel: NUR belastbare Werte.** Fehlt ein Wert im Exposé → Feld nicht
+mitsenden (bleibt NULL). Niemals einen Default raten.
+
 ## Phase 2: Persistieren via API
 
 ```bash
@@ -84,6 +105,16 @@ curl -X POST {api_base}{persist_endpoint} \
        "heizung_baujahr": 2018,
        "letzte_sanierung_jahr": 2015,
        "besonderheiten": [...],
+       "asking_price": 980000,
+       "jnkm_ist": 63653,
+       "wfl_m2": 402.4,
+       "we_count": 4,
+       "baujahr": 1961,
+       "plz": "40545",
+       "stadt": "Düsseldorf",
+       "stadtteil": "Oberkassel",
+       "heizung": "Gas-Zentralheizung",
+       "energieklasse": "D",
        "confidence": 0.85,
        "input_source": "...",
        "classified_by": "expose_parser_skill",
@@ -91,8 +122,13 @@ curl -X POST {api_base}{persist_endpoint} \
      }'
 ```
 
-Der Endpoint normalisiert (Pattern-Whitelist), setzt nur die T098-
-eigenen Felder additiv, triggert `record_run_complete(status='fresh')`.
+`asking_price`/`jnkm_ist`/`wfl_m2` duerfen auch als String („Auf Anfrage",
+„549.000,00 €", „402,4 m²") gesendet werden — der Endpoint normalisiert (de-
+Format) und mappt „Auf Anfrage"/leer auf NULL. **Kern-Felder werden NUR-WENN-
+LEER gesetzt** (kein Overwrite manueller/Backfill-Werte). Danach laeuft der
+Deal-Screener automatisch (erste Ampel) + bei nur fehlendem Kaufpreis der
+fokussierte Folgeschritt „Kaufpreis erfragen". Der Endpoint normalisiert auch
+condition/heizung_typ (Whitelist) + triggert `record_run_complete('fresh')`.
 
 ## Phase 3: AgentTask completen
 
@@ -117,8 +153,11 @@ Operator soll Folge-Ticket vorschlagen. Persist trotzdem durchziehen.
 
 ## Was du NIEMALS tun darfst
 
-- **KP, JNKM, WFL, KPF setzen** — die gehoeren in `extract_kpis`, nicht
-  in den Expose-Parser. Wenn der Skill sie miterkennt: ignorieren.
+- **Werte RATEN / defaulten** — fehlt KP/JNKM/WFL/Baujahr im Exposé, Feld
+  WEGLASSEN (NULL). Vision: keine stillen Fakes. (Seit T178: belegbare
+  Kern-Felder SOLLST du mitsenden — aber nur belegbare.)
+- **`kpf_ist` selbst berechnen + senden** — KPF leitet der Screener aus
+  KP/JNKM ab. Du sendest Rohwerte, keine abgeleiteten Kennzahlen.
 - **JSON-Parse stillschweigend leeren** — bei Parse-Fehler `failed`
   mit `error_msg="skill_json_parse_failed"` + raw snippet.
 - **Cascade-State direkt manipulieren** — der Persist-Endpoint macht
