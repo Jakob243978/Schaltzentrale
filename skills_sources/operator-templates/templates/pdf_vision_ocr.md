@@ -5,6 +5,29 @@ im Payload via `/pdf-vision-ocr`-Skill (Claude-Vision-Subscription) Seite
 fuer Seite auslesen und den Volltext ueber die API auf das Document
 persistieren.
 
+> [!important] Text-Ebene zuerst per PyMuPDF prüfen (TICKET-193)
+> **Vision-OCR ist nur für echte Scans nötig.** In der Laufzeitumgebung ist
+> `pdftoppm`/poppler NICHT installiert — viele vermeintliche "Bild-PDFs" haben
+> aber eine eingebettete Text-Ebene. Bevor du den teuren Vision-Pass startest,
+> prüfe die Text-Ebene mit PyMuPDF (kein poppler/pdftoppm nötig):
+>
+> ```bash
+> python -m workers.pdf_text "{pdf_path}"   # bzw. workers.pdf_text.extract_pdf_text
+> ```
+> ```python
+> from workers.pdf_text import extract_pdf_text
+> r = extract_pdf_text(pdf_path)   # {text, page_count, has_text_layer, needs_ocr, error}
+> ```
+>
+> - `has_text_layer=True` / `needs_ocr=False` -> die Text-Ebene reicht. Persistiere
+>   `r["text"]` direkt ueber den `*/ocr-result`-Endpoint (`ocr_source="pymupdf"`,
+>   `ocr_confidence=0.9`) und ueberspring den Vision-Pass. Das spart die meisten
+>   OCR-Runs.
+> - `needs_ocr=True` -> echter Scan ohne Text-Ebene. Erst JETZT den Vision-OCR-
+>   Pass unten ausführen.
+> - `error` gesetzt (z.B. `pymupdf_not_installed`) -> Env-Setup-Problem melden,
+>   nicht stillschweigend OCR faken.
+
 ## Briefing-Variablen (vom Operator gefuellt)
 - `{task_id}`, `{property_id}` (kann null sein), `{payload_json}`,
   `{api_base}`
@@ -67,7 +90,7 @@ Erwartete Response: 200 mit
 plus `"cascade_invalidated":["mietlisten_parser","dokument_klassifizierer",...]`
 — das ist die Liste der wartenden Steps die der Persist-Endpoint
 automatisch auf `dirty` setzt (T092a). Diese Worker laufen beim
-naechsten Cascade-Trigger erneut, finden jetzt `Document.ocr_text` als
+nächsten Cascade-Trigger erneut, finden jetzt `Document.ocr_text` als
 Cache und arbeiten den Inhalt durch.
 
 ### Phase 3: AgentTask completen

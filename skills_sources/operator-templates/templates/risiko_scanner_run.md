@@ -25,42 +25,76 @@ mit dem gleichen Input. Vergleiche die Outputs:
   aufnehmen, `confidence="unstable"` setzen, Schwerstes-Risiko-Set
   als Union nehmen.
 
-Skill liefert pro Call JSON-Block (```json ... ```):
+Der Skill liefert pro Call einen JSON-Block (```json ... ```) in seinem eigenen
+Format (Risiken-Liste mit `kategorie`/`schwere`/`befund`, `showstopper`,
+`ampel_gesamt`, `summary_md`). **Das ist NICHT das Persist-Schema** — du
+mappst es in Phase 2 in das Endpoint-Schema (siehe unten).
+
+## Phase 2: Persistieren via API — EXAKTES Endpoint-Schema
+
+Der `POST {persist_endpoint}` (`/api/property/{property_id}/risk-scan-result`)
+erwartet **genau** dieses Body-Schema (verifiziert gegen den Endpoint-Code +
+`/openapi.json`, TICKET-190):
 
 ```json
 {
-  "risiken": [
+  "overall_score": 7,
+  "findings": [
     {
-      "kategorie": "rechtlich|baulich|wirtschaftlich|standort|mieter",
-      "schwere": "low|medium|high",
-      "befund": "...",
-      "quelle_doc_id": <id|null>,
-      "empfehlung": "..."
+      "category": "recht",
+      "severity": "high",
+      "finding_text": "..."
     }
   ],
-  "showstopper": ["..."],
-  "ampel_gesamt": "🟢|🟡|🔴",
-  "summary_md": "..."
+  "summary_md": "...",
+  "raw_skill_output_md": "<beide Calls falls divergent>",
+  "scan_source": "skill_risiko_scanner",
+  "scanned_by": "risiko_scanner_skill",
+  "agent_task_id": {task_id}
 }
 ```
 
-## Phase 2: Persistieren via API
+**Pflicht-Feld:** `overall_score` (Integer **1–10**, 1 = unkritisch, 10 =
+dealbreaker). Out-of-range -> HTTP 422. `findings` ist optional, aber gewollt.
+
+**Feld-Constraints (werden serverseitig normalisiert — halte dich trotzdem dran):**
+
+- `category` ∈ Whitelist (12 Werte): `grundbuch`, `mietliste`, `substanz`,
+  `paechter_bonitaet`, `energie`, `recht`, `finanzen`, `mieter`, `standort`,
+  `sanierung`, `verwaltung`, `markt`. Unbekannt -> `finanzen`.
+- `severity` ∈ `low` | `mid` | `high` | `critical`. Unbekannt -> `mid`.
+- `finding_text`: Klartext-Befund (max. 1000 Zeichen).
+
+**Mapping Skill-Output -> Endpoint:**
+
+- Skill-`ampel_gesamt`/`weighted_score` -> EIN `overall_score` (1–10). Faustregel:
+  🟢 ≈ 1–3, 🟡 ≈ 4–6, 🔴 ≈ 7–10; Showstopper vorhanden -> mind. 8.
+- Jedes Skill-`risiken[]`-Element -> ein `findings[]`-Element:
+  `kategorie` -> `category` (auf Whitelist mappen), `schwere` -> `severity`
+  (`medium`/`mittel` -> `mid`, `hoch` -> `high`, `kritisch`/`dealbreaker` ->
+  `critical`), `befund` -> `finding_text`.
+- Skill-`showstopper[]` -> je ein `findings[]`-Element mit `severity="critical"`
+  (Kategorie passend, sonst `finanzen`).
+- Skill-`summary_md` -> `summary_md`. Bei `confidence="unstable"`: beide
+  Roh-Outputs in `raw_skill_output_md`.
 
 ```bash
 curl -X POST {api_base}{persist_endpoint} \
      -H "Content-Type: application/json" \
      -d '{
-       "risiken": [...],
-       "showstopper": [...],
-       "ampel_gesamt": "...",
+       "overall_score": 7,
+       "findings": [
+         {"category": "recht", "severity": "high", "finding_text": "..."}
+       ],
        "summary_md": "...",
-       "n_calls": 2,
-       "stability": "stable|unstable",
        "raw_skill_output_md": "<beide Calls falls divergent>",
-       "generated_by": "risiko_scanner_skill",
+       "scan_source": "skill_risiko_scanner",
+       "scanned_by": "risiko_scanner_skill",
        "agent_task_id": {task_id}
      }'
 ```
+
+Antwort: `{"risk_scan_id": N, "overall_score": 7, "findings_count": M, ...}`.
 
 ## Phase 3: AgentTask completen
 
@@ -70,11 +104,10 @@ curl -X POST {api_base}/api/agent-tasks/{task_id}/complete \
        "status": "done",
        "result_json": {
          "risk_scan_id": N,
-         "ampel_gesamt": "...",
-         "n_risiken": 5,
-         "n_showstopper": 1,
+         "overall_score": 7,
+         "findings_count": 5,
          "stability": "stable",
-         "summary": "Property #{property_id} risk-scanned: ampel X"
+         "summary": "Property #{property_id} risk-scanned: score 7/10"
        }
      }'
 ```
@@ -91,6 +124,9 @@ Wenn `GET /api/property/{id}` die RiskScan-Felder nicht ausliefert:
   ist okay, der Operator sieht den Flag.
 - **Eigene Risiken erfinden ohne Skill-Output** — nur Skill-basierte
   Risiken, dein Job ist Stabilitaets-Check + Persist.
+- **Das alte Persist-Schema `{risiken, showstopper, ampel_gesamt}` senden**
+  (TICKET-190) — der Endpoint erwartet `overall_score` (1–10) +
+  `findings[{category, severity, finding_text}]`. Immer Phase-2-Mapping nutzen.
 - **Cashflow- oder Steuer-Empfehlungen** — die kommen aus anderen
   Skills (cashflow-modell, anlage-v-assistent).
 - **Document.text patchen** — du liest nur, persistierst auf RiskScan.
