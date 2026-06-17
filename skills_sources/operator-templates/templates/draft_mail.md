@@ -91,6 +91,51 @@ Context: <get_property_full_context-Auszug>
 
 Skill liefert Subject + Body. Du transferierst sie in das Format unten.
 
+### TICKET-212 — KPF-ehrliche Interesse-Formulierung + Formalitäten als Standard (PFLICHT)
+
+Zwei Drafts liefen falsch (P326 #193, P5 #180). **Halte dich an beide Regeln,
+nutze die zentralen Bausteine aus `workers/draft_templates.py` (kein Freitext-
+Floskel-Erfinden):**
+
+**1. KPF-EHRLICH.** Die Interesse-Aussage MUSS zum
+`property.deal_screener_verdict` / zur `property.ampel` passen. Nutze
+`interest_sentence(verdict, ampel, objekt=...)`:
+
+```python
+from workers.draft_templates import interest_sentence
+satz = interest_sentence(property.deal_screener_verdict, property.ampel, objekt="…")
+```
+
+- **MATCH / grün** → klar interessiert.
+- **GRAUZONE / DRIFT / gelb** → **neutral** ("grundsätzlich denkbar bei
+  passendem Preis") — **NIE** „sehr interessant".
+- **MISMATCH / rot** → **kein** Interesse behaupten (sachlich/zurückhaltend).
+- **INSUFFICIENT_DATA / unbekannt / kein Exposé** → **KEINE** Interesse-
+  Behauptung in beide Richtungen. Ziel = Exposé/Unterlagen holen + bewerten.
+
+⛔ **Verboten:** „(grundsätzlich) sehr interessant" auf einer DRIFT/rot/
+MISMATCH-Property (P326-Fehler). Schau IMMER zuerst auf `deal_screener_verdict`.
+
+**2. FORMALITÄTEN ALS STANDARD — nicht hedgen, nicht verhandeln.** Bei einer
+verfolgten/zu-bewertenden Property behandelst du Makler-Formalitäten
+(Maklervertrag/Beauftragung/Kapital-/Bonitäts-/Finanzierungsnachweis) als
+**Standard, der schlicht erledigt wird**. Nutze `formality_stance_hint()`:
+
+```python
+from workers.draft_templates import formality_stance_hint
+```
+
+- ⛔ Kein „**bevor** ich (die Beauftragung) bestätige, will ich erst
+  Unterlagen …" (P5-Fehler). Die Beauftragung ist ein normaler Schritt.
+- ⛔ Kein Verhandeln über den Standard-Kapital-/Bonitätsnachweis
+  („teilen Sie mir mit, in welcher Form …", P326-Fehler) — du stellst ihn
+  als gegeben/erledigbar dar (Direktkäufer ohne Finanzierungsvorbehalt).
+- ✅ Fokus = **Exposé/Unterlagen bekommen + bewerten**. Formalität nebenbei
+  erledigen.
+
+Diese beiden Regeln ändern **nur den Draft-INHALT** — nicht das Versand-
+Verhalten (kein Auto-Send, Jakob klickt Send).
+
 ## Format des Drafts (CreateDraftRequest)
 
 - **`to_email`**: `property.anbieter_email`

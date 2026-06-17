@@ -15,6 +15,8 @@
 | **Assistenz** | `claude_projects/Assistenz` | (in Entwicklung) |
 | **Workflow Builder** | `claude_projects/Workflow Builder` | (in Entwicklung) |
 | **SocialMediaBuilder** | `claude_projects/SocialMediaBuilder` | Taegliche Content-Pipeline IG/TikTok aus Markdown + Memory -> Trello |
+| **MetaAdsAgent** | `claude_projects/MetaAdsAgent` | Branchen-Agent fuer Meta Ads (FB/IG): Kampagnen-Rollout aus YAML + Markdown-Content (Source: AgentischesArbeiten), Hybrid-Stack Python-SDK + offizieller Meta-Ads-MCP, paused-by-default |
+| **ErrorTicketRouter** | `claude_projects/ErrorTicketRouter` | Pollt n8n-Executions aller Kunden-Instanzen, dedupliziert + filtert deterministisch und spawned pro neuem Error eine Claude-Session im richtigen Customer-Repo (SDD-Ticket Status `idea`). Workspace-native: `claude -p` mit Pro/Max-Auth, kein Agent-SDK. |
 | **Schaltzentrale** | `claude_projects/Schaltzentrale` | Meta-Projekt: Uebersicht, Setup, Dokumentation aller Agenten |
 
 ## MCP-Verbindungen (via Composio)

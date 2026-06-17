@@ -7,7 +7,7 @@ param(
 )
 
 $BaseDir = Split-Path $PSScriptRoot -Parent
-$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB", "PropertyDesk", "DropboxCheck", "ZeitenAbgleich", "AgentischesArbeiten", "vault", "personal_branding")
+$Repos = @("Schaltzentrale", "Termindokumentierer", "Assistenz", "Workflow Builder", "SocialMediaBuilder", "GuestAI", "HomeAssistant", "Researcher", "Immobewertung", "KundenAB", "PropertyDesk", "DropboxCheck", "ZeitenAbgleich", "AgentischesArbeiten", "MetaAdsAgent", "ErrorTicketRouter", "vault", "personal_branding")
 
 Write-Host "=== Session Ende: Commit & Push alle Repos ===" -ForegroundColor Cyan
 Write-Host "  Commit-Message: $Message`n"
