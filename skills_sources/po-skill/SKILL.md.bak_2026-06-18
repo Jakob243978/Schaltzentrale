@@ -1,6 +1,6 @@
 ---
 name: po-skill
-version: 0.2
+version: 0.1
 description: Product-Owner-Skill als Counterpart zum agile-sdd-skill. Aktivieren wenn ein Agent Vision-Hygiene, Backlog-Priorisierung oder Outcome-Verifikation fuer ein Projekt uebernehmen soll — Vision-Constitution, 3x-Why-Challenge, 48h-Cooldown, RICE-Priorisierung, 14-Tage-Outcome-Check. Verwende diesen Skill wenn der User Ideen challengen will (`/po-challenge`), Backlog priorisieren will (`/po-prioritize`), Outcomes von done-Tickets pruefen will (`/po-verify-outcome`) oder das Projekt initial mit Vision aufsetzen will (`/po-init`).
 ---
 
@@ -88,88 +88,6 @@ Algorithmus:
 > - Verifikations-Fehler eines aktiven Tickets
 > - Audit/Compliance-Termin in < 7 Tagen
 > - Vom User explizit als "akut" markiert
-
-### C.5 Empfehlungs-First in `/po-challenge` (Schaerfung 2026-06-18)
-
-> [!important] `/po-challenge` empfiehlt — der User entscheidet
->
-> Heute endet `/po-challenge` haeufig in 3x-Why-Antworten plus offener
-> Frage ("Was meinst du?"). Das verstaerkt genau das Rueckfrage-Pattern,
-> das `feedback_einfach_abarbeiten` und `feedback_style` vermeiden wollen.
-> Ab sofort liefert jeder Challenge-Durchlauf eine **klare Empfehlung**.
-
-#### C.5.1 Pflicht-Format am Ende eines Challenge-Durchlaufs
-
-Nach 3x-Why + Vision-Prinzip-Match + Akut-/Cooldown-Pruefung gibt
-`/po-challenge` IMMER aus:
-
-```
-Empfehlung: <annehmen | parken bis YYYY-MM-DD HH:MM | ablehnen | Vision schaerfen>
-Warum: <2-3 Saetze, expliziter Bezug zum Vision-Prinzip / Memory / Live-Beleg>
-Trade-off: <1 Satz: was die Empfehlung kostet>
-```
-
-Die vier zulaessigen Empfehlungen:
-
-- **annehmen** — Idee passt zur Vision, ist akut (Akut-Liste greift) oder
-  Cooldown bereits geleistet → Uebergabe an SDD (`idea` → `spec`).
-- **parken bis YYYY-MM-DD HH:MM** — Default bei nicht-akuten Ideen.
-  Eintrag in `docs/DEFERRED.md`, 48h-Cooldown.
-- **ablehnen** — Idee laeuft Vision aktiv zuwider oder ist
-  out-of-scope laut "Was NICHT im Scope ist" der Vision.
-- **Vision schaerfen** — kein Prinzip passt, aber die Idee wirkt
-  strategisch relevant → Empfehlung an User, die Vision append-only zu
-  erweitern, bevor das Ticket entsteht.
-
-#### C.5.2 Anti-Pattern (verboten als Default-Output)
-
-- **3x-Why-Antworten ohne abschliessende Empfehlung** — der Challenge ist
-  ein Werkzeug zum Empfehlen, kein Frage-Werkzeug.
-- **"Soll ich das Ticket auf spec setzen?"** — die Empfehlung MUSS kommen;
-  der User entscheidet danach mit Ja/Nein, nicht aus einer offenen Liste.
-- **Neutrale Aufzaehlung von Vor- und Nachteilen** ohne Wertung.
-
-#### C.5.3 Beziehung zu `agile-sdd-skill` Sektion M
-
-Dieses Pattern spiegelt **agile-sdd-skill Sektion M
-("Antwort-Pattern Empfehlungs-First")** direkt fuer den
-Challenge-Workflow. Konsistenz ist Pflicht — wenn der Implementer-Agent
-Empfehlungs-First sprechen muss, darf der PO-Skill nicht der einzige Ort
-sein, der wieder offen fragt.
-
-#### C.5.4 STOPP-Faelle aus `agile-sdd-skill` Sektion L
-
-Wenn die Idee einen Fall aus `agile-sdd-skill` Sektion L.2 (STOPP-Liste)
-beruehrt — destruktive Op, Outbound-Kommunikation, neue bezahlte
-Dependency, vision-relevante Architektur, Verifikations-Fehler,
-DB-Mutation ohne Skript — dann gilt: `/po-challenge` darf die Empfehlung
-aussprechen ("annehmen, weil…"), aber **setzt sie nicht autonom um**.
-Jakob entscheidet. Die STOPP-Liste ueberstimmt jede autonome Setzung,
-**nicht** die Empfehlung selbst.
-
-#### C.5.5 Verhaeltnis zur Akut-Liste (Sektion C, Schritt 3)
-
-Die Akut-Liste (Bug-Fix Production-Daten, Verifikations-Fehler, Audit/
-Compliance-Termin < 7 Tagen, explizit "akut") verschiebt die
-Default-Empfehlung von **"parken bis +48h"** auf **"annehmen sofort"** —
-sie **ueberspringt den Cooldown-Schritt nicht** (der Eintrag in
-`DEFERRED.md` entfaellt nur dann, wenn die Akut-Liste greift). Die
-Empfehlung sagt das explizit, z.B.:
-
-```
-Empfehlung: annehmen sofort (Akut-Liste: Verifikations-Fehler aktives Ticket)
-Warum: TICKET-NNN haengt; Cooldown wuerde Live-Workflow blockieren.
-Trade-off: Kein 48h-Reifezeit-Puffer fuer alternative Loesungs-Ideen.
-```
-
-#### C.5.6 Verweis auf 2-Wochen-Plan (Vision-Drift-Counter)
-
-Der **Vision-Drift-Counter** (Bestaetigungsfragen pro Session zaehlen,
-nach der 3. automatisch `/po-reconcile` empfehlen, ggf.
-`docs/sdd-session-meta.json`) ist Vorschlag 4 der Sourcedoku und
-aktuell **OUT-OF-SCOPE**. Wird in ca. 2 Wochen separat als SKILL-Ticket
-evaluiert. Sourcedoku:
-`skill_dev/proposals/2026-06-18_sdd_default_decision_plus_voice_mode.md`.
 
 ---
 

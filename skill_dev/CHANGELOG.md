@@ -6,6 +6,54 @@ Keep-a-Changelog.
 
 ---
 
+## 2026-06-18 — agile-sdd-skill v0.6 + po-skill v0.2: Default-Entscheidung + Empfehlungs-First (SKILL-014 + SKILL-015)
+
+**Added (`skills_sources/agile-sdd-skill/`):**
+- **SKILL.md Sektion L "Default-Entscheidungs-Regel"** — MUST-Regel:
+  Agent entscheidet selbst und dokumentiert im `governance_log.md`, wenn
+  alle Bedingungen erfuellt (reversibel + kein externer Kosten-Trigger +
+  keine Outbound-Kommunikation + vision-konform + keine Architektur).
+  Harte STOPP-Liste mit 6 Faellen (destruktive Ops, Outbound, neue
+  bezahlte Deps, Architektur, Verifikations-Fehler, DB-Mutation).
+  Dokumentations-Pflicht + Anti-Pattern + Verweis auf 2-Wochen-Plan.
+- **SKILL.md Sektion M "Antwort-Pattern Empfehlungs-First"** — Pflicht-
+  Format `Empfehlung: <Zeile>` + `Warum: <2-3 Saetze>` + `Trade-off: <1>`
+  + optional `Alternativen` nur auf Nachfrage. 3-Option-Tabellen ohne
+  Empfehlung verboten als Default. Selbst-Check + Beispiel/Anti-Beispiel.
+
+**Added (`skills_sources/po-skill/`):**
+- **SKILL.md Sektion C.5 "Empfehlungs-First in /po-challenge"** — am Ende
+  jedes Challenge-Durchlaufs Pflicht-Empfehlung
+  (annehmen | parken bis YYYY-MM-DD | ablehnen | Vision schaerfen) +
+  Warum + Trade-off. Spiegelt agile-sdd-skill Sektion M. Verhaeltnis zur
+  Akut-Liste (Sektion C) + STOPP-Liste (agile-sdd L.2) geklaert. Verweis
+  auf Vision-Drift-Counter (2-Wochen-Plan).
+
+**Changed:**
+- SKILL.md `agile-sdd` Skill-Version `0.5` -> `0.6`.
+- SKILL.md `po-skill` Skill-Version `0.1` -> `0.2`.
+
+**Added (Memory):**
+- `vault/Memory/feedback_default_decision_empfehlung_first.md` — neue
+  Feedback-Memory mit Kern-Regel + STOPP-Liste + Konsequenz fuer Jakob.
+- `vault/Memory/MEMORY.md` — Index-Eintrag.
+
+**Backups:**
+- `skills_sources/agile-sdd-skill/SKILL.md.bak_2026-06-18`
+- `skills_sources/po-skill/SKILL.md.bak_2026-06-18`
+
+**Trigger:** Jakob 2026-06-18, *"Mein meistgenutzter Move ist
+'rueckfragen, was er empfehlen wuerde'. Ich fuehl mich entscheidungshemmt."*
+Sourcedoku: `skill_dev/proposals/2026-06-18_sdd_default_decision_plus_voice_mode.md`,
+Vorschlaege 1+2. Vorschlaege 3 (Voice-Mode) + 4 (Vision-Drift-Counter)
+warten ~2 Wochen.
+
+**Offen:** Verifier-Pass `/sdd-verify SKILL-014` + `/sdd-verify SKILL-015`
+sowie Jakob-Review der Sprache/Wording vor Status `done`. Commit-Akt
+durch Jakob.
+
+---
+
 ## 2026-05-31 — agile-sdd-skill v0.5: inbox/-Konvention (SKILL-009)
 
 **Added (`skills_sources/agile-sdd-skill/`):**

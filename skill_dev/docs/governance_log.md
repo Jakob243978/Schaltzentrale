@@ -5,6 +5,74 @@ eingetragen. Jakob reviewt dieses Log asynchron.
 
 ---
 
+## 2026-06-18 — SKILL-014 + SKILL-015 umgesetzt: Default-Entscheidung + Empfehlungs-First
+
+**Tickets:** SKILL-014 (agile-sdd-skill) + SKILL-015 (po-skill)
+**Status:** beide `spec` -> Skill-Code gepatcht -> Deploy via setup.ps1 ->
+`review` (Verifier-Pass + Jakob-Review fehlen vor `done`).
+
+**Trigger:** Jakob 2026-06-18, *"Mein meistgenutzter Move ist 'rueckfragen,
+was er empfehlen wuerde'. Ich fuehl mich entscheidungshemmt."* Vorschlag
+1 (Default-Entscheidung) + Vorschlag 2 (Empfehlungs-First) aus
+`skill_dev/proposals/2026-06-18_sdd_default_decision_plus_voice_mode.md`
+durch Jakob freigegeben. Vorschlaege 3 + 4 (Voice-Mode +
+Vision-Drift-Counter) warten ca. 2 Wochen — explizit als 2-Wochen-Plan
+in beiden SKILL.md-Dateien dokumentiert.
+
+**Autonome Entscheidungen:**
+
+- **Naechste freie SKILL-Nummern: 014 (agile-sdd) + 015 (po-skill).**
+  Globale Weiterzaehlung (siehe `docs/tickets/README.md`), nicht
+  pro-Skill. Bisher hoechste Nummer war SKILL-013.
+- **Zwei getrennte Tickets statt eines Cross-Cutting-Tickets.** Die
+  Patches treffen zwei verschiedene Skill-Sources mit getrenntem Lifecycle
+  (Versionierung), Quer-Verweis im Frontmatter (`related_tickets`) reicht.
+  Ein Cross-Cutting-Ticket waere unnoetig zentralisierend.
+- **Skill-Versions-Bump beide:** agile-sdd `0.5` -> `0.6`, po-skill `0.1`
+  -> `0.2` (Pflicht-Konvention bei jedem SKILL.md-Patch).
+- **Vorschlaege 3 + 4 NICHT als SKILL-Ticket angelegt.** Sind als
+  2-Wochen-Plan in den Out-of-Scope-Sektionen der Tickets + in beiden
+  SKILL.md-Dateien (Sektionen L.5, M.5, C.5.6) explizit dokumentiert.
+  Kein eigenes Ticket in `idea`-Status angelegt, um keinen aktiven
+  "Folge-Task-Push" zu erzeugen (siehe `feedback_skeleton_first`).
+- **Empfehlungs-First-Beispiel im DB-Migration-Kontext** als
+  Default-Beispiel in Sektion M.1 gewaehlt — generischer als ein
+  Projekt-spezifisches Trello-/n8n-Beispiel.
+
+**Artefakte modifiziert/neu (`skills_sources/agile-sdd-skill/`):**
+- `SKILL.md` — v0.5 -> v0.6; **NEU Sektion L** (Default-Entscheidungs-
+  Regel mit MUST-Bedingungen + STOPP-Liste + Doku-Pflicht + Anti-Pattern);
+  **NEU Sektion M** (Empfehlungs-First-Format + Beispiel/Anti-Beispiel +
+  Selbst-Check + Verhaeltnis zu L). Eingefuegt nach Sektion K, vor
+  "Templates-Referenz".
+- `SKILL.md.bak_2026-06-18` — Backup vor Patch.
+
+**Artefakte modifiziert/neu (`skills_sources/po-skill/`):**
+- `SKILL.md` — v0.1 -> v0.2; **NEU Sektion C.5** ("Empfehlungs-First in
+  /po-challenge") direkt nach der Akut-Liste in Sektion C, vor Sektion D.
+  Pflicht-Format + 4 zulaessige Empfehlungen (annehmen/parken/ablehnen/
+  Vision schaerfen) + Spiegelung Sektion M + Akut-Listen-Verhaeltnis.
+- `SKILL.md.bak_2026-06-18` — Backup vor Patch.
+
+**Artefakte modifiziert (`skill_dev/`):**
+- `docs/tickets/agile-sdd-skill/SKILL-014.md` — neu, Status `spec`.
+- `docs/tickets/po-skill/SKILL-015.md` — neu, Status `spec`.
+- `CHANGELOG.md` — Eintrag oben.
+- `docs/governance_log.md` — dieser Eintrag.
+
+**Artefakte neu (`vault/Memory/`):**
+- `feedback_default_decision_empfehlung_first.md` — Kern-Regel + STOPP-
+  Liste + Konsequenz + Verweise auf SKILL-014/015 + Sourcedoku.
+- `MEMORY.md` — Index-Eintrag.
+
+**ADR:** keins (Repo-Konvention, kein `docs/adr/` in skill_dev — selbe
+Linie wie SKILL-009).
+
+**Review:** ausstehend (Jakob reviewt Sprache, Wording, Wirkung in 1-2
+Sessions; Commit erfolgt durch Jakob).
+
+---
+
 ## 2026-05-31 — SKILL-009 umgesetzt: inbox/-Konvention in agile-sdd-skill (v0.4 → v0.5)
 
 **Ticket:** SKILL-009 (inbox/-Konvention fuer agile-sdd)
