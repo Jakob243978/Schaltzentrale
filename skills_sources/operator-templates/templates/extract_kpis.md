@@ -10,20 +10,36 @@ Trello-Description in echte Property-Felder schreiben.
 ## Vorgehen — DIREKTER WORKER-CALL (kein LLM, kein Skill)
 
 Das ist reine Python-Regex-Logik, **kein** Claude-Call. Du fuehrst den
-bestehenden Worker aus:
+bestehenden Worker aus — **CLI ist die Primaer-Empfehlung** (TICKET-276):
 
 ```bash
 cd C:/Users/Jakob/claude_projects/Immobewertung
 python -m workers.extract_kpis --property-id {property_id}
 ```
 
-ODER programmatisch (wenn der Worker eine `process_property()`-Funktion
-exportiert):
+Programmatischer Fallback (TICKET-276): Die echte Worker-Signatur ist
+`process_property(p: Property)` — sie nimmt ein **geladenes Property-Objekt**,
+KEINEN `property_id=`-Keyword-Parameter. Empfohlen ist `main(property_id=N)`
+(kapselt Session, Commit + T203-Re-Screen und liefert ein Summary-Dict):
 
 ```python
+from workers.extract_kpis import main
+summary = main(property_id={property_id})
+# summary = {"processed": 1, "asking_price": 1, "jnkm_ist": 1,
+#            "kpf_ist": 1, "wfl_m2": 0, "rescreened": 1, ...}
+```
+
+Wer wirklich nur die pure Extraktion braucht, laedt das Objekt selbst:
+
+```python
+from db.engine import SessionLocal
+from db.models import Property
 from workers.extract_kpis import process_property
-result = process_property(property_id={property_id})
-# result = {"set": {"kp": 549000, "jnkm": 32400, ...}, "skipped": [...]}
+
+with SessionLocal() as s:
+    p = s.get(Property, {property_id})
+    process_property(p)   # mutiert p in-place, fuellt nur leere Felder
+    s.commit()
 ```
 
 ## Erwartetes Ergebnis
