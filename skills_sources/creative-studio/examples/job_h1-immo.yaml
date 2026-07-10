@@ -1,0 +1,32 @@
+# creative-studio — Beispiel-Job (SKILL-023 Real-Test)
+# 3 Hook-Varianten x 2 Formate = 6 Bild-Creatives.
+# Brand kommt projektneutral ueber --brand-env (CLI) oder brand_env (hier).
+ad_id: h1-immo
+
+# Brand-Tokens: per CLI --brand-env ueberschreibbar. Beispiel:
+#   C:\claude_projekte\AgentischesArbeiten\terraform\base-dev\build\customization\branding.env
+brand_env: ""
+
+formats:
+  - feed_4x5
+  - story_9x16
+
+media:
+  - image      # video: spaetere Ausbaustufe (TODO im batch.py)
+
+variants:
+  - framework: bab          # Before-After-Bridge
+    eyebrow: "Immobilien-Automation"
+    headline: "Schluss mit Excel-Chaos im Bestand"
+    subline: "Mietdaten, Fristen, Belege — automatisch sortiert."
+    cta: "Jetzt Demo sichern"
+  - framework: pas          # Problem-Agitate-Solution
+    eyebrow: "Fuer Hausverwaltungen"
+    headline: "Jede Rechnung manuell zuordnen kostet Stunden"
+    subline: "Der Agent erledigt Zuordnung und Weiterleitung."
+    cta: "Prozess ansehen"
+  - framework: aida         # Attention-Interest-Desire-Action
+    eyebrow: "Neu fuer Verwalter"
+    headline: "Dein Bestand, in Echtzeit im Griff"
+    subline: "Ein Dashboard fuer Mieten, Fristen und Belege."
+    cta: "Kostenlos testen"

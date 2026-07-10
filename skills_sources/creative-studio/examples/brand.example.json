@@ -1,0 +1,17 @@
+{
+  "_comment": "SKILL-029 Beispiel-Brand-Kit. Neutral, keine echten Geheimnisse. Pro Projekt eigene Kopie pflegen (Multi-Projekt: kein Wert hartkodiert im Skill).",
+  "brand_name": "Beispiel Marke",
+  "colors": {
+    "bg": "#0a0e27",
+    "bg_soft": "#11163a",
+    "accent": "#f25d3e",
+    "ink": "#faf7f2",
+    "ink_muted": "#9a9ec0"
+  },
+  "font": "-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  "logo": {
+    "path": "marketing/brand-assets/logo.png",
+    "position": "top-left",
+    "height_pct": 6.0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "ad_id": "h1-immo",
+  "framework": "pas",
+  "hook_index": 0,
+  "hook": "3 Stunden pro Woche zurück",
+  "hook_accent": "ohne neues Tool",
+  "eyebrow": "MENTORING · WARTELISTE",
+  "subline": "Agentisches Arbeiten für Immobilien-Unternehmer.",
+  "cta": "Auf die Warteliste",
+  "caption_style": "hormozi",
+  "scenes": [
+    { "text": "3 Stunden pro Woche zurück", "seconds": 1.5 },
+    { "text": "ohne ein neues Tool", "seconds": 1.5 }
+  ],
+  "captions": [
+    { "text": "3", "startMs": 0, "endMs": 350 },
+    { "text": "Stunden", "startMs": 350, "endMs": 800 },
+    { "text": "pro", "startMs": 800, "endMs": 1000 },
+    { "text": "Woche", "startMs": 1000, "endMs": 1500 },
+    { "text": "zurück", "startMs": 1500, "endMs": 2100 },
+    { "text": "ohne", "startMs": 2100, "endMs": 2400 },
+    { "text": "neues", "startMs": 2400, "endMs": 2700 },
+    { "text": "Tool", "startMs": 2700, "endMs": 3000 }
+  ],
+  "brand": {
+    "name": "JAKSE-Automations",
+    "accent": "#f25d3e",
+    "bg": "#0a0e27",
+    "bgSoft": "#11163a",
+    "ink": "#faf7f2",
+    "inkMuted": "#9a9ec0",
+    "captionFont": "Montserrat, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "captionBg": "pill",
+    "captionBgAlpha": 0.62
+  }
+}

@@ -8,3 +8,6 @@ skills_sources/**/_extracted_pages_small/
 # Python cache (nicht versionieren)
 __pycache__/
 *.pyc
+
+# Skill-Compile-Cache (generiert)
+.skillcmp/

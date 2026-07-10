@@ -39,5 +39,14 @@ sdd_verifier:
   # Pro Projekt ADR-pflichtig, default off.
   property_based_tests_enabled: false
 
+  # Loesungs-Skizze-Block (SKILL-019, Design-Phase light) bei M/L/XL-Tickets.
+  #   false (Default) — Warning, wenn ein M/L/XL-Ticket ohne
+  #                     `## Loesungs-Skizze (Approach)`-Block nach `in_progress`
+  #                     wechselt. Blockt nicht.
+  #   true            — Hard-Block: M/L/XL-Ticket darf ohne den Block nicht nach
+  #                     `in_progress`.
+  # XS/S-Tickets sind in jedem Fall ausgenommen (Block dort optional).
+  approach_block_required_for_ML: false
+
   # Soft-Disable: falls Verifier in einem Projekt temporaer deaktiviert werden soll
   enabled: true

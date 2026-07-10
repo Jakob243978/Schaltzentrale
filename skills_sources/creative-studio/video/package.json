@@ -1,0 +1,14 @@
+{
+  "name": "creative-studio-video",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "render": "remotion render src/index.ts AdVideo out/AdVideo.mp4 --concurrency=1 --port=3333"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.482",
+    "remotion": "4.0.482",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  }
+}

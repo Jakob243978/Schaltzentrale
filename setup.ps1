@@ -75,7 +75,10 @@ if (-not (Test-Path $SkillsSource)) {
         Write-Host "  ${DryPrefix}robocopy /MIR $SkillsSource -> $SkillsTarget" -ForegroundColor Yellow
     } else {
         if (-not (Test-Path $SkillsTarget)) { New-Item -ItemType Directory -Path $SkillsTarget | Out-Null }
-        $result = robocopy $SkillsSource $SkillsTarget /MIR /NFL /NDL /NJH /NJS /NC /NS
+        # /XD: Build-Artefakte NICHT mit-deployen (sonst blaehen Node/Python-Skills wie
+        # creative-studio das Deploy-Target mit Hunderten MB auf). node_modules wird beim
+        # ersten Nutzen per `npm install` im Skill regeneriert (siehe Skill-SKILL.md).
+        $result = robocopy $SkillsSource $SkillsTarget /MIR /XD node_modules __pycache__ .git .pytest_cache /XF "*.pyc" /NFL /NDL /NJH /NJS /NC /NS
         # Robocopy: exit code <8 = success
         if ($LASTEXITCODE -lt 8) {
             Write-Host "  OK: Skills deployt nach $SkillsTarget" -ForegroundColor Green

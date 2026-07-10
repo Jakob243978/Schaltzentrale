@@ -113,11 +113,26 @@ Jedes Ticket lebt als eigene Datei unter `docs/tickets/TICKET-NNN.md` (dreistell
 - [ ] When ..., the system shall ...
 - [ ] When ..., the system shall ...
 
+## Loesungs-Skizze (Approach)
+<!-- SKILL-019: Pflicht ab Aufwand M/L/XL, optional bei XS/S. 3-6 Zeilen.
+     - Gewaehlter Ansatz: ...
+     - Verworfene Alternative(n): ...
+     - Betroffene Module: ...
+     Bei Architektur-Weiche stattdessen auf ADR-NNN verweisen, nicht doppeln. -->
+
 ## Technische Hinweise
 <!-- Nur wenn relevant: Pfade, APIs, Abhaengigkeiten, Risiken -->
 
 ## Code-Referenzen
 <!-- Dateien/Funktionen die betroffen sind -->
+
+## Spec-Delta
+<!-- SKILL-018: NUR wenn dieses Ticket PROJECT_SPEC.md (oder eine andere
+     Spec-Datei) veraendert — sonst Block weglassen.
+     - Vorher: <was die Spec bisher sagte>
+     - Nachher: <was sie jetzt sagt>
+     - Anlass: <warum>
+     Beim done-Schritt im CHANGELOG ### Technical referenzieren. -->
 
 ## Ergebnis / Notizen
 <!-- Wird vom Agenten beim Abschliessen befuellt -->
@@ -191,6 +206,11 @@ das Projekt sie hat** (Opt-in: greift nur wenn die Worker-Module existieren):
 2. `python -m workers.project_overview_generator` — re-generiert
    `docs/PROJECT_OVERVIEW.html` (Vision + Prinzip-Karten + Feature-Mapping +
    Live-DB-Stats). Standalone-HTML, oeffnet auch ohne Backend im Browser.
+3. `python -m workers.traceability_generator` — re-generiert
+   `docs/TRACEABILITY.md`, die Requirement→Test→Code→Verify-Matrix (SKILL-017,
+   Sektion **F.7**). Aggregiert NUR vorhandene Artefakte (EARS-IDs aus Tickets,
+   `test_ears_N`-Tests, `# TICKET-NNN`-Code-Marker, Verify-Report-Status) — keine
+   neue Datenquelle. Opt-in: greift nur wenn das Projekt den Generator hat.
 
 Implementer-Bericht enthaelt die HTML-Update-Bestaetigung als Pflicht-Zeile
 (z.B. "Feature-Map + Projekt-Uebersicht regeneriert: 47 done-Tickets,
@@ -198,11 +218,13 @@ HTML-Datei aktualisiert"). Bei Fehlern: nicht das `done` blocken, aber im
 Bericht klar als WARN markieren — die Generatoren sind best-effort.
 
 Pruefung am Bootstrap (`A.8` Verify-Status): Wenn `docs/PROJECT_VISION.md`
-existiert UND es done-Tickets gibt aber `docs/FEATURE_MAP.md` oder
-`docs/PROJECT_OVERVIEW.html` fehlen / aelter als das juengste done-Ticket
-sind, schlaegt der Agent dem User aktiv vor, die beiden Generatoren einmal
-zu laufen. Strict-Mode (Hard-Block) ist nicht vorgesehen — die Datei-Pflege
-darf nie das eigentliche Ticket-Arbeit blockieren.
+existiert UND es done-Tickets gibt aber `docs/FEATURE_MAP.md`,
+`docs/PROJECT_OVERVIEW.html` oder `docs/TRACEABILITY.md` (SKILL-017) fehlen /
+aelter als das juengste done-Ticket sind, schlaegt der Agent dem User aktiv vor,
+die entsprechenden Generatoren einmal zu laufen. (Der TRACEABILITY-Frische-Check
+greift auch ohne PROJECT_VISION.md, sobald done-Tickets existieren.) Strict-Mode
+(Hard-Block) ist nicht vorgesehen — die Datei-Pflege darf nie die eigentliche
+Ticket-Arbeit blockieren.
 
 ### Implementer-Briefing-Standards (Pflicht-Bloecke pro Subagent)
 
@@ -243,6 +265,52 @@ Bei mehreren Tickets in einem Commit:
 [TICKET-041][TICKET-042] Status-Dropdown + Ampel-Farben
 ```
 
+### Loesungs-Skizze-Block (Design-Phase light) — SKILL-019
+
+Zwischen `## Akzeptanzkriterien` und Code fehlt sonst ein festgehaltener
+Design-Schritt. Kiro/spec-kit haben dafuer eine eigene **Design-Phase**
+(`Requirements → Design → Tasks`); wir holen das leichtgewichtig als
+ticket-lokalen Block nach — gegen die **Cognitive Debt** (ThoughtWorks v34: KI
+baut, Mensch versteht das "wie" nicht mehr).
+
+- **Pflicht ab Aufwand `M`/`L`/`XL`:** Bevor ein solches Ticket nach
+  `in_progress` wechselt, wird der `## Loesungs-Skizze (Approach)`-Block mit
+  (1) gewaehltem Ansatz, (2) mind. einer **verworfenen Alternative** und
+  (3) **betroffenen Modulen** ausgefuellt (3–6 Zeilen genuegen).
+- **Optional bei `XS`/`S`:** Trivial-Tickets brauchen den Block nicht — kein
+  Overhead.
+- **Status-Gate (weich):** Fehlt der Block bei einem M/L/XL-Ticket beim Wechsel
+  nach `in_progress`, gibt der Agent einen Hinweis aus ("Loesungs-Skizze fehlt —
+  bei M/L/XL erwartet"). Default ist **Warning**; Hard-Block nur bei
+  `docs/sdd-config.yaml: approach_block_required_for_ML: true`.
+- **Abgrenzung zu ADR (Sektion D):** Der Approach-Block ist das **ticket-lokale,
+  vergaengliche "wie"**. Beruehrt der gewaehlte Weg eine **projektweite
+  Architektur-Weiche** (ADR-Kriterium), wird im Block auf das ADR verwiesen statt
+  die Entscheidung doppelt auszuformulieren — kein Doppel-Dokument.
+- **Konsistenz:** Die "betroffene Module"-Angabe kuendigt an, was die spaeteren
+  `## Code-Referenzen` belegen — so weiss eine KI in einer neuen Session vorab,
+  **wo im Code einzugreifen ist**, und welche Alternative schon verworfen wurde.
+
+### Spec-Delta-Block (Brownfield-Nachvollziehbarkeit) — SKILL-018
+
+`PROJECT_SPEC.md` wird **waehrend** der Implementierung aktualisiert (Sektion C).
+Damit die konkrete Aenderung nicht in der Git-History verschwindet, fuehrt jedes
+Ticket mit Spec-Touch einen `## Spec-Delta`-Block:
+
+- **Pflicht bei Spec-Touch:** Veraendert das Ticket `PROJECT_SPEC.md` (oder eine
+  andere Spec-Datei), wird der Block mit **Vorher / Nachher / Anlass** ausgefuellt
+  (Kurzfassung, kein Voll-Diff).
+- **Weglassbar sonst:** Ohne Spec-Touch entfaellt der Block — kein leerer
+  Pflicht-Block.
+- **CHANGELOG-Kopplung:** Beim Uebergang nach `done` wird der Spec-Delta-Verweis
+  im CHANGELOG `### Technical` referenziert
+  (`[TICKET-NNN] Spec-Delta: <Kurzfassung>`).
+- **Governance bleibt:** Der Block **ergaenzt** die bestehende Governance-Log-
+  Pflicht "Jede Aenderung an PROJECT_SPEC.md" (Sektion I), ersetzt sie nicht.
+- **Bewusst leichtgewichtig:** Delta-Notiz **im Ticket**, KEIN separates
+  Delta-File pro Ticket und kein `propose/apply/archive`-Workflow wie OpenSpec —
+  das waere fuer dieses Setup Over-Engineering.
+
 ---
 
 ## C) Spec-First-Workflow
@@ -252,7 +320,10 @@ Vor dem Schreiben von neuem Code:
 1. Pruefen ob `docs/PROJECT_SPEC.md` existiert und aktuell ist.
 2. Wenn neue Architektur-Entscheidung noetig: ADR anlegen (Abschnitt D).
 3. Ticket auf Status `spec` setzen und alle Akzeptanzkriterien vollstaendig formulieren.
-4. Erst dann mit Implementierung beginnen.
+4. Bei Aufwand `M`/`L`/`XL`: `## Loesungs-Skizze (Approach)`-Block im Ticket
+   ausfuellen, bevor der Status auf `in_progress` geht (Design-Phase light,
+   SKILL-019 — Details in Sektion B "Loesungs-Skizze").
+5. Erst dann mit Implementierung beginnen.
 
 ### PROJECT_SPEC.md Pflichtinhalt
 
@@ -281,7 +352,12 @@ Vor dem Schreiben von neuem Code:
 <!-- YYYY-MM-DD, Anlass -->
 ```
 
-Die Spec wird **waehrend** der Implementierung aktualisiert, nie nachtraeglich in einer separaten Session.
+Die Spec wird **waehrend** der Implementierung aktualisiert, nie nachtraeglich in
+einer separaten Session. **Jede Spec-Aenderung wird zusaetzlich im
+`## Spec-Delta`-Block des ausloesenden Tickets als Vorher/Nachher-Kurzfassung
+festgehalten** (SKILL-018, Brownfield-Nachvollziehbarkeit) — so verschwindet die
+Aenderung nicht in der Git-History, sondern bleibt ticket-lokal auffindbar.
+Details: Sektion B "Spec-Delta-Block".
 
 ---
 
@@ -290,6 +366,13 @@ Die Spec wird **waehrend** der Implementierung aktualisiert, nie nachtraeglich i
 Format: MADR (Markdown Any Decision Records) — schlankes Format, listet Alternativen explizit.
 
 Ablage: `docs/adr/ADR-NNN-kurztitel.md` (dreistellig, Kebab-Case-Titel).
+
+> [!info] ADR vs. Loesungs-Skizze-Block (SKILL-019)
+> Ein **ADR** haelt eine **projektweite, immutable Architektur-Weiche** fest
+> (eigenes File, Status-Flow). Der **`## Loesungs-Skizze (Approach)`-Block** im
+> Ticket (Sektion B) ist das **ticket-lokale, vergaengliche "wie"** eines
+> einzelnen Tickets. Beruehrt eine Loesungs-Skizze eine Architektur-Weiche →
+> ADR anlegen und im Block darauf verweisen, nicht beides ausformulieren.
 
 ### Wann ein ADR anlegen
 
@@ -327,6 +410,7 @@ Zwei Sektionen pro Release-Eintrag:
 
 ### Technical
 - [TICKET-NNN] Was wurde implementiert (Pfad/Komponente)
+- [TICKET-NNN] Spec-Delta: <Kurzfassung der PROJECT_SPEC-Aenderung> (nur bei Spec-Touch, SKILL-018)
 - [TICKET-NNN] ...
 
 ### User-Facing
@@ -334,7 +418,9 @@ Zwei Sektionen pro Release-Eintrag:
 - Keine technischen Details, keine Dateinamen
 ```
 
-Wird nach jedem abgeschlossenen Ticket (Status `done`) aktualisiert. Nicht gesammelt am Ende.
+Wird nach jedem abgeschlossenen Ticket (Status `done`) aktualisiert. Nicht
+gesammelt am Ende. Hat ein Ticket einen `## Spec-Delta`-Block (SKILL-018), wird
+dessen Kurzfassung als eigene `### Technical`-Zeile referenziert.
 
 ### ROADMAP.md
 
@@ -352,6 +438,13 @@ Format: Now / Next / Later. Keine langen Beschreibungen.
 ```
 
 Wird vom Agenten nach jedem Sprint-Abschluss oder auf Jakobs Anfrage aktualisiert.
+
+### docs/TRACEABILITY.md (SKILL-017)
+
+Lebende Requirement→Test→Code→Verify-Matrix, beim done-Hook regeneriert
+(Sektion B + **F.7**). Aggregiert vorhandene Artefakte, keine Hand-Pflege.
+Zeigt auf einen Blick ungetestete EARS-Saetze, nicht-gruene Tests, verwaiste
+Code-Pfade und Tickets ohne Verify-Report. Template: `templates/TRACEABILITY.md`.
 
 ### docs/developer_notes/
 
@@ -575,6 +668,54 @@ Optionale Standard-Felder (empfohlen ab TICKET-005):
 
 Vollstaendige Begruendung, Tooling-Vergleich, Confounder-Analyse:
 [[Researcher/jakob/spec-driven-development/recherche/2026-05-21_Token_Tracking_pro_Ticket]].
+
+### F.7 Traceability-Matrix (`docs/TRACEABILITY.md`) — SKILL-017
+
+Die Traceability-Matrix fuehrt pro EARS-Akzeptanzkriterium die Kette
+**Requirement → Test → Code → Verify-Status** in **einer** abfragbaren Datei
+zusammen. Sie ist der industrielle Kern-Hebel fuer messbare Doku-Qualitaet (RTM,
+Six Sigma / Ketryx) und beantwortet einer KI in einer neuen Session auf einen
+Blick: *Welcher EARS-Satz hat keinen Test? Welcher Test ist nicht gruen? Wo im
+Code liegt die Implementierung? Welches Ticket steht ohne Verify-Report?* — ohne
+dass der gesamte Code interpretiert werden muss.
+
+> [!important] Reine Aggregation — keine neue Datenquelle
+> Die Matrix baut AUSSCHLIESSLICH auf bereits vorhandenen Artefakten auf:
+> EARS-Saetze aus den Tickets, `test_ears_N`-/`test_ticket_NNN_*`-Tests,
+> `# TICKET-NNN`-Code-Marker (Code-Referenz-Pattern, Sektion B) und der
+> `verify_status` aus den Verify-Reports. Es entsteht keine Pflege-Last neben dem
+> bestehenden Workflow — nur eine Zusammenfuehrung.
+
+#### Zeilen-Schema (eine Zeile pro EARS-Satz)
+
+| EARS-ID | Ticket | Test-Name | Code-Referenz | Verify-Status |
+|---|---|---|---|---|
+| EARS-1 | TICKET-042 | `tests/test_ticket_042.py::test_ears_1_dropdown` | `frontend/app/property.tsx:88-104` | pass |
+| EARS-2 | TICKET-042 | `⚠ kein Test` | `api/main.py:210-225` | partial |
+
+#### Markierungs-Regeln
+
+- **Kein zugeordneter Test** (`test_ears_N` / `test_ticket_NNN_*` nicht
+  gefunden) → Test-Spalte traegt `⚠ kein Test`.
+- **Verify-Report `fail`/`partial`** → Status-Spalte spiegelt diesen Status
+  (statt `pass`).
+- **Kein Verify-Report fuer das Ticket vorhanden** → Status-Spalte traegt
+  `⚠ kein Verify-Report` (komplementaer zum harten Verify-Gate aus SKILL-016).
+- **Keine `# TICKET-NNN`-Code-Referenz auffindbar** → Code-Spalte traegt
+  `⚠ Code-Referenz fehlt` (verwaister/nicht markierter Pfad).
+
+#### Generator + Best-effort-Charakter
+
+- Aufruf im done-Hook (Sektion B): `python -m workers.traceability_generator`.
+- **Best-effort wie FEATURE_MAP:** ein Fehler blockt NIE das `done` — er wird im
+  Implementer-Bericht als WARN markiert.
+- Wo ein Projekt (noch) keinen deterministischen Generator hat, ist die Matrix
+  agentisch pflegbar (LLM liest Tickets + Tests + Verify-Reports und fuellt
+  `docs/TRACEABILITY.md` nach `templates/TRACEABILITY.md`). Ein projekt-lokaler
+  `traceability_generator.py` ist das Lift-and-Shift-Ziel (analog
+  feature_map_generator) — kein Skill-Kern.
+
+Template: `templates/TRACEABILITY.md`.
 
 ---
 
@@ -983,6 +1124,7 @@ Sourcedoku) ist aktuell OUT-OF-SCOPE und wird in ca. 2 Wochen evaluiert.
 | Sprint Summary | `templates/SPRINT_SUMMARY.md` | Sprint abschliessen |
 | Runbook | `templates/RUNBOOK.md` | Service-Runbook anlegen |
 | Verify-Report | `templates/verify-report.md` | Output-Schema des Verifier-Subagents (Pflicht-Format) |
+| Traceability-Matrix | `templates/TRACEABILITY.md` | Requirement→Test→Code→Verify-Matrix (SKILL-017, F.7) |
 | SDD-Config (Beispiel) | `templates/sdd-config.yaml.example` | Vorlage fuer `docs/sdd-config.yaml` pro Projekt |
 | Implementer-Briefing-Standards | `templates/IMPLEMENTER_BRIEFING_STANDARDS.md` | Wiederverwendbare Pflicht-Bloecke (API-Schema-Mitdenken, Hygiene, Skill-Code-Pfad) fuer jeden Implementer-Subagent-Prompt |
 
@@ -1003,7 +1145,8 @@ Folgende Zeilen in die CLAUDE.md des Projekts einfuegen um den Skill zu aktivier
 Aktiv. Bootstrap-Sequenz: CLAUDE.md → docs/PROJECT_SPEC.md → docs/adr/ → docs/tickets/ → ROADMAP.md → CHANGELOG.md → docs/governance_log.md → Verify-Status (review-Tickets ohne Report?) → Parallelisierungs-Check
 Tickets: docs/tickets/TICKET-NNN.md | ADRs: docs/adr/ADR-NNN-titel.md | Governance: docs/governance_log.md
 Verifier: docs/tickets/verify/TICKET-NNN-verify-YYYY-MM-DD.md (Pflicht-Pass vor `done`, Aufruf: `/sdd-verify TICKET-NNN`)
-SDD-Config: docs/sdd-config.yaml (test_command, health_check, ticket_path, verify_report_path, manual_verify_required: ui_only|true|false)
+SDD-Config: docs/sdd-config.yaml (test_command, health_check, ticket_path, verify_report_path, manual_verify_required: ui_only|true|false, approach_block_required_for_ML: false)
+Doku-Artefakte (lebend): docs/TRACEABILITY.md (Req→Test→Code→Verify, done-Hook, SKILL-017) | Ticket-Bloecke: ## Loesungs-Skizze (M/L/XL, SKILL-019) + ## Spec-Delta (bei Spec-Touch, SKILL-018)
 KI-Autonomie: voll — alle Entscheidungen ins Governance-Log, Jakob reviewed asynchron. PO-Abnahme: Klick-Anleitung im Verify-Report nur fuer UI-EARS (Default `ui_only`), Jakob setzt `po_acceptance: confirmed|rejected|not_required`. Backend-EARS = automatisch via Verifier-Output.
 ```
 

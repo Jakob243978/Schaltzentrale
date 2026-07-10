@@ -1,0 +1,158 @@
+{
+  "language": "de",
+  "lang_prob": 1,
+  "full_text": "Die meisten Gastgeber wissen gar nicht, wie viele Nachrichten sie bekommen. Ich habe das mal bei uns gemessen, wir haben 16 Ferienwohnungen bekommen, 150 Nachrichten.",
+  "word_count": 25,
+  "words": [
+    {
+      "text": "Die",
+      "startMs": 1800,
+      "endMs": 2180,
+      "p": 0.631
+    },
+    {
+      "text": "meisten",
+      "startMs": 2180,
+      "endMs": 2560,
+      "p": 0.997
+    },
+    {
+      "text": "Gastgeber",
+      "startMs": 2560,
+      "endMs": 3100,
+      "p": 0.871
+    },
+    {
+      "text": "wissen",
+      "startMs": 3100,
+      "endMs": 3260,
+      "p": 0.993
+    },
+    {
+      "text": "gar",
+      "startMs": 3260,
+      "endMs": 3480,
+      "p": 0.967
+    },
+    {
+      "text": "nicht,",
+      "startMs": 3480,
+      "endMs": 3620,
+      "p": 0.999
+    },
+    {
+      "text": "wie",
+      "startMs": 3680,
+      "endMs": 3720,
+      "p": 0.993
+    },
+    {
+      "text": "viele",
+      "startMs": 3720,
+      "endMs": 3860,
+      "p": 0.973
+    },
+    {
+      "text": "Nachrichten",
+      "startMs": 3860,
+      "endMs": 4180,
+      "p": 0.998
+    },
+    {
+      "text": "sie",
+      "startMs": 4180,
+      "endMs": 4340,
+      "p": 0.791
+    },
+    {
+      "text": "bekommen.",
+      "startMs": 4340,
+      "endMs": 8020,
+      "p": 0.995
+    },
+    {
+      "text": "Ich",
+      "startMs": 9080,
+      "endMs": 9460,
+      "p": 0.902
+    },
+    {
+      "text": "habe",
+      "startMs": 9460,
+      "endMs": 9540,
+      "p": 0.983
+    },
+    {
+      "text": "das",
+      "startMs": 9540,
+      "endMs": 9680,
+      "p": 0.962
+    },
+    {
+      "text": "mal",
+      "startMs": 9680,
+      "endMs": 9800,
+      "p": 0.913
+    },
+    {
+      "text": "bei",
+      "startMs": 9800,
+      "endMs": 9920,
+      "p": 0.981
+    },
+    {
+      "text": "uns",
+      "startMs": 9920,
+      "endMs": 10020,
+      "p": 0.996
+    },
+    {
+      "text": "gemessen,",
+      "startMs": 10020,
+      "endMs": 10420,
+      "p": 0.992
+    },
+    {
+      "text": "wir",
+      "startMs": 10520,
+      "endMs": 10580,
+      "p": 0.946
+    },
+    {
+      "text": "haben",
+      "startMs": 10580,
+      "endMs": 10680,
+      "p": 0.989
+    },
+    {
+      "text": "16",
+      "startMs": 10680,
+      "endMs": 10860,
+      "p": 0.879
+    },
+    {
+      "text": "Ferienwohnungen",
+      "startMs": 10860,
+      "endMs": 11940,
+      "p": 0.788
+    },
+    {
+      "text": "bekommen,",
+      "startMs": 11940,
+      "endMs": 12220,
+      "p": 0.96
+    },
+    {
+      "text": "150",
+      "startMs": 12420,
+      "endMs": 12760,
+      "p": 0.475
+    },
+    {
+      "text": "Nachrichten.",
+      "startMs": 12760,
+      "endMs": 13220,
+      "p": 0.989
+    }
+  ]
+}

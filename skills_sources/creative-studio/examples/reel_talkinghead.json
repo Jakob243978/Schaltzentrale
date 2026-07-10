@@ -1,0 +1,52 @@
+{
+  "ad_id": "th-founder",
+  "framework": "pas",
+  "hook_index": 0,
+  "content_type": "talking_head",
+  "hook": "So gewinnst du 3 Stunden pro Woche zurück.",
+  "hook_accent": "ohne neues Tool",
+  "eyebrow": "FOUNDER SPRICHT",
+  "cta": "Auf die Warteliste",
+  "caption_style": "hormozi",
+  "speaker": {
+    "src": "assets/talkinghead_founder.mp4",
+    "objectPosition": "50% 35%"
+  },
+  "captions": [
+    { "text": "Die", "startMs": 600, "endMs": 850 },
+    { "text": "meisten", "startMs": 850, "endMs": 1300 },
+    { "text": "kaufen", "startMs": 1300, "endMs": 1750 },
+    { "text": "neue", "startMs": 1750, "endMs": 2100 },
+    { "text": "Tools.", "startMs": 2100, "endMs": 2700 },
+    { "text": "Du", "startMs": 3000, "endMs": 3250 },
+    { "text": "brauchst", "startMs": 3250, "endMs": 3750 },
+    { "text": "ein", "startMs": 3750, "endMs": 3950 },
+    { "text": "System.", "startMs": 3950, "endMs": 4700 },
+    { "text": "Agentisch", "startMs": 5000, "endMs": 5700 },
+    { "text": "arbeiten", "startMs": 5700, "endMs": 6300 },
+    { "text": "spart", "startMs": 6300, "endMs": 6750 },
+    { "text": "3", "startMs": 6750, "endMs": 7050 },
+    { "text": "Stunden", "startMs": 7050, "endMs": 7600 },
+    { "text": "pro", "startMs": 7600, "endMs": 7850 },
+    { "text": "Woche.", "startMs": 7850, "endMs": 8600 },
+    { "text": "Ohne", "startMs": 9000, "endMs": 9400 },
+    { "text": "Technik-", "startMs": 9400, "endMs": 10000 },
+    { "text": "Studium.", "startMs": 10000, "endMs": 10800 },
+    { "text": "Komplett", "startMs": 11200, "endMs": 11800 },
+    { "text": "delegiert.", "startMs": 11800, "endMs": 12700 },
+    { "text": "An", "startMs": 13000, "endMs": 13250 },
+    { "text": "deine", "startMs": 13250, "endMs": 13650 },
+    { "text": "Agenten.", "startMs": 13650, "endMs": 14600 }
+  ],
+  "brand": {
+    "name": "JAKSE-Automations",
+    "accent": "#f25d3e",
+    "bg": "#0a0e27",
+    "bgSoft": "#11163a",
+    "ink": "#faf7f2",
+    "inkMuted": "#9a9ec0",
+    "captionFont": "Montserrat, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "captionBg": "pill",
+    "captionBgAlpha": 0.62
+  }
+}

@@ -1,0 +1,13 @@
+# Remotion-Abhaengigkeiten + Build/Render-Output (nicht versionieren)
+node_modules/
+out/
+
+# Gestaget-te Render-Assets (B-Roll/Musik) — grosse Medien gehoeren NICHT ins Repo.
+# Lokal in public/assets/ ablegen (aus Silber kopiert); im Repo nicht committen.
+# (Brand-Asset-Originale-Regel: grosse Roh-Medien gitignoren.)
+public/assets/
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.m4a

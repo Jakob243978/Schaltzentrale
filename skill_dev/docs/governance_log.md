@@ -562,3 +562,173 @@ ausfuehren, damit die schon vorhandenen Skills (po-skill,
 agile-sdd-skill) nach `~/.claude/skills/` deployed werden — am Skill-
 **Code** hat dieses Ticket nichts geaendert, aber Folgetickets
 (SKILL-002, SKILL-003) tun das dann.
+
+## 2026-06-13 — SKILL-014 angelegt (spec): surface-Klassifikator + Web⇒UI-Verifier-Pflicht
+
+**Ticket:** SKILL-014 (`agile-sdd-skill/`)
+**Entscheidung:** Neues Skill-Dev-Ticket (Status `spec`) fuer eine generische
+agile-sdd-Regel: Ticket-Frontmatter `surface: web|backend|n8n|infra` +
+Done-Gate-Pflicht „`surface: web` ⇒ UI-Verifier-Pass (Playwright/headless),
+`surface: n8n` ⇒ Execution-Check statt Browser". Enthaelt konkreten Patch-Vorschlag
+(welche SKILL.md-Zeilen + Templates). **Noch NICHT** in `skills_sources/` appliziert
+und NICHT deployed — wartet auf Jakobs Review + setup.ps1.
+**Begruendung:** Live-Lesson aus AgentischesArbeiten (RBAC-Dashboard TICKET-051
+ohne erzwungenen Browser-Check gebaut; Luecke nur durch Jakobs Nachfrage entdeckt).
+Komplementaer zu SKILL-012 (liefert die Visual-Check-*Capability*, aber best-effort/
+optional) — SKILL-014 ist die *Enforcement-Policy + Klassifikation*, die den Check
+bei Web-Surfaces verpflichtend macht. Verortung im skill_dev statt Projekt-Repo
+gemaess `feedback_skill_tickets_verortung`.
+**Betroffene Dateien:** `docs/tickets/agile-sdd-skill/SKILL-014.md` (neu),
+`docs/governance_log.md`. (Projekt-lokale Sofort-Umsetzung liegt in
+AgentischesArbeiten TICKET-056.)
+**ADR:** keins
+**Review:** ausstehend ([J] Patch in skills_sources/agile-sdd-skill applien + setup.ps1)
+
+## 2026-06-23 — Neuer Skill creative-studio initialisiert (SKILL-020/021)
+
+**Ticket:** SKILL-020 (spec), SKILL-021 (idea)
+**Entscheidung:** Neuen Skill `creative-studio` aufgesetzt — wiederverwendbare, agentische
+Erzeugung von Social-Ad-Creatives (Bild + Video). Scope (Jakob 2026-06-23): EIN Skill für beide
+Medien (gemeinsamer Web-Tech-Kern HTML/CSS), Bild zuerst (SKILL-020), Video als Ausbaustufe
+(SKILL-021); Erst-Einsatz AgentischesArbeiten (Warteliste-Ads), dann SocialMediaBuilder.
+**Begründung:** Bedarf entstand aus der Meta-Ads-Arbeit; statt pro Projekt neu zu bauen → Skill
+(Vision-Prinzip `skill-muss-multi-projekt-tauglich-sein`). Wissensgrundlage: 3 Recherche-Docs vom
+2026-06-23 (Formate/Safe-Zones, Bild-Generierung Playwright, Video-Automation Remotion) in
+AgentischesArbeiten/docs/.
+**Stack-Empfehlung (aus Recherche):** Bild = Playwright + HTML/CSS-Template + smartcrop;
+Video = Remotion (bzw. ffmpeg/MoviePy als Einstieg). Kein hartkodierter Projekt-Code (Config-getrieben).
+**Betroffene Dateien:** docs/tickets/creative-studio/SKILL-020.md, SKILL-021.md (neu);
+docs/governance_log.md; ROADMAP.md. Skill-Code (skills_sources/creative-studio/) folgt mit SKILL-020.
+**ADR:** keins (folgt ggf. bei Stack-Festlegung in SKILL-020-Umsetzung).
+**Review:** ausstehend
+
+## 2026-06-23 — creative-studio implementiert + deployed (SKILL-020/021)
+
+**Ticket:** SKILL-020 (Bild, in_progress), SKILL-021 (Video, in_progress)
+**Entscheidung:** Skill `creative-studio` gebaut + via setup.ps1 deployed (live im Harness).
+- Bild: specs.py (Standards-als-Code: Formate/Safe-Zones/Constraints/AdContent) + render_image.py
+  (Playwright + Jinja2-Template) → erste Bild-Ad (h1-immo) in 3 Formaten generiert + visuell validiert.
+- Video: Remotion-Composition (9:16, animiert, Safe-Zone-Padding, Brand-Props) → erste Video-Ad
+  (MP4, 180f) gerendert + via remotion-still-Frame validiert.
+- SKILL.md + README (Subagent). Brand/Content via Parameter (multi-projekt, Vision-Prinzip 1).
+**Begründung:** Jakob wollte beide Erst-Ads heute + Skill „einwandfrei". Beide Ads erzeugt, Standards
+als Code (Jakobs Vorgabe), reproduzierbarer Render (package.json-Flags --concurrency=1 --port=3333,
+Fix fuer „localhost:3000 got no response").
+**Nebenfix:** setup.ps1 um `robocopy /XD node_modules __pycache__ .git .pytest_cache /XF *.pyc`
+gehaertet — sonst blaehen Node/Python-Skills das Deploy-Target auf. Gilt fuer ALLE Skills.
+**Betroffene Dateien:** skills_sources/creative-studio/** (neu), setup.ps1, SKILL-020/021, ROADMAP, governance.
+**ADR:** keins (Stack-Wahl folgt der Recherche; ggf. ADR bei Video-Stack-Festlegung SKILL-021).
+**Review:** ausstehend (Verify-Pass + EARS-6 smartcrop offen)
+
+## 2026-06-23 — creative-studio Feature-Backlog aus Recherche A/B/C angelegt (SKILL-023..033)
+
+**Tickets:** SKILL-023..033 (11 Stueck, alle `creative-studio`, Erstellt 2026-06-23) — **nur Tickets +
+ROADMAP + dieser Eintrag, KEIN Skill-Code geaendert.**
+- **Must (spec):** SKILL-023 (Batch-/Varianten-Engine N Hooks × M Formate × Bild/Video + manifest.json),
+  SKILL-024 (Variant-ID-/UTM-Systematik in specs.py — Naming-Single-Source).
+- **Should (spec):** SKILL-025 (frameworks.py: Copy-Framework-Katalog + Hook-Bibliothek + 4U-Validator),
+  SKILL-026 (DACH-Compliance-Guard ausbauen: UWG/HWG-Heuristik + Ad↔LP-Message-Match), SKILL-027
+  (Voiceover-Layer ElevenLabs-Voice-Clone + Untertitel ueber Remotion), SKILL-028 (KI-Disclosure-Gate:
+  „KI"-Label + C2PA/Metadaten), SKILL-029 (Brand-Kit als brand.json + Logo-Handling), SKILL-030
+  (Vorschau-Galerie gallery.html als QA-Gate).
+- **Could (idea):** SKILL-031 (DCO-/Asset-Feed-Export-Modus dco_bundle.json), SKILL-032 (content-aware
+  smartcrop fuer --bg-image, loest EARS-6 aus SKILL-020), SKILL-033 (Reporting-Rueckkanal: Insights →
+  Winner-Flag via manifest-IDs).
+**Implementer-Modell:** claude-opus-4-8 (1M context), Subagent-Auftrag von Jakob („Skill ausbauen, Tickets
+anlegen").
+
+**Begruendung:** Wissensgrundlage sind die drei Recherche-Docs vom 2026-06-23 unter
+`AgentischesArbeiten/docs/marketing/research/` — (A) `2026-06-23_creative-studio-flow-improvements.md`
+(Flow/Features + MoSCoW-Liste), (B) `2026-06-23_ad-copywriting-frameworks.md` (Copy/Frameworks),
+(C) `2026-06-23_ki-avatare-voiceover.md` (Voiceover/Disclosure). Der heutige Skill ist ein
+Single-Creative-Renderer ohne Varianten-/Pipeline-Schicht und ohne Performance-Rueckkanal; die Tickets
+schliessen genau diese Luecken. MoSCoW + Abhaengigkeiten 1:1 aus der Recherche uebernommen
+(SKILL-024 → SKILL-023 → SKILL-030/031/033). Verortung im skill_dev gemaess
+`feedback_skill_tickets_verortung` (multi-projekt-relevant: AgentischesArbeiten + SocialMediaBuilder).
+
+**Globale Nummerierung:** hoechste bisherige Nummer war SKILL-022 (per Verzeichnis-Scan
+`docs/tickets/*/SKILL-*.md` verifiziert) → 023..033 vergeben.
+
+**Betroffene Dateien:** `docs/tickets/creative-studio/SKILL-023.md` … `SKILL-033.md` (11 neu);
+`ROADMAP.md` (SKILL-023/024 in Must, 025–030 in Should, 031–033 in neue Could-Tabelle);
+`docs/governance_log.md` (dieser Eintrag).
+**Skill-Code unveraendert:** `skills_sources/creative-studio/` NICHT angefasst (reine Spec-/Backlog-Arbeit).
+**ADR:** keins (reine Ticket-Anlage).
+**Review:** ausstehend ([J] MoSCoW + Abhaengigkeiten gegenpruefen; ggf. `/po-prioritize` auf die idea-Tickets).
+
+## 2026-06-24 — creative-studio Feature-Welle implementiert (SKILL-023..035)
+
+**Kontext:** Autonomer 48h-Block (Jakob abwesend). Nach Recherche A-E (5 Docs) den Feature-Backlog
+implementiert — orchestriert über parallele Subagenten, Hauptsession als Orchestrator clean gehalten.
+**Implementiert + getestet (Status review):**
+- SKILL-023 Batch-/Varianten-Engine (`batch.py`) + manifest.json — Must
+- SKILL-024 Variant-ID-/UTM-Systematik (`specs.py`) — Must
+- SKILL-025 `frameworks.py` (Copy-Frameworks + Hooks + recommend + 4U) — Should
+- SKILL-026 DACH-Compliance-Guard (`specs.py`, UWG/HWG-Trigger + Message-Match) — Should
+- SKILL-028 KI-Disclosure-Gate (`specs.py`+Template, EU-AI-Act 2026-08-02) — Should
+- SKILL-029 Brand-Kit `brand.json` + Logo (`render_image.py`+Template) — Should
+- SKILL-030 Vorschau-Galerie (`gallery.py`) — Should
+- SKILL-031 DCO-/Asset-Feed-Export (`dco.py`) — Could
+- SKILL-032 content-aware smartcrop (`cropping.py`, Face>Saliency) — löst SKILL-020 EARS-6 — Could
+- SKILL-034 Brand-Asset-Konvention (`assets.py`) — Should
+- SKILL-035 Bild-Komprimierer (`prep_bg.py`) — Should
+**Verifikation:** Gesamtsuite **127 passed**, 10 Module integrieren, via setup.ps1 deployed, requirements.txt
+ergänzt (smartcrop/opencv/pyyaml). Jeder Subagent: nur eigene Datei + eigene Testdatei (Race-Vermeidung).
+**Bewusst offen (spec, brauchen externe Keys/Live — nicht ehrlich autonom testbar):**
+SKILL-027 (Voiceover/ElevenLabs-Key), SKILL-033 (Reporting/Live-Insights), SKILL-022 (Auto-Marketing-Ordner).
+**Folge-Befund:** manifest.json führt nur `hook` (keine getrennten primary_text/cta) → DCO/Reporting
+profitieren von angereichertem Manifest (SKILL-023-Erweiterung, im Backlog vermerken).
+**Verify-Pass (/sdd-verify) je Ticket steht noch aus** — bewusst Jakob/Folge-Session überlassen.
+
+## 2026-06-24 — creative-studio: Foto-Hintergrund-Pipeline gehärtet (Live-Einsatz)
+
+**Kontext:** Erste echte Kampagne (Warteliste 2026Q3) mit Jakobs picdrop-Portraits als Ad-Hintergrund.
+Drei Fixes beim Live-Einsatz entdeckt + behoben (alle additiv, 127 Tests weiter grün, deployed):
+1. **bg_image-Bug:** wurde als `file://` ins Template gesetzt → lädt unter Playwright `set_content` NICHT
+   (Foto blieb leer). Fix: `_as_data_uri()` (wie Logo, SKILL-029). render_image.py.
+2. **Foto-Scrim verstärkt:** unterer Gradient dunkler (0.96 @100%, 0.80 @64%) für Text-Lesbarkeit auf Foto.
+3. **text-shadow** auf eyebrow/headline/subline NUR bei bg_image (Lesbarkeit über hellen Bildpartien).
+**Auflösungs-Lehre:** Web-Varianten (1621px) sind für 9:16 (1920px) zu klein → für Foto-Ads die
+ORIGINALE (30MP) nutzen, sonst smartcrop-Upscaling-Warnung. In Kampagnen-job.yaml so gesetzt.
+**Offen/Politur:** Eyebrow über Gesicht bleibt grenzwertig (text-shadow lindert) — Layout-Feinschliff
+bei Bedarf (z.B. Eyebrow-Chip oder bild-abhängige Text-Position). Kein Blocker für den Test.
+
+## 2026-06-24 — creative-studio Welle 2: Ad-Library-Scan + Remotion-Reel-Engine
+
+**Tickets:** SKILL-052 (→ review), SKILL-043/044/045 (→ review). Vorarbeit zu SKILL-046.
+Konsolidierter Eintrag von der Hauptsession (Subagenten liessen das Log bewusst in Ruhe).
+**SKILL-052 Ad-Library-Scan:** `creative_studio/ad_library.py` (parse / `longevity_score` / aggregate /
+hook-patterns / report) + Runbook `templates/ad_library_scan.md` + SKILL.md §9. Echter read-only
+MCP-Test (`ads_library_search`, DE) bestätigte die Feld-Shape: **KEIN Spend/Reach abrufbar** →
+Longevity-Score `active_days × log(1 + page_variant_count)` + Proxy-Signale, Pflicht-Disclaimer. 22 Tests.
+**SKILL-043/044/045 Remotion-Reel-Engine:** `video/src/Captions.tsx` (word-level/Hormozi),
+`video/src/AdReel.tsx` (B-Roll via OffthreadVideo + Voiceover + Musik mit Per-Frame-Ducking),
+`Root.tsx` `calculateMetadata` (dyn. Dauer), `creative_studio/reel_spec.py` (ReelSpec + Loader/Props/CLI,
+Naming aus SKILL-024). **Echter End-to-End-Render verifiziert:** 2 Bronze-HEVC-Clips → Silber
+(gebündeltes Remotion-ffmpeg, kein Windows-Codec) → B-Roll + Musik + 8 Captions → **Gold-mp4 2,68 MB,
+1080x1920, h264+aac, Exit 0**. Repo nur Proof-Artefakte (<2 MB) + `video/.gitignore`.
+**Autonome Entscheidung:** `broll`-Feld additiv über den SKILL-043/044/045-Scope hinaus aufgenommen
+(echter Render mit Footage erforderte es) — gehört zu **SKILL-046** (Should), dort als Vorarbeit vermerkt.
+**Offen/ehrlich:** Ducking-unter-Voiceover nicht hörbar gegengetestet (kein freies VO-Asset);
+B-Roll-Transitions (`TransitionSeries`) = SKILL-046. Remotion-Lizenz ab 4 Personen (solo = frei) als
+Risiko in Tickets vermerkt.
+**pytest gesamt: 180 passed** (Baseline 174 + 6 SKILL-045, 0 Regressionen). Kein git commit/push.
+`setup.ps1`-Deploy nach `~/.claude/skills/` + `/sdd-verify` je Ticket offen.
+
+## 2026-06-25 — creative-studio: Reel-Design-Overhaul SKILL-055/056/057 (Render-belegt)
+
+**Tickets:** SKILL-055, SKILL-056, SKILL-057 (alle → review). Anlass: Jakob-Kritik am ersten Gold-Reel
+(„nicht schön, nicht gut lesbar"). Quelle: `AgentischesArbeiten/docs/marketing/research/2026-06-25_reel-design-critique-content-types.md`.
+**Umgesetzt:**
+- **SKILL-055** Caption-Overhaul: `Captions.tsx` neu — Pill-Kontrast-Layer (Default) + Stroke-Alternative,
+  genau 1 Keyword/Phrase (`pickKeywordIndex`), max 2 aktive Tokens + Wort-für-Wort-Reveal, Montserrat Bold
+  (`fonts.ts`, lokale TTFs offline-robust), Position 54%.
+- **SKILL-056** `TalkingHead.tsx`: Speaker-Layer (O-Ton) + Pill-Captions + Lower-Third + Hook<3s + CTA-Outro.
+- **SKILL-057** Reel-Theme-Tokens: Highlight = Brand-Akzent (`#f25d3e`) statt hartem `#ffd400`; neue Keys
+  `BRAND_HIGHLIGHT`/`BRAND_CAPTION_FONT`/`BRAND_CAPTION_BG_ALPHA` in `terraform/base-dev/.../branding.env`.
+**Render-Beleg (Gold, extern):** VORHER `reel_h1-immo_broll.mp4` · NACHHER `reel_h1-immo_designv2.mp4` (651 KB)
+· Talking-Head `reel_talkinghead_proof.mp4` (14,7s, Video+O-Ton, Jakobs echter Sprech-Clip). Frame-Vergleiche
+in `tests/artifacts/`. pytest 180→**200 passed**.
+**Offen/Refinement:** Talking-Head-Caption-Timing hartkodiert (Whisper = SKILL-043/056-Spec); Captions mittig
+überlappen bei tightem Crop das Gesicht → optionaler Caption-Höhen-Prop als Folge-Refinement.
+**Kein** git commit/push; `setup.ps1`-Deploy + `/sdd-verify` offen.

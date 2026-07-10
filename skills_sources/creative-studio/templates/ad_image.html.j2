@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<style>
+  /* creative-studio Bild-Template (SKILL-020).
+     Brand-Tokens + Format + Safe-Zones kommen als Jinja2-Variablen aus render_image.py.
+     System-Font-Stack -> zuverlaessige Umlaute ohne Webfont-Download.
+     SKILL-072: Layout-Archetypen (stat-hero/photo-poster/object-hero/split-compare) +
+     Stil-Parameter (Weight/Case/Tracking/Kicker/Theme/Chrome) kommen OBENDRAUF; alle
+     neuen Variablen haben `| default(...)` -> Bestands-Aufrufer/Default = unveraendert. */
+  :root {
+    --bg:        {{ bg }};
+    --bg-soft:   {{ bg_soft }};
+    --accent:    {{ accent }};
+    --ink:       {{ ink }};
+    --ink-muted: {{ ink_muted }};
+    --font:      {{ font }};
+    --safe-top:    {{ safe_top }}px;
+    --safe-bottom: {{ safe_bottom }}px;
+    --safe-x:      {{ safe_x }}px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: {{ w }}px; height: {{ h }}px; }
+  body {
+    font-family: var(--font);
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 80% at 50% 0%, var(--bg-soft) 0%, var(--bg) 60%);
+  }
+  /* Optionales Hintergrundfoto + Abdunkelung fuer Lesbarkeit */
+  {% if bg_image %}
+  .bg { position: absolute; inset: 0; background: url('{{ bg_image }}') center / cover no-repeat; }
+  {% if (layout | default('template')) in ('photo-poster', 'object-hero') %}
+  /* SKILL-072: Poster/Object -> gerichteter Scrim NUR hinter dem Text (unteres Drittel),
+     Motiv bleibt oben sichtbar (Hebel "Motiv=Konzept", nicht Vollflaechen-Dimmen). */
+  .bg::after { content: ''; position: absolute; inset: 0;
+    /* SKILL-074/QA-Fix: staerkerer gerichteter Scrim — war ~0 Opazitaet bis 42 % Hoehe,
+       sodass die Subline ueber hellem Glas/Marmor ohne Backing stand. Ramp jetzt frueher
+       + kraeftiger im Text-Drittel, Motiv oben bleibt sichtbar. */
+    background: linear-gradient(180deg, rgba(10,14,39,0.0) 0%, rgba(10,14,39,0.10) 34%, rgba(10,14,39,0.45) 54%, rgba(10,14,39,0.74) 70%, rgba(10,14,39,0.93) 100%); }
+  {% else %}
+  .bg::after { content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,14,39,0.45) 0%, rgba(10,14,39,0.32) 38%, rgba(10,14,39,0.80) 64%, rgba(10,14,39,0.96) 100%); }
+  {% endif %}
+  {% endif %}
+  /* Akzent-Leiste oben (Marken-Wiedererkennung) */
+  .accent-bar { position: absolute; top: 0; left: 0; right: 0; height: {{ (h*0.012)|round|int }}px; background: var(--accent); }
+  /* Brand-Zeile sitzt IN der oberen Safe-Zone */
+  .brand { position: absolute; top: var(--safe-top); left: var(--safe-x); right: var(--safe-x);
+    font-size: {{ fs_brand }}px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink); opacity: 0.92; }
+  {% if logo_url %}
+  /* SKILL-029: Logo-Asset in der oberen Safe-Zone, Hoehe relativ zur Canvas (logo_height_pct). */
+  .logo { position: absolute; top: var(--safe-top); height: {{ (h * logo_height_pct / 100.0)|round|int }}px;
+    width: auto; object-fit: contain; }
+  {% if logo_position == 'top-right' %}
+  .logo { right: var(--safe-x); }
+  {% elif logo_position == 'top-center' %}
+  .logo { left: 50%; transform: translateX(-50%); }
+  {% else %}
+  .logo { left: var(--safe-x); }
+  {% endif %}
+  {% endif %}
+  /* Content-Block sitzt im sicheren Bereich, unten ausgerichtet (ueber der unteren Safe-Zone) */
+  .safe { position: absolute; top: var(--safe-top); bottom: var(--safe-bottom); left: var(--safe-x); right: var(--safe-x);
+    display: flex; flex-direction: column; justify-content: flex-end; gap: {{ (h*0.022)|round|int }}px; }
+  {% if bg_image %}/* SKILL-074/QA-Fix: Lesbarkeit auf Foto-Hintergrund (auch wo der Scrim das Motiv durchscheinen laesst) */
+  /* Staerkerer Textschatten (mehr Halo + harte Nahkante) fuer Kontrast auf hellem Motiv. */
+  .eyebrow, .headline, .subline, .hero { text-shadow: 0 2px 6px rgba(10,14,39,0.85), 0 1px 18px rgba(10,14,39,0.75), 0 0 2px rgba(10,14,39,0.55); }
+  /* Subline auf Foto: near-white statt lavendel --ink-muted (#9a9ec0 verschwindet auf hellem
+     Bildbereich). body-Praefix hebt die Spezifitaet ueber die spaetere .subline-Regel. */
+  body .subline { color: #f3f1ec; }{% endif %}
+  .eyebrow { font-size: {{ fs_eyebrow }}px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  {% if kicker_serif | default(false) %}
+  /* SKILL-072: Editorial-Kicker (Serif-Italic) statt Sans-Uppercase. */
+  .eyebrow { font-family: Georgia, 'Times New Roman', 'Iowan Old Style', serif; font-style: italic;
+    text-transform: none; letter-spacing: 0; font-weight: 500; }
+  {% endif %}
+  .headline { font-size: {{ fs_headline }}px; font-weight: {{ headline_weight_val | default(800) }}; line-height: 1.08;
+    letter-spacing: {{ headline_tracking | default('-0.01em') }}; text-transform: {{ headline_case_val | default('none') }}; }
+  .headline .hl { color: var(--accent); }
+  {% if accent_as_block | default(false) %}
+  /* SKILL-072: Farbe als Flaeche — Headline komplett in Akzentfarbe. */
+  .headline { color: var(--accent); }
+  {% endif %}
+  .subline { font-size: {{ fs_subline }}px; font-weight: 400; line-height: 1.35; color: var(--ink-muted); max-width: 92%; }
+  .cta { align-self: flex-start; margin-top: {{ (h*0.01)|round|int }}px; background: var(--accent); color: #fff;
+    font-size: {{ fs_cta }}px; font-weight: 700; padding: {{ (h*0.018)|round|int }}px {{ (h*0.032)|round|int }}px;
+    border-radius: 999px; }
+  /* SKILL-072: CTA als schlichter Text-Link (chrome=minimal, organischer Look). */
+  .cta-link { align-self: flex-start; margin-top: {{ (h*0.012)|round|int }}px; color: var(--accent);
+    font-size: {{ fs_cta }}px; font-weight: 800; letter-spacing: 0.01em; }
+  /* SKILL-072: Stat-Hero — EIN Riesen-Token als Blickfang (Scale-Kontrast). */
+  .safe-hero { justify-content: flex-start; padding-top: {{ (h*0.055)|round|int }}px; gap: {{ (h*0.026)|round|int }}px; }
+  .hero { font-size: {{ fs_hero | default(400) }}px; font-weight: 900; line-height: 0.9;
+    letter-spacing: -0.02em; color: var(--accent); text-transform: {{ headline_case_val | default('none') }};
+    white-space: nowrap; }
+  /* SKILL-072: Editorial-Icon (Pfeil im Kreis) oben rechts fuer stat-hero. */
+  .hero-icon { position: absolute; top: var(--safe-top); right: var(--safe-x);
+    width: {{ (h*0.085)|round|int }}px; height: {{ (h*0.085)|round|int }}px; }
+  .hero-icon svg { width: 100%; height: 100%; display: block; }
+  /* SKILL-072: Photo-/Object-Poster — fette Typo im unteren Drittel ueber dem Motiv. */
+  .safe-poster { justify-content: flex-end; }
+  .safe-poster .headline { font-size: {{ (fs_headline * 1.18)|round|int }}px; font-weight: 900; }
+  /* SKILL-072: Split-Compare — zwei Haelften (hell/dunkel-Kontrast). */
+  .split { position: absolute; inset: 0; display: flex; }
+  .split .col { flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: var(--safe-top) var(--safe-x) var(--safe-bottom); gap: {{ (h*0.016)|round|int }}px; }
+  .split .col.dark { background: var(--bg); color: var(--ink); }
+  .split .col.light { background: var(--ink); color: var(--bg); }
+  .split .col .label { font-size: {{ fs_eyebrow }}px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+  .split .col .big { font-size: {{ (fs_headline*0.9)|round|int }}px; font-weight: 900; line-height: 1.05; }
+  {% if ai_disclosure %}
+  /* SKILL-028: sichtbares KI-Disclosure-Label (Pflicht ab EU-AI-Act 02.08.2026 +
+     Meta-Policy, sobald KI-Bild ODER synthetische Stimme im Creative steckt).
+     Klein, dezent, halbtransparent, in der unteren Ecke INNERHALB der seitlichen
+     Safe-Zone und oberhalb der unteren Safe-Zone -> wird von der Meta-UI nicht
+     verdeckt und bleibt lesbar. Renderer setzt `ai_disclosure` aus
+     specs.requires_ai_disclosure(content); ohne Flag bleibt das Template gleich. */
+  .ai-label {
+    position: absolute;
+    bottom: var(--safe-bottom);
+    right: var(--safe-x);
+    margin-bottom: {{ (h*0.012)|round|int }}px;
+    font-size: {{ (h*0.016)|round|int }}px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: #fff;
+    background: rgba(10,14,39,0.55);
+    padding: {{ (h*0.006)|round|int }}px {{ (h*0.012)|round|int }}px;
+    border-radius: 6px;
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  {% endif %}
+  {% if debug_safe %}
+  .safezone-debug { position: absolute; left: 0; right: 0; background: rgba(255,0,0,0.18); pointer-events: none; }
+  .sz-top { top: 0; height: var(--safe-top); }
+  .sz-bottom { bottom: 0; height: var(--safe-bottom); }
+  {% endif %}
+</style>
+</head>
+<body>
+  {% set _lay = layout | default('template') %}
+  {% if bg_image %}<div class="bg"></div>{% endif %}
+  {% if chrome_bar | default(true) %}<div class="accent-bar"></div>{% endif %}
+  {% if chrome_brand | default(true) %}
+  {% if logo_url %}
+  {# SKILL-029: Logo statt/ergaenzend zum brand_name-Text. brand_name nur, wenn kein Logo gesetzt. #}
+  <img class="logo" src="{{ logo_url }}" alt="{{ brand_name }}">
+  {% elif brand_name %}<div class="brand">{{ brand_name }}</div>{% endif %}
+  {% endif %}
+  {% if _lay == 'stat-hero' %}
+  {# SKILL-072: Stat-Hero — Eyebrow, Riesen-Held (hero_token oder Headline), Subline, CTA. #}
+  <div class="hero-icon" aria-hidden="true">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" fill="{{ accent }}"/>
+      <path d="M37 63 L63 37 M42 37 L63 37 L63 58" fill="none" stroke="{{ bg }}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="safe safe-hero">
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <div class="hero">{{ (hero_token if hero_token else headline) | safe }}</div>
+    {% if subline %}<div class="subline">{{ subline }}</div>{% endif %}
+    {% if cta %}{% if chrome_pill | default(true) %}<div class="cta">{{ cta }}</div>{% else %}<div class="cta-link">{{ cta }}</div>{% endif %}{% endif %}
+  </div>
+  {% elif _lay in ('photo-poster', 'object-hero') %}
+  {# SKILL-072: Poster/Object-Held — fette Typo im unteren Drittel ueber dem Motiv. #}
+  <div class="safe safe-poster">
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <div class="headline">{{ headline | safe }}</div>
+    {% if subline %}<div class="subline">{{ subline }}</div>{% endif %}
+    {% if cta %}{% if chrome_pill | default(true) %}<div class="cta">{{ cta }}</div>{% else %}<div class="cta-link">{{ cta }}</div>{% endif %}{% endif %}
+  </div>
+  {% elif _lay == 'split-compare' %}
+  {# SKILL-072: Split-Compare — links dunkel (Ist/alt), rechts hell (Soll/neu). #}
+  <div class="split">
+    <div class="col dark">
+      {% if eyebrow %}<div class="label">{{ eyebrow }}</div>{% endif %}
+      <div class="big">{{ headline | safe }}</div>
+    </div>
+    <div class="col light">
+      {% if cta %}<div class="label">{{ cta }}</div>{% endif %}
+      <div class="big">{{ (hero_token if hero_token else subline) | safe }}</div>
+    </div>
+  </div>
+  {% else %}
+  {# Default-Skelett (Bestand, unveraendert). #}
+  <div class="safe">
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <div class="headline">{{ headline | safe }}</div>
+    {% if subline %}<div class="subline">{{ subline }}</div>{% endif %}
+    {% if cta %}{% if chrome_pill | default(true) %}<div class="cta">{{ cta }}</div>{% else %}<div class="cta-link">{{ cta }}</div>{% endif %}{% endif %}
+  </div>
+  {% endif %}
+  {% if ai_disclosure %}
+  {# SKILL-028: sichtbares KI-Label. Wortlaut kommt projektneutral als Variable
+     `ai_label_text` (Default aus specs.AI_LABEL_TEXT, z.B. "KI-generiert"). #}
+  <div class="ai-label">{{ ai_label_text | default('KI-generiert') }}</div>
+  {% endif %}
+  {% if debug_safe %}<div class="safezone-debug sz-top"></div><div class="safezone-debug sz-bottom"></div>{% endif %}
+</body>
+</html>

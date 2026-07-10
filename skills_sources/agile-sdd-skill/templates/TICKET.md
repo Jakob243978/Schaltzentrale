@@ -16,6 +16,21 @@
 - [ ] When ..., the system shall ...
 - [ ] When ..., the system shall ...
 
+## Loesungs-Skizze (Approach)
+
+<!--
+SKILL-019 (2026-06-19): Design-Phase light gegen Cognitive Debt.
+PFLICHT ab Aufwand M/L/XL, OPTIONAL bei XS/S — bei XS/S diesen Block weglassen.
+3-6 Zeilen genuegen. Wird vor Status-Uebergang nach `in_progress` ausgefuellt.
+
+- **Gewaehlter Ansatz:** <wie wird es geloest?>
+- **Verworfene Alternative(n):** <was wurde NICHT gewaehlt und warum?>
+- **Betroffene Module:** <Dateien/Komponenten — kuendigt die Code-Referenzen an>
+
+Beruehrt der Ansatz eine projektweite Architektur-Weiche → stattdessen ADR-NNN
+anlegen und hier nur darauf verweisen (kein Doppel-Dokument).
+-->
+
 ## API-Schema-Kontrakt
 
 <!--
@@ -41,6 +56,22 @@ Im Frontmatter zusaetzlich markieren:
 ## Code-Referenzen
 
 <!-- Dateien / Funktionen / Tabellen die betroffen sind. Wird beim Implementieren befuellt. -->
+
+## Spec-Delta
+
+<!--
+SKILL-018 (2026-06-19): Brownfield-Nachvollziehbarkeit.
+NUR ausfuellen, wenn dieses Ticket PROJECT_SPEC.md (oder eine andere Spec-Datei)
+veraendert — sonst diesen Block ganz weglassen (kein leerer Pflicht-Block).
+
+- **Vorher:** <was die Spec bisher aussagte>
+- **Nachher:** <was sie jetzt aussagt>
+- **Anlass:** <warum die Aenderung noetig war>
+
+Beim Uebergang nach `done` im CHANGELOG ### Technical referenzieren:
+`[TICKET-NNN] Spec-Delta: <Kurzfassung>`. Governance-Log-Pflicht
+"Aenderung an PROJECT_SPEC.md" bleibt zusaetzlich bestehen.
+-->
 
 ## Ergebnis / Notizen
 

@@ -97,3 +97,10 @@ Drei Gruende fuer 48h-Defer (statt sofort Ticket):
 
 **Release-Trigger:** `/po-challenge --release DEF-001` nach
 SKILL-004 + SKILL-006 Outcome-Review (frueh: 2026-06-XX).
+
+## 2026-06-23 — Speicher-Strategie fuer generierte Videos (creative-studio)
+**Idee:** Langfristig klaeren, ob Git der richtige Ort fuer gerenderte Ad-Videos (MP4, schnell mehrere
+MB) ist oder ob eine andere Methode (Objekt-Storage/VPS/CDN, Git-LFS, nur Source+Config versionieren,
+Output regenerierbar halten) besser ist. **Cooldown/Zukunft** — Jakob 2026-06-23: „erstmal so ok".
+**Trigger zur Wiederaufnahme:** wenn Repo-Groesse durch Video-Outputs spuerbar waechst oder mehrere
+Projekte den creative-studio-Skill produktiv nutzen.

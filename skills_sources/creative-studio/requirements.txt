@@ -1,0 +1,19 @@
+# creative-studio — Python-Abhaengigkeiten
+# Bild-Render (Playwright + HTML/CSS-Template), Multi-Format, Safe-Zones
+playwright>=1.40
+jinja2>=3.1
+pillow>=10.0
+pyyaml>=6.0
+# Foto-Hintergruende: content-aware Crop (SKILL-032) — Face-Detection > Saliency
+smartcrop>=0.5
+opencv-python-headless>=4.8
+# Hinweis: nach `pip install -r requirements.txt` einmalig `python -m playwright install chromium`.
+# Video-Modul (Remotion) liegt unter video/ und nutzt npm (siehe video/package.json), nicht pip.
+#
+# Content-aware Reel-Pipeline (SKILL-060/061): word-level Transkription aus dem
+# echten gesprochenen Wort (statt hartkodierter Captions). Smallest viable, lokal/offline.
+# Modell wird beim ersten Lauf in den HF-Cache gezogen (Default "small", ~480 MB);
+# Audio-Extraktion nutzt das gebuendelte Remotion-ffmpeg (kein globaler ffmpeg-Install noetig).
+faster-whisper>=1.0
+# Optional (SKILL-062, Karaoke-genaue Wortgrenzen via wav2vec2 Forced Alignment):
+#   pip install whisperx   # schwerer (torch); nur fuer den Praezisions-Pfad

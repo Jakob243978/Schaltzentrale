@@ -15,6 +15,9 @@ Gegenstueck zum `agile-sdd-skill`. Waehrend SDD die **Wie**-Frage stellt
 **Anti-Pattern bewusst vermieden:**
 - Der PO-Skill **generiert keine Tickets selbst**. Er challenged, priorisiert
   und verifiziert. Sonst halluziniert er Features (BMad-Erfahrung 2026).
+- `/po-reconcile` schlaegt Vision-Schaerfungen nur **VOR** (Vorschlags-Doc) und
+  **pflegt abgeleitete Living-Docs** — es schreibt nie in `PROJECT_VISION.md`
+  und legt keine Tickets an. Living-Docs sind abgeleitet, NIE die Quelle der Vision.
 - Kein PR-Gatekeeper-Workflow — Jakob ist 1-Personen-Setup, kein
   Multi-Stakeholder-Approval.
 - Kein Crowd-Sourcing / Constitutional-Voting — alleiniger Stakeholder
@@ -31,6 +34,7 @@ Gegenstueck zum `agile-sdd-skill`. Waehrend SDD die **Wie**-Frage stellt
 | Ein `done`-Ticket ist >= 14 Tage alt | `/po-verify-outcome TICKET-NNN` |
 | Neues Projekt-Setup ohne `docs/PROJECT_VISION.md` | `/po-init` (einmalig pro Projekt) |
 | User redet ueber Scope / Strategie / "lohnt sich das?" | Vision-Datei oeffnen + relevante Prinzipien zitieren |
+| Letzte Vision-Schaerfung > N Tage / neue ADR seit Schaerfung | `/po-reconcile` (Drift-Vorschlag + Living-Docs synchron) |
 
 ---
 
@@ -332,6 +336,80 @@ frischen Session, um Bias-Vermeidung sicherzustellen.
 
 ---
 
+## K) Vision-Reconciliation (`/po-reconcile`)
+
+Periodischer **Rueckblick**, der die gelebte Weiterentwicklung gegen die
+Vision-Verfassung abgleicht und Jakob einen **Schaerfungs-VORSCHLAG** liefert —
+nie eine autonome Vision-Aenderung (SKILL-015). `/po-challenge` und
+`/po-verify-outcome` sind ticket-lokal + vorwaerts; `/po-reconcile` schliesst die
+Luecke „Ist die Verfassung angesichts der seither gebauten ADRs/done-Tickets/
+Meetings noch aktuell?".
+
+### Input-Quellen (aus `po-config.yaml: reconcile_trigger.sources`)
+
+Gescannt wird alles seit dem juengsten Datum im „Aktualisiert"-Log von
+`PROJECT_VISION.md` (Anker): `adr` (`docs/adr/ADR-*.md`), `tickets_done`
+(Status `done`, v.a. `Must`), `meetings` (`meetings/**`, `docs/meetings/**`),
+`governance` (`docs/governance_log.md`), optional `changelog`.
+
+### Heuristik — vision-relevant vs. reine Implementierung
+
+Vision-relevant, wenn mind. eines zutrifft: (1) Scope-Verschiebung, (2) Prinzip
+ohne Heimat, (3) Realitaets-Widerspruch, (4) Architektur-Entscheidung, (5)
+Outcome-Metrik veraltet. Bugfix/Refactor/Test/Doku-Tippfehler ist KEIN Signal —
+nur zaehlen, nicht vorschlagen.
+
+### Output — `docs/po-reconcile-YYYY-MM-DD.md` (Vorschlags-Doc, KEIN Vision-Write)
+
+Pro Verschiebung: Beleg-Datei, Drift, Schaerfungs-VORSCHLAG (nicht angewendet),
+`[J]`-Frage. Reine Implementierung nur als Zaehlung. Schaerfung erfolgt
+ausschliesslich durch Jakob ins „Aktualisiert"-Log.
+
+### Living-Doc-Pflege (SKILL-067)
+
+Zusaetzlich zum Vorschlags-Doc haelt `/po-reconcile` die in `po-config.yaml`
+gelisteten **abgeleiteten Living-Docs** synchron — generierte/gepflegte
+Praesentationen der Vision/Roadmap/KPIs/ADRs (z.B. ein Projekt-Cockpit-HTML, eine
+Customer-Journey-SSOT). So kann „veraltete Praesentation neben aktueller Vision"
+strukturell nicht mehr entstehen.
+
+```yaml
+po_skill:
+  reconcile:
+    # Abgeleitete Docs, die /po-reconcile synchron haelt (NIE die Vision selbst).
+    # Fehlt der Block / leer -> Living-Doc-Pflege ist No-Op (abwaertskompatibel).
+    living_docs:
+      - docs/projekt-cockpit.html
+      - docs/customer-journey.html
+```
+
+**Ablauf (nach „Vorschlags-Doc schreiben"):** Fuer jeden Pfad in
+`reconcile.living_docs` das Doc gegen die erkannten vision-relevanten
+Verschiebungen + den aktuellen Stand (Roadmap, ADR-Liste mit Titel+Status,
+Outcome-KPI-Live-Werte aus DB/Quellen, Reconcile-Datum/Drift) aktualisieren.
+NUR abgeleitete Inhalte; die Vision bleibt unberuehrt. Pfad fehlt / Liste leer ->
+ueberspringen (No-Op). Brand-Tokens der Surface respektieren (tokens.css /
+`--brand-*`, kein hartkodierter Hex). Konsistenz zur SSOT-Konvention des Docs
+wahren (z.B. Journey-SSOT: keine Dopplungen, Status ✅/🟡/❌).
+
+> [!warning] Abgrenzung (strikt)
+> **Vision = append-only-Hoheit Jakob** (nur er schaerft, ins „Aktualisiert"-Log).
+> **Living-Docs = generiert/gepflegt**, abgeleitet — sie tragen einen sichtbaren
+> Header-Hinweis „Lebendes Doc — von `/po-reconcile` gepflegt; Vision-Hoheit bleibt
+> PROJECT_VISION.md" und sind NIE die Quelle der Vision. `/po-reconcile` schreibt
+> weder die Vision noch legt es Tickets an.
+
+### Trigger
+
+1. **Manuell:** `/po-reconcile` (oder `--since YYYY-MM-DD`).
+2. **Bootstrap-Hinweis (passiv, nie blockierend):** Beim Lesen von
+   `PROJECT_VISION.md` die `reconcile_trigger`-Bedingung aus `po-config.yaml`
+   pruefen (`max_days_since_sharpen`, `max_done_tickets_since_sharpen`,
+   `new_adr_triggers`) und bei Faelligkeit EINEN Hinweis ausgeben. Kein Stopp,
+   kein Auto-Run.
+
+---
+
 ## Templates-Referenz
 
 | Template | Pfad | Verwenden fuer |
@@ -350,7 +428,8 @@ Folgende Zeilen in die `CLAUDE.md` des Projekts einfuegen:
 ## Skill: PO
 Aktiv. Vision-Constitution: docs/PROJECT_VISION.md (Pflicht-Lese-Datei in jedem Implementer-Bootstrap)
 Backlog-Hygiene: docs/DEFERRED.md (geparkte Ideen) | docs/po-outcomes.md (Outcome-Reviews)
-Commands: /po-init (einmalig) | /po-challenge (vor jedem neuen Ticket) | /po-prioritize (Backlog ranken) | /po-verify-outcome TICKET-NNN (>= 14 Tage nach done)
+Commands: /po-init (einmalig) | /po-challenge (vor jedem neuen Ticket) | /po-prioritize (Backlog ranken) | /po-verify-outcome TICKET-NNN (>= 14 Tage nach done) | /po-reconcile (Vision-Drift-Vorschlag + Living-Docs synchron, schreibt NIE die Vision)
 SDD-Hook: Ticket-Frontmatter braucht `vision_principle: <principle_id>` bevor Status auf `spec` darf (Warning per Default, Hard-Block bei `PO_SKILL_STRICT=1`).
-Config: docs/po-config.yaml (outcome_review_days, cooldown_default_hours, rice_effort_mapping).
+Bootstrap-Drift-Check: Beim Lesen von docs/PROJECT_VISION.md die `reconcile_trigger`-Bedingung pruefen; bei Faelligkeit EINEN passiven Hinweis ausgeben (kein Stopp, kein Auto-Run).
+Config: docs/po-config.yaml (outcome_review_days, cooldown_default_hours, rice_effort_mapping, reconcile_trigger, reconcile.living_docs).
 ```
