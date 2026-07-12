@@ -30,9 +30,12 @@ def test_funnel_traffic_values_are_known():
 
 # --- match_frameworks (Mehrfach-Auswahl) ------------------------------------
 def test_match_by_awareness_and_funnel():
-    # awareness="cold" -> Tag "unaware": nur AIDA. mindset_shift ist problem/solution_aware.
+    # awareness="cold" -> Tag "unaware", funnel="tofu": AIDA + die szenen-basierten
+    # Cold-Audience-Formeln (SKILL-089), die ebenfalls unaware/tofu getaggt sind.
     keys = [f.key for f in fw.match_frameworks(awareness="cold", funnel="tofu")]
-    assert keys == ["aida"]
+    assert "aida" in keys
+    assert "scene" in keys  # SKILL-089: szenen-basierte Cold-Audience-Formel
+    assert "mindset_shift" not in keys  # problem/solution_aware, nicht unaware
 
 
 def test_match_by_traffic_and_funnel_cold_tofu():

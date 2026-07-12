@@ -72,12 +72,34 @@ class ContentAnalysisError(ValueError):
 # --------------------------------------------------------------------------- #
 # 1) Analyse-Prompt fuer Claude (der Redaktions-Pass)                          #
 # --------------------------------------------------------------------------- #
-def build_analysis_prompt(transcript: dict[str, Any], *, brand_context: str = "") -> str:
+def load_messaging_doc(path: str | None) -> str:
+    """SKILL-090: liest eine Projekt-Messaging-/VoC-Datei ein (Kundensprache).
+
+    Gibt den Dateiinhalt als String zurueck. Fehlender/leerer Pfad oder nicht
+    existierende Datei -> "" (graceful, kein Fehler; Bestandsverhalten bleibt).
+    Projektneutral: der Pfad kommt als Parameter rein, kein hartkodierter Projektwert.
+    """
+    if not path:
+        return ""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return fh.read()
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+def build_analysis_prompt(transcript: dict[str, Any], *, brand_context: str = "",
+                          messaging_doc: str = "") -> str:
     """Baut das Briefing, das Claude ueber dem Transkript abarbeitet.
 
     Erwartet ein Transkript-Dict (transcribe.Transcript.to_dict()). Gibt einen
     String-Prompt zurueck, dessen Antwort Claude als JSON liefern soll
     (EditorialDecision-Schema, siehe parse_editorial_decision()).
+
+    SKILL-090: `messaging_doc` (optionaler Text einer Projekt-Messaging-/VoC-Datei,
+    z.B. via load_messaging_doc()) wird als Kundensprache-Kontext eingespeist —
+    der Prompt fordert dann echte Kundensprache und verbietet Consultant-Abstrakta.
+    Ohne messaging_doc bleibt der Prompt unveraendert (nicht-brechend, projektneutral).
     """
     words = transcript.get("words", [])
     # Wort-Index mit Timing als Referenz fuer die Segment-Auswahl.
@@ -86,6 +108,15 @@ def build_analysis_prompt(transcript: dict[str, Any], *, brand_context: str = ""
         for i, w in enumerate(words)
     )
     ctx = f"\nBRAND-/PROJEKT-KONTEXT:\n{brand_context}\n" if brand_context.strip() else ""
+    if messaging_doc.strip():
+        ctx += (
+            "\nPROJEKT-MESSAGING / VOICE OF CUSTOMER (echte Kundensprache — VERWENDEN):\n"
+            f"{messaging_doc.strip()}\n"
+            "Nutze das Vokabular und die O-Toene der Zielgruppe aus diesem Dokument. "
+            "Vermeide Consultant-Abstrakta (Durchsatz, Overhead, Marge, Synergie). "
+            "Zeige eine konkrete Alltagsszene, keinen Statistik-Claim; der Fachbegriff "
+            "nie im Opener.\n"
+        )
     return f"""Du bist Redakteur fuer Short-Form-Reels (9:16, B2B, DISC-rot: Ergebnis/Zahl zuerst,
 kein Geschwafel, ein klarer CTA). Unten ein WORT-GENAUES Transkript des tatsaechlich
 gesprochenen Clips (Index, Start-/End-Millisekunden, Wort).
@@ -299,12 +330,26 @@ def content_structure_warnings(
     # --- SKILL-087: Gedankenstrich-Verbot (Em-/En-Dash) in der Reel-Copy ----
     # Konsistent mit AdContent.warnings() (Bild-Pfad): Hook/Subline/CTA/Eyebrow
     # der Reel-Spec duerfen keine langen Striche tragen. Reine Warnung.
-    from .specs import dash_warnings
+    from .specs import (
+        dash_warnings, human_rule_warnings, brand_voice_warnings, hype_warnings,
+    )
     copy_blob = " ".join(
         str(spec.get(k, "")) for k in ("hook", "hook_accent", "eyebrow", "subline", "cta")
     )
     caption_blob = " ".join(str(c.get("text", "")) for c in captions)
     out.extend(dash_warnings(copy_blob + " " + caption_blob))
+
+    # --- SKILL-089/091/092/096: Human-Rule- + Brand-Voice- + Hype-Checks ------
+    # Konsistent mit dem Bild-Pfad (AdContent.warnings): der Reel-Copy-Block wird
+    # auf Statistik-Opener/Consultant-Abstrakta (Human-Rules), Tool-Namen/Preis/
+    # FOMO (Brand-Voice) und Hype-Vokabular geprueft. Projektneutrale Parameter
+    # koennen optional in der Spec stehen (category_term, forbidden_tools). Captions
+    # sind echtes O-Ton-Transkript -> nur die redaktionelle Copy wird geprueft.
+    category_term = str(spec.get("category_term", "")) or None
+    forbidden_tools = tuple(spec.get("forbidden_tools", ()) or ())
+    out.extend(human_rule_warnings(copy_blob, category_term=category_term))
+    out.extend(brand_voice_warnings(copy_blob, forbidden_tools=forbidden_tools))
+    out.extend(hype_warnings(copy_blob))
 
     # --- Segment-Laenge ----------------------------------------------------
     seconds = _spec_seconds(spec)

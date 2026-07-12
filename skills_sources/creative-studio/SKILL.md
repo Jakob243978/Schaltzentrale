@@ -44,6 +44,36 @@ Meta-MCP). Hier entsteht nur das Creative-Asset.
 > Wunsch** des Users. Jedes gerenderte PNG durchlaeuft danach den Vision-QA-Pass
 > (Abschnitt 15) — **pro Typ und pro Format einzeln**.
 
+> [!important] Standard-Ad-Satz = Creatives PLUS Ad-Copy-Sheet PLUS Ad-Report (SKILL-100)
+> Ein Ad-Satz ist erst „fertig", wenn neben den Creatives (PNG) **zwei Text-Deliverables**
+> entstehen. Ohne sie ist der Satz unvollstaendig:
+> 1. **`ad-copy.md`** — veroeffentlichungsfertige Meta-Copy je Hook: Topline · Headline · Subline ·
+>    **CTA-Button** · Headline-Feld · Beschreibung · `utm_content` · Ziel-URL · Primaertext
+>    (A Langform, B Kurz) + Mapping-Tabelle. Vorlage: `docs/templates/ad-copy-sheet.md`.
+> 2. **`ad-report.html`** — self-contained Review-/Launch-Report: Karten-Grid je Ad, Klick-Modal
+>    mit allen Formaten + voller Copy, Uebersicht, Metrik-Sektion (Post-Launch-Platzhalter).
+>    **Review-Workflow (SKILL-103):** Status je Ad (`draft` Default · `pending` · `passed` · `declined`)
+>    + Feedback-Feld, persistent (localStorage + „Als HTML sichern" mit eingebettetem `reviewState`-JSON),
+>    Filter nach Status. Der zurueckgegebene State ist Arbeitsauftrag: nur `declined`/kommentierte Ads
+>    ueberarbeiten. Referenz: `AgentischesArbeiten/marketing/ad-creatives/ad-report.html`.
+
+> [!important] Ad-Copy-Voice = Workshop-Brand „How You Sound" (SKILL-101), verbindlich
+> Copy klingt **direkt, energetisch, motivierend, nahbar, mutig** — NICHT nach Angst, Buzzwords,
+> belehrend, Toolnamen. **Emotionsraum statt Angst** (nach vorne: Wachstum/Freiheit/Begeisterung,
+> nie Pain-/Angst-Lead). **Wachstum verkaufen, nicht Entlastung.** „du", nie „Geschaeftsfuehrer",
+> „individueller" statt „komplizierter". **„KI" nur als konkrete Loesungsbenennung**, nicht als Buzz.
+> Gesprochen/menschlich, keine Floskeln, keine Gedankenstriche, Komma nur wo grammatisch noetig.
+> **Dramaturgie:** Topline = Auftakt (kein Zielgruppen-Label) · Headline = konkrete Wunsch-/Pain-Szene
+> (kurz, vollstaendig, **face-safe**) · Subline = Mehrwert (Bislang … ab jetzt …) · **CTA = Button
+> mit Handlungs-Aufforderung + Zeit/Ort** (SKILL-102, `--cta-button`). Die konkreten Voice-Adjektive/
+> Leitplanken kommen aus der Brand (Parameter/Doku), nicht hartkodiert.
+
+> [!important] Foto-Ads: Text nie ueber dem Gesicht (SKILL-102)
+> Bei `photo-poster` mit Founder-/Personen-Foto darf kein Text ueber dem Gesicht liegen. Kurze
+> Headlines halten den bottom-anchored Textblock unter dem Gesicht; der Vision-QA-Pass (Abschnitt 15)
+> prueft es je Format. KI-generierte Motive tragen das „KI-generiert"-Overlay nur, wenn es der
+> Brand/Kunde will (steuerbar; Provenienz bleibt im `index.json` ehrlich, unabhaengig vom Overlay).
+
 ## 3. Bild generieren
 
 Voraussetzung (einmalig):
@@ -334,6 +364,27 @@ von Bild- und Video-Modul geteilt):
   (—) / En-Dash (–) in der Copy loesen eine Warnung aus (wirkt nach KI). Normaler
   Bindestrich (-) bleibt erlaubt. In `AdContent.warnings()` + `content_structure_warnings()`
   eingehaengt — Warnung, keine Sperre. Siehe Copy-Anti-Liste-Callout oben.
+- **Cold-Audience-Messaging** (SKILL-088..098, `docs/ad-frameworks/agentisches-arbeiten-messaging-playbook.md`):
+  Fuer kalte Zielgruppen, die den Produkt-/Kategoriebegriff noch nicht kennen, sind die
+  Erkenntnisse testbar encodiert (alles projektneutral, Projekt-VoC bleibt Parameter/Doku):
+  - **Hook-Formeln F1-F6** als CopyFrameworks (`scene`/`kunden_oton`/`vorher_nachher`/
+    `einwand_oton`/`anti_hype`/`umbruch`); `match_frameworks(traffic="cold")` rankt sie vor
+    die generischen cold-Frameworks (SKILL-089/091).
+  - **8 Human-Messaging-Regeln** abrufbar (`frameworks.human_messaging_rules()`); Warn-Checks
+    `specs.human_rule_warnings()` (Statistik-Opener, Consultant-Abstrakta, `category_term`
+    fuer „Begriff zuletzt") in Bild- + Reel-Flow eingehaengt (SKILL-089).
+  - **Brand-Voice-Leitplanken** `specs.brand_voice_warnings()` (keine Tool-Namen via
+    `forbidden_tools`, kein Preis, kein FOMO, „individueller" statt „kompliziert"), plus
+    `specs.hype_warnings()` (Anti-Hype = Vertrauen) und `specs.visual_cliche_warnings()`
+    (Anti-KI-Klischee im Motiv-Prompt) (SKILL-092/096/098).
+  - **CTA-Bibliothek** (`frameworks.CTA_LIBRARY`, button/hart/weich), **Ton-Profile**
+    (`frameworks.TONE_PROFILES`, buyer/champion) und **Value-Translations**
+    (`frameworks.apply_value_translations(text, mapping)`) (SKILL-093/094/095).
+  - **Projekt-VoC** als optionaler Copy-Kontext: `content.load_messaging_doc(pfad)` +
+    `content.build_analysis_prompt(..., messaging_doc=...)` speist echte Kundensprache in den
+    Reel-Redaktions-Pass ein (fehlende Datei -> Fallback ohne Fehler) (SKILL-090). Die
+    projekt-spezifischen Werte (VoC, Tool-Namen, Fachbegriff, warme Palette) kommen als
+    Parameter/Datei rein, nicht als hartkodierter Wert im Skill-Code.
 
 ## 6. Multi-Projekt-Nutzung
 
@@ -822,3 +873,152 @@ Gesicht sind semantische Urteile ueber die Gesamtkomposition. Der Agent hat das 
 im Kontext (Read-Tool) — der Blick kostet nur Disziplin, kein Tooling. Genau wie §9/§11b die
 „Intelligenz beim Agenten, Mechanik im Modul"-Linie ziehen, zieht §15 sie fuer die Qualitaets-
 Abnahme des fertigen Creatives.
+
+## 16. Landingpage (Content-Type) — reproduzierbares LP-Bau-System (SKILL-105)
+
+Neben **Bild** (Playwright/HTML-CSS) und **Video** (Remotion) kennt der Skill den Content-Type
+**`landingpage`**: eine brand-konforme, konvertierende Warteliste-/Angebots-LP, die aus **Content
+(Sektions-Texte) + Brand-Tokens** entsteht — genau wie Bild/Video nichts Projektspezifisches
+hartkodiert. Anders als der Bild-/Video-Pfad gibt es keinen Renderer-Aufruf, sondern ein
+**wiederverwendbares HTML/CSS/JS-Geruest**: `templates/landingpage/index.template.html`
+(+ `README.md`). Vorbild/Referenz-Implementierung: die warteliste-02-LP von AgentischesArbeiten
+(`landing/warteliste-02/index.html` + Bau-Briefing `_briefing.md`).
+
+> [!important] Kern-Learning: „Auf Mobile ist eine Spalte die Loesung, auf Desktop das Problem"
+> Eine LP wird **mobile-first** gedacht (eine Spalte, voll-breite CTAs). Aber ab dem
+> Desktop-Breakpoint darf sie **nicht** die zentrierte Handy-Spalte nur breiter ziehen (riesige
+> tote Raender, kalt-techy SaaS-Look). Desktop = **eigenstaendige, editoriale Buehne**:
+> zweispaltiger Founder-Hero (Founder **erlebbar**, Magazin-Cover-Gefuehl), Serif-Display-Headlines,
+> warmer Cream/Navy-Farb-Rhythmus, breiter aber strukturierter Container (~1180px) mit einer
+> ruhigen Lesespalte (~680px). Das ist der Unterschied zwischen „hochskaliertes Handy" und
+> „Personal-Brand-Auftritt".
+
+### 16a. Sektions-Struktur (Zweck je Sektion)
+
+Reihenfolge folgt der bewaehrten Waitlist-Architektur (Outcome-Hero → Qualifikation → Mechanismus
+→ Beweis → Angebot → CTA-Wiederholung, „eine Aktion, oft wiederholt"). Jede Sektion ist im Template
+ein kommentierter Block:
+
+| # | Sektion | Zweck |
+|---|---|---|
+| S0 | **Sticky-CTA-Header** | Oben-CTA immer sichtbar; Wortmarke + ein Coral-Button auf `#warteliste`. **Keine Navigation** (distraktionsfrei). |
+| S1 | **Zweispaltiger Founder-Hero** ★ | In 2 Sek Ergebnis + eine Handlung. Links Kicker+H1(Serif)+Subline+CTA+Micro-Trust, rechts grosses Founder-Foto (Coral-Versatzrahmen, Stat-Tag). Message-Match zur Ad. LCP-Element. |
+| S2 | **Ad-Erkennungswert / Message-Bridge** | Der aus der Ad kommende Besucher findet „seine" Zeile wieder (Kontinuitaet senkt Bounce) + Selbst-Qualifikation. Editorial-Pull-Quotes (Serif, Coral-Rule links). |
+| S3 | **Der wahre Engpass** (Problem) | Problem benennen, das der Kunde selbst fuehlt (Stress/Abhaengigkeit erlaubt), **sofort nach vorne aufloesen**. Schmale Lesespalte, grosse Serif-Zwischenzeile. Kurz, KEINE Textwand. |
+| S4 | **Mechanismus** (Kategorie-Reframe) | Die eine Idee, die alles traegt (z.B. Agent ≠ Chatbot; Durchsatz entkoppelt von Kopfzahl). Kontrast-Zweispalter + optionaler 3-Schritt-Karten-Grid. |
+| S5 | **Dimensionen entwaessert** | Zeigen, dass es an allen Fronten besser wird — aber **je Punkt eine szenische + eine Nutzenzeile (max ~20 Woerter)**, kein langer Absatz. Editorial-Zeilen (Name links Coral, Text rechts). |
+| S6 | **Format / Angebot** | Erwartung setzen (**kein Preis**): Zeitinvest, wer mitkommt, aus der eigenen Praxis. 4 Karten (2×2 auf Desktop). |
+| S7 | **Beweis-Layer** ★ | Staerkster Trust-Block: Founder lebt es selbst vor („einer von euch"). Stat-Hero-Behandlung (grosse Coral-Zahl + ruhiger Kontext), Founder-Foto, Navy-Sektion fuer Ernst. **Nur freigegebene Zahlen** (siehe 16f). |
+| S8 | **Testimonial** (optional) | Named Mentors/Referenzen > anonyme Sterne. **Struktur bauen, leer/aus bis echtes Testimonial + Freigabe da** — nie erfinden (Anti-Fake). |
+| S9 | **Warteliste-Formular** ★ | Conversion. Wenige Pflichtfelder + **eine bewusste Vorqualifizierungs-Frage** (z.B. Team-Groesse). Schmale zentrierte Karte, 16px-Inputs, Erfolgs-View + Next-Step. |
+| S10 | **Footer** | Rechtslinks (Impressum/Datenschutz/AGB/Widerruf), Social, Wortmarke. Schlicht. + Consent-Banner (DSGVO). |
+
+Zusatz: **Mobile-Sticky-CTA** (nur `max-width:719px`) haelt die Aktion am Daumen erreichbar.
+
+### 16b. Editorial-Desktop-Prinzip (das Kern-Layout)
+
+- **Mobile-first Basis:** alles eine Spalte, CTAs voll-breit + zentriert, Tap-Targets ≥44px,
+  Inputs `font-size:16px` (iOS-Zoom-Regel), kein Horizontal-Scroll (`overflow-x:hidden` + `max-width:100%`).
+- **Desktop-Umschaltung ueber Breakpoints** (Referenz: 720px = zweispaltige Quotes/Contrast/Dims/Cards;
+  960px = asymmetrischer Hero-Grid `1.05fr 0.95fr` + Proof-Grid). Der Hero wird **nie** zentriert
+  gestapelt auf Desktop, sondern links Copy / rechts Founder-Figur.
+- **Warmer Farb-Rhythmus statt durchgehend Navy:** `.band--cream` / `.band--cream-alt` als Grundton
+  fuer Content-/Vertrauens-Sektionen, `.band--navy` als dramatischer Kontrast fuer Hero + Beweis.
+  **Coral ist der EINE Akzent** (CTA, Kicker, Zahlen), nicht Buntheit.
+- **Serif-Display fuer H1/H2** (redaktionell/Personal-Brand), **Grotesk/Sans fuer Body**. Die
+  Serif-Headline ist der schnellste Hebel weg vom „SaaS-Tech"-Look. Fluide `clamp()`-Skala mit
+  **hohen Mobile-Minima**.
+- **Struktur statt Leere:** Container ~1180px, Lesespalte (`.measure`) ~680px, gezielte Weissraeume,
+  Pull-Quotes / Zahlen-Karten / Rules statt Textwaende.
+
+### 16c. Brand-Tokens (Pflicht — ADR-010)
+
+**Kein hartkodierter Brand-Hex/-Font.** Die LP mappt lokale Aliase auf die `--brand-*`-Tokens aus
+`tokens.css` (Quelle `branding.env`), mit **Live-Default als Fallback**, falls `tokens.css` fehlt
+(z.B. beim `file://`-Test):
+
+```css
+:root{
+  --navy:  var(--brand-bg,     #0a0e27);
+  --cream: var(--brand-ink,    #faf7f2);
+  --coral: var(--brand-accent, #f25d3e);
+  /* Sekundaerfarben tokenbasiert ableiten, nicht neu hardcoden: */
+  --on-cream-muted: color-mix(in srgb, var(--navy) 66%, var(--cream));
+  --cream-alt:      color-mix(in srgb, var(--cream) 88%, var(--navy));
+}
+```
+
+Marke aendern = **nur `branding.env`** → `gen-tokens.ps1` rendert `tokens.css` (laeuft im
+`deploy-landing.ps1`). **Fonts self-hosted** per `@font-face` (Serif-Display + Body als eingebettete
+oder mitgelieferte woff2) — **kein externer CDN** (Deploy nutzt scp auf VPS; `file://`-Test hat keinen
+Netzzugang; ausserdem CWV/Datenschutz).
+
+### 16d. Dynamischer Szenen-Match (Conversion-Feature)
+
+Message-Match Ad↔LP: die Hero-H1 wird per `utm_content` (= Ad-Slug) auf die **Szene der Ad** getauscht,
+aus der der Besucher kommt — der aus der Ad Kommende sieht „seine" Zeile wieder (senkt Bounce). Muster
+(im Template als Platzhalter-Block):
+
+```js
+var HERO_SCENES = [
+  { m: ["<ad-slug-fragment>", "<synonym>"], h1: '<Szene> <em><Aufloesung.</em>' },
+  // ... ein Eintrag je live geschaltetem Top-Ad-Slug ...
+];
+function swapHeroForUtm(){
+  try {
+    var c = (currentUtm().utm_content || "").toLowerCase();
+    if(!c) return;
+    var el = document.getElementById("hero-h1"); if(!el) return;
+    for (var i=0;i<HERO_SCENES.length;i++)
+      for (var j=0;j<HERO_SCENES[i].m.length;j++)
+        if (c.indexOf(HERO_SCENES[i].m[j])!==-1){ el.innerHTML = HERO_SCENES[i].h1; return; }
+  } catch(e){ /* starker Default-Hero bleibt stehen */ }
+}
+```
+
+Regeln: **Fragment-Match** (greift auch bei utm-Praefix/-Suffix), **robust in try/catch**, **kein
+Treffer → starker Default-Hero bleibt**. Jeder live geschaltete Top-Ad-Slug braucht einen Eintrag;
+den Match auch mit dem abgeleiteten `zielgruppe`-Formularfeld konsistent halten (nicht brechen).
+
+### 16e. Voice-Regeln (verbindlich)
+
+Dieselbe Copy-Disziplin wie bei Ad-/Reel-Copy (§4c / SKILL-087 / SKILL-101/104):
+
+- **„du", nie „Geschaeftsfuehrer"** — auf Augenhoehe, einer von euch.
+- **Szene statt These** — jeder Kernsatz zeigt einen konkreten Moment (Uhrzeit/Ort/Handgriff),
+  keine abstrakte Nutzen-Behauptung (das Konkretheits-Gate aus SKILL-104 gilt auch auf der LP).
+- **Motivation statt Angst** — nach vorne (Wachstum/Freiheit), kein FOMO/Fake-Countdown.
+- **Keine Tool-/Produktnamen, keine Buzzwords**; „KI" nur als konkrete Loesungsbenennung.
+- **KEINE Gedankenstriche** (Em-/En-Dash —/– sind tabu, wirken nach KI; normaler Bindestrich in
+  Komposita bleibt) — identisch zur Copy-Anti-Liste §4c.
+- **Kein Preis** auf der LP; Verknappung nur **ehrlich** („Plaetze begrenzt, Warteliste = Reihenfolge").
+- Marken-Voice-Adjektive/Leitplanken kommen aus der **Brand** (Doku/Parameter), nicht hartkodiert.
+
+### 16f. Beweis-Zahlen-Governance
+
+Auf die LP duerfen **nur freigegebene Zahlen**. Referenz-Regel aus dem warteliste-Briefing:
+die **16 → 30**-Zahl ist freigegeben/live nutzbar (steht im Workbook, laeuft in allen Ads); **andere
+Zahlen** (z.B. Margen, Folgejahr-Skalierung, Bewerbungs-/Standort-Zahlen) gehen **erst nach
+Einzel-Freigabe** durch den Auftraggeber auf die LP. Framing-Pflicht: Zahlen immer als
+**Skalierungs-Beweis**, nie als blosse Effizienz-Anekdote. Nichts erfinden (Anti-Fake).
+
+### 16g. Vision-QA-Pflicht (nicht „fertig" ohne Blick)
+
+Analog zum Bild-Vision-QA (§15): eine LP gilt erst als fertig, wenn der **Agent die gerenderte Seite
+selbst angeschaut** hat — **Desktop 1440 UND Mobile 390**, jeweils **Default-Hero UND mindestens
+eine utm-Szene** (`?utm_content=<slug>`), plus die Erfolgs-View des Formulars. Geprueft wird:
+kein Horizontal-Scroll, Founder-Gesicht frei, Umlaute korrekt (kein Tofu/Mojibake), Kontrast
+(WCAG-AA), Tap-Targets ≥44px, Editorial-Desktop greift wirklich (nicht die hochskalierte
+Handy-Spalte), Szenen-Match tauscht die H1. Fuer web-Surfaces gilt zusaetzlich die Projekt-Regel
+**surface: web ⇒ Playwright/UI-Verifier-Pflicht** (Desktop- + Mobile-Viewport), und der
+`web-mobile-design`-Skill ist die Bau-Checkliste, **bevor** HTML/CSS geschrieben wird.
+
+### 16h. Von Content + Brand-Tokens zur LP (Ablauf)
+
+1. `templates/landingpage/index.template.html` in `landing/<site>/index.html` kopieren.
+2. Brand-Tokens binden: `tokens.css` aus `branding.env` rendern lassen und einbinden; Fonts einbetten.
+3. Sektions-Copy je Block fuellen (Voice-Regeln 16e), nur freigegebene Zahlen (16f).
+4. `HERO_SCENES` an die live geschalteten Ad-Slugs binden (16d).
+5. Vision-QA (16g): Desktop 1440 + Mobile 390, Default + utm-Szene.
+
+Details Schritt-fuer-Schritt: `templates/landingpage/README.md`.

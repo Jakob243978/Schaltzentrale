@@ -280,6 +280,7 @@ DEFAULT_STYLE: dict = {
     "kicker_font": "sans",       # sans (Default) | serif-italic
     "accent_as_block": False,    # Headline/Hero in Akzentfarbe (Farbe als Flaeche)
     "chrome": "full",            # full (Default) | minimal
+    "cta_button": False,         # SKILL-102: CTA als Pill-Button erzwingen, auch bei chrome=minimal
 }
 
 # SKILL-072: Uebersetzung der Stil-Parameter in Template-Werte.
@@ -322,7 +323,9 @@ def _style_ctx(style: dict | None, fmt: AdFormat) -> dict:
         # Chrome-Schalter (full -> alles an wie bisher; minimal -> aus)
         "chrome_bar": chrome_full,
         "chrome_brand": chrome_full,
-        "chrome_pill": chrome_full,
+        # SKILL-102: cta_button erzwingt den Pill-Button auch bei minimal chrome
+        # (Button ohne Top-Balken/Brand-Name) — Jakob-Wunsch "CTA immer als Button".
+        "chrome_pill": chrome_full or bool(s.get("cta_button", False)),
     }
 
 
@@ -589,6 +592,9 @@ def main(argv=None) -> int:
     ap.add_argument("--chrome", default="full", choices=["full", "minimal"],
                     help="SKILL-072: 'minimal' schaltet Brand-Name, Top-Balken und "
                          "CTA-Pill ab (organischer Look).")
+    ap.add_argument("--cta-button", action="store_true",
+                    help="SKILL-100: CTA als Pill-Button erzwingen, auch bei chrome=minimal "
+                         "(Button ohne Top-Balken/Brand-Name).")
     # --- SKILL-073: Bildquelle (search-first). Default 'none' = Bestandsverhalten ---
     ap.add_argument("--bg-source", default="none",
                     choices=["none", "library", "stock", "generate"],
@@ -664,6 +670,7 @@ def main(argv=None) -> int:
         "headline_weight": args.headline_weight, "headline_case": args.headline_case,
         "tracking": args.tracking, "kicker_font": args.kicker_font,
         "accent_as_block": args.accent_as_block, "chrome": args.chrome,
+        "cta_button": args.cta_button,
     }
     for w in layout_warnings(args.layout, hero_scale=args.hero_scale,
                              has_bg_image=bool(content.bg_image)):

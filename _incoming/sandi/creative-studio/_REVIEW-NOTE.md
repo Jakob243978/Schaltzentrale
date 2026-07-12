@@ -1,5 +1,12 @@
 # creative-studio — Sandis Upstream-Änderungen (Review-Ablage)
 
+> [!done] GEMERGT am 2026-07-13 in `skills_sources/creative-studio/`
+> Sandis Erweiterung (28 neue Dateien + 8 additive Änderungen) wurde additiv in die
+> Source übernommen (Herkunft `customer/sandi`). Verifikation: SKILL-087-Validator
+> erhalten, Ticket-Nummern 088–104 waren frei, `pytest` → 429 passed / 0 failed.
+> Details im Source-`docs/governance_log.md` (Eintrag 2026-07-13). Dieser Ordner
+> bleibt als Review-/Herkunfts-Beleg bestehen (NICHT löschen).
+
 **Herkunft:** `sandi/sandi-dev` → `~/workspace/_Skills/creative-studio/` (Stand 2026-07-12 ~23:50)
 **Vergleichsbasis:** `Schaltzentrale/skills_sources/creative-studio` (aktuelle Source)
 **Zweck:** NUR Review. NICHT direkt in die Source mergen — Jakob sichtet und entscheidet.

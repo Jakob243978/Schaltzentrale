@@ -23,6 +23,7 @@ ist als SKILL-026 separat spezifiziert — hier nur Referenz, KEINE Doppel-Imple
 """
 from __future__ import annotations
 import json
+import re
 from dataclasses import dataclass
 
 
@@ -258,7 +259,103 @@ FRAMEWORKS: dict[str, CopyFramework] = {
         funnel=("mofu", "bofu"),
         traffic=("warm",),
     ),
+    # --- SKILL-089: Cold-Audience-Hook-Formeln (F1-F6) ----------------------
+    # Menschliche Hook-Formeln fuer eine KALTE Zielgruppe, die den Produkt-/
+    # Kategoriebegriff noch NICHT kennt: eine Alltagsszene ZEIGEN statt eine
+    # Kategorie zu ERKLAEREN, Fachbegriff nie im Opener. Projektneutral (Slots +
+    # Template generisch, KEIN Brand-/Projektwert; konkrete Beispiele stehen nur
+    # im begleitenden Playbook, nicht im Code).
+    # Quelle: docs/ad-frameworks/agentisches-arbeiten-messaging-playbook.md (§4).
+    "scene": CopyFramework(  # F1 — SKILL-089
+        key="scene",
+        name="Szene-Formel (F1) — Alltagsszene · was von selbst laeuft · Ergebnis · CTA",
+        slots=("szene", "was_laeuft", "ergebnis", "cta"),
+        awareness=("unaware", "problem_aware"),
+        best_for="Staerkste Formel fuer eine KALTE, den-Begriff-nicht-kennende Zielgruppe: "
+                 "Zeile 1 ist eine konkrete Alltagsszene (Uhrzeit, Zahl, Handgriff), kein "
+                 "Statistik-Claim. Zeigt, was ohne Zutun laeuft, statt die Kategorie zu erklaeren.",
+        template="{szene}\n{was_laeuft}\n{ergebnis}\n{cta}",
+        note="Human-Rule 1+2: Szene statt These, zeigen statt erklaeren. Fachbegriff nie "
+             "im Opener (Human-Rule 3), kein Prozent-Statistik-Opener (Human-Rule 8).",
+        funnel=("tofu",),
+        traffic=("cold",),
+    ),
+    "kunden_oton": CopyFramework(  # F2 — SKILL-089
+        key="kunden_oton",
+        name="O-Ton-Formel (F2) — Kundenzitat · kurze Uebersetzung/Beweis · CTA",
+        slots=("zitat", "uebersetzung", "cta"),
+        awareness=("unaware", "problem_aware"),
+        best_for="Ein ECHTES Kundenzitat (Voice of Customer) als Hook. Wirkt menschlich, "
+                 "weil es die Sprache der Zielgruppe 1:1 spiegelt.",
+        template="{zitat}\n{uebersetzung}\n{cta}",
+        note="Zitat muss echt sein (kein erfundenes Testimonial, Geist des requires_proof-"
+             "Guards). Human-Rule 6: die Nomen der Zielgruppe nutzen.",
+        funnel=("tofu",),
+        traffic=("cold",),
+    ),
+    "vorher_nachher": CopyFramework(  # F3 — SKILL-089
+        key="vorher_nachher",
+        name="Vorher/Nachher-Formel (F3) — Frueher (nervig) · Heute (geloest) · CTA",
+        slots=("frueher", "heute", "cta"),
+        awareness=("unaware", "problem_aware"),
+        best_for="Derselbe Alltags-Moment einmal nervig, einmal geloest. Bildstark, "
+                 "leicht verstaendlich fuer kalte Zielgruppen. Abgrenzung zu BAB: konkrete "
+                 "Alltagsszene statt abstrakter Ist-/Wunsch-Zustand.",
+        template="{frueher}\n{heute}\n{cta}",
+        note="Transformation belegbar/alltagsnah halten (kein ueberzogener BEFORE_AFTER-Claim, "
+             "compliance_warnings/SKILL-026).",
+        funnel=("tofu",),
+        traffic=("cold",),
+    ),
+    "einwand_oton": CopyFramework(  # F4 — SKILL-089
+        key="einwand_oton",
+        name="Einwand-als-O-Ton-Formel (F4) — Einwand (gesprochen) · Haeufigkeit · Aufloesung · CTA",
+        slots=("einwand", "haeufigkeit", "aufloesung", "cta"),
+        awareness=("problem_aware", "solution_aware"),
+        best_for="Zerschlaegt einen Blocker menschlich: der Einwand als gesprochener Satz, "
+                 "dann die sachliche Aufloesung. Fuer bekannte Vorbehalte der Zielgruppe.",
+        template="{einwand}\n{haeufigkeit}\n{aufloesung}\n{cta}",
+        note="Aufloesung muss belegbar sein (kein manipulativer Fake-Reframe). Verwandt mit "
+             "mindset_shift, aber im O-Ton der Zielgruppe statt als Belehrung.",
+        funnel=("tofu",),
+        traffic=("cold",),
+    ),
+    "anti_hype": CopyFramework(  # F5 — SKILL-089
+        key="anti_hype",
+        name="Anti-Hype-Formel (F5) — ehrliche unbequeme Wahrheit · warum es trotzdem lohnt · CTA",
+        slots=("ehrliche_wahrheit", "warum_lohnt", "cta"),
+        awareness=("problem_aware", "solution_aware"),
+        best_for="Vertrauen statt Versprechen: eine unbequeme Wahrheit ehrlich vorweg, dann "
+                 "der echte Grund, warum es sich trotzdem lohnt. Schlaegt Hype bei skeptischen "
+                 "Zielgruppen (SKILL-096: Ehrlichkeit = Vertrauensanker).",
+        template="{ehrliche_wahrheit}\n{warum_lohnt}\n{cta}",
+        note="Bewusst KEIN Hype/Superlativ (siehe specs.hype_warnings/SKILL-096). Die "
+             "unbequeme Wahrheit muss echt sein, nicht kokettierend.",
+        funnel=("tofu",),
+        traffic=("cold",),
+    ),
+    "umbruch": CopyFramework(  # F6 — SKILL-089
+        key="umbruch",
+        name="Umbruch/Einladung-Formel (F6) — Analogie · die Wenigen statt aller · Einladung · CTA",
+        slots=("analogie", "wenige_statt_alle", "einladung", "cta"),
+        awareness=("unaware", "problem_aware"),
+        best_for="Rahmt einen technologischen Umbruch als Einladung (nie als Drohung): eine "
+                 "Analogie, die frueh dabei waren, und die Einladung dazuzugehoeren.",
+        template="{analogie}\n{wenige_statt_alle}\n{einladung}\n{cta}",
+        note="Motivation statt Angst (kein FOMO/'sonst haengst du ab', siehe "
+             "specs.brand_voice_warnings/SKILL-092). Einladung, keine Drohung.",
+        funnel=("tofu",),
+        traffic=("cold",),
+    ),
 }
+
+# SKILL-089/091: die szenen-/ergebnis-basierten Cold-Audience-Formeln (F1-F6).
+# Ad-Daten-Muster (Playbook §5): konkret-menschliche Angles gewinnen bei kalter
+# Zielgruppe, abstrakt/Statistik verliert. Deshalb rankt match_frameworks() diese
+# Formeln bei traffic="cold" VOR die uebrigen (generische Reihenfolge, kein Projektwert).
+COLD_AUDIENCE_FORMULAS: tuple[str, ...] = (
+    "scene", "kunden_oton", "vorher_nachher", "einwand_oton", "anti_hype", "umbruch",
+)
 
 
 def get_framework(key: str) -> CopyFramework:
@@ -266,6 +363,172 @@ def get_framework(key: str) -> CopyFramework:
     if key not in FRAMEWORKS:
         raise KeyError(f"Unbekanntes Framework '{key}'. Bekannt: {', '.join(FRAMEWORKS)}")
     return FRAMEWORKS[key]
+
+
+# === SKILL-089: 8 Human-Messaging-Regeln (kalte Zielgruppe) ==================
+# Die 8 Regeln aus dem Playbook (§1) als abrufbare, strukturierte Pruefliste.
+# Reine Wissens-/Checklisten-Ebene (das Pendant zu den Warn-Funktionen in
+# specs.py). Projektneutral formuliert — die konkreten Beispiele stehen im
+# Playbook, nicht hier. `check` verweist auf die automatisierbare Warn-Funktion
+# (soweit vorhanden); "" = reine Mensch-im-Loop-Beurteilung.
+@dataclass(frozen=True)
+class MessagingRule:
+    """Eine Human-Messaging-Regel fuer kalte Zielgruppen (Playbook §1)."""
+    key: str
+    title: str
+    rule: str
+    check: str = ""  # Name des automatisierten Checks in specs.py (oder "" = nur Urteil)
+
+
+HUMAN_MESSAGING_RULES: tuple[MessagingRule, ...] = (
+    MessagingRule(
+        "szene_statt_these", "Szene statt These",
+        "Zeile 1 ist ein Bild oder eine echte Frage aus dem Alltag, kein Statistik-Claim.",
+        check="specs.human_rule_warnings (Statistik-Opener)"),
+    MessagingRule(
+        "zeig_erklaer_nicht", "Zeig, erklaer nicht",
+        "Beschreibe konkret, was passiert (Anfrage, Termin, Nachfassen); die Kategorie "
+        "denkt der Leser selbst.",
+        check="specs.human_rule_warnings (Consultant-Abstrakta)"),
+    MessagingRule(
+        "begriff_zuletzt", "Begriff zuletzt",
+        "Der Fachbegriff nie im Opener, hoechstens am Ende als Name fuer das eben Beschriebene.",
+        check="specs.human_rule_warnings (category_term)"),
+    MessagingRule(
+        "ich_zu_du", "Ich zu Du",
+        "Aus dem eigenen Betrieb erzaehlt und direkt an das Du gerichtet, keine "
+        "'die meisten Unternehmer'-Distanz."),
+    MessagingRule(
+        "ein_gedanke", "Ein Gedanke pro Ad",
+        "Eine Szene, ein Schmerz, ein Ergebnis. Nicht mehrere Botschaften in eine Ad."),
+    MessagingRule(
+        "ihre_nomen", "Ihre Nomen",
+        "Die konkreten Objekte der Zielgruppe nutzen, nicht Consultant-Abstrakta "
+        "(Durchsatz, Overhead, Marge).",
+        check="specs.human_rule_warnings (Consultant-Abstrakta)"),
+    MessagingRule(
+        "ergebnis_fuehlbar", "Ergebnis fuehlbar",
+        "Das Ergebnis als fuehlbaren Moment zeigen (Feierabend um drei) statt als "
+        "abstrakte Kennzahl (15+ Stunden pro Woche)."),
+    MessagingRule(
+        "krumme_echte_zahl", "Krumme echte Zahl schlaegt runde Statistik",
+        "Eine konkrete, krumme Zahl (z. B. 17 statt 20) wirkt echter als eine runde "
+        "Prozent-Statistik (93 Prozent). Rhythmus brechen, keine Dauer-Dreier-Listen.",
+        check="specs.human_rule_warnings (Statistik-Opener)"),
+)
+
+
+def human_messaging_rules() -> tuple[MessagingRule, ...]:
+    """SKILL-089: die 8 Human-Messaging-Regeln als strukturierte Pruefliste (Playbook §1)."""
+    return HUMAN_MESSAGING_RULES
+
+
+# === SKILL-094: CTA-Bibliothek (Button · hart · weich) =======================
+# Projektneutrale, wiederverwendbare CTA-Formulierungen nach Verbindlichkeit.
+# "button" = Meta-Button-Label (kurz), "hart" = klare Aufforderung, "weich" =
+# einladend/niedrigschwellig. Generische deutsche CTAs, kein Projekt-/Brand-Wert.
+CTA_LIBRARY: dict[str, tuple[str, ...]] = {
+    "button": ("Registrieren", "Anmelden", "Mehr dazu"),
+    "hart": ("Trag dich ein", "Sichere dir deinen Platz"),
+    "weich": ("Ich zeig dir wie", "Willst du wissen wie"),
+}
+CTA_CATEGORIES: tuple[str, ...] = ("button", "hart", "weich")
+
+
+def get_ctas(category: str) -> tuple[str, ...]:
+    """SKILL-094: liefert die CTA-Varianten einer Kategorie (button/hart/weich)."""
+    key = (category or "").strip().lower()
+    if key not in CTA_LIBRARY:
+        raise KeyError(f"Unbekannte CTA-Kategorie '{category}'. Bekannt: {', '.join(CTA_LIBRARY)}")
+    return CTA_LIBRARY[key]
+
+
+def cta_category(text: str) -> str | None:
+    """SKILL-094: ordnet einen CTA-Text seiner Kategorie zu (oder None, wenn unbekannt)."""
+    t = (text or "").strip().lower()
+    for cat, variants in CTA_LIBRARY.items():
+        if any(t == v.lower() for v in variants):
+            return cat
+    return None
+
+
+# === SKILL-095: Ton-Profile / Ansprache (Buyer vs Champion) ==================
+# Zwei generische Ansprache-Profile fuer High-Ticket-Kaltkontakt. Projektneutral
+# (Struktur, keine Projekt-Texte): Buyer = Entscheider (Ergebnis zuerst, Status,
+# im Kaltkontakt eher "Sie"/verdientes Du), Champion = interner Fuersprecher/
+# Mitarbeiter (verbuendetes "du", schnelle Wins, Geheimwaffe).
+@dataclass(frozen=True)
+class ToneProfile:
+    """Ein Ansprache-/Ton-Profil (Playbook §7). Projektneutral."""
+    key: str
+    name: str
+    audience: str
+    pronoun: str
+    lead_with: str
+    register: str
+    note: str = ""
+
+
+TONE_PROFILES: dict[str, ToneProfile] = {
+    "buyer": ToneProfile(
+        key="buyer",
+        name="Buyer / Entscheider (DISC D/I)",
+        audience="Inhaber/Entscheider mit Budget-Hoheit",
+        pronoun="Sie im Kaltkontakt, verdientes Du erst nach Naehe",
+        lead_with="Ergebnis zuerst (Zahl/Status), kurz nur fuer den Einstieg",
+        register="knapp, status-orientiert, Beweis so lang wie noetig",
+        note="du/Sie-Risiko-Asymmetrie: 'Sie' beleidigt nie, ein zu fruehes 'du' kann "
+             "anbiedern. High-Ticket: Hook kurz, Beweis so lang wie noetig.",
+    ),
+    "champion": ToneProfile(
+        key="champion",
+        name="Champion / interner Fuersprecher (Team/Mitarbeiter)",
+        audience="Mitarbeiter/Team, die die Loesung intern tragen",
+        pronoun="du, verbuendet auf Augenhoehe",
+        lead_with="schnelle Wins / spuerbare Entlastung",
+        register="verbuendet, 'Geheimwaffe', begleitet statt belehrt",
+        note="Verbuendeter Ton: 'du' als Team, gemeinsame Entlastung, schnelle Erfolge "
+             "zuerst. Kein Status-Gehabe.",
+    ),
+}
+
+
+def get_tone_profile(key: str) -> ToneProfile:
+    """SKILL-095: liefert ein Ton-Profil per Key (buyer/champion) oder wirft KeyError."""
+    k = (key or "").strip().lower()
+    if k not in TONE_PROFILES:
+        raise KeyError(f"Unbekanntes Ton-Profil '{key}'. Bekannt: {', '.join(TONE_PROFILES)}")
+    return TONE_PROFILES[k]
+
+
+# === SKILL-093: Value-Translations (Feature -> gefuehltes Leben) =============
+# Projektneutrale Muster-Funktion: uebersetzt Feature-/Technik-Sprache in ein
+# fuehlbares Ergebnis. Die konkreten Paare sind PROJEKT-Daten (kommen als
+# `translations`-dict rein) — hier nur der generische Mechanismus + der Katalog
+# der Feature-Level-Signalverben, an denen untranslatierte Technik-Copy erkennbar ist.
+# Feature-Level-Signalverben (generische Consultant-/Technik-Verben, kein Projektwert).
+FEATURE_LEVEL_VERBS: tuple[str, ...] = (
+    "fuehrt aus", "führt aus", "automatisiert", "orchestriert", "synchronisiert",
+    "integriert", "prozessiert", "exekutiert", "verwaltet", "konfiguriert",
+    "implementiert", "deployt", "skaliert",
+)
+
+
+def apply_value_translations(text: str, translations: dict[str, str]) -> str:
+    """SKILL-093: ersetzt Feature-Formulierungen durch ihre gefuehlte Nutzen-Fassung.
+
+    `translations` mappt Feature-Phrase -> Nutzen-Phrase (projekt-spezifisch, kommt
+    als Parameter rein). Ersetzung ist case-insensitiv auf Substring-Ebene; laengere
+    Schluessel zuerst (verhindert Teil-Ueberschreibungen). Leeres Mapping -> Text
+    unveraendert (nicht-brechend). KEIN Projektwert hartkodiert.
+    """
+    if not text or not translations:
+        return text or ""
+    out = text
+    for feature in sorted(translations, key=len, reverse=True):
+        benefit = translations[feature]
+        out = re.sub(re.escape(feature), benefit, out, flags=re.IGNORECASE)
+    return out
 
 
 # --- Hook-Bibliothek --------------------------------------------------------
@@ -536,6 +799,11 @@ def match_frameworks(awareness: str | None = None, funnel: str | None = None,
         if tr is not None and tr not in f.traffic:
             continue
         out.append(f)
+    # SKILL-089/091: bei kalter Zielgruppe die szenen-basierten Formeln zuerst
+    # (Ad-Daten-Muster: konkret-menschlich gewinnt, abstrakt/Statistik verliert).
+    # Stabile Sortierung -> innerhalb der Gruppen bleibt die Katalog-Reihenfolge.
+    if tr == "cold":
+        out.sort(key=lambda f: 0 if f.key in COLD_AUDIENCE_FORMULAS else 1)
     return out
 
 

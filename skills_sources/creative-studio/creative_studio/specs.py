@@ -300,6 +300,199 @@ def message_match_warning(headline: str, landing_promise: str) -> str | None:
     )
 
 
+# === SKILL-089/091: Human-Messaging-Rule-Checks (kalte Zielgruppe) ============
+# Automatisierbare Teil-Checks der 8 Human-Rules (frameworks.HUMAN_MESSAGING_RULES,
+# Playbook §1). Reine WARNUNGEN (Mensch-im-Loop, konsistent mit compliance_warnings):
+#   - Statistik-Opener (Rule 1/8): Zeile 1 als "NN %/Prozent"-Statistik-Claim.
+#   - Consultant-Abstrakta (Rule 2/6): abstrakte Kennzahl-Nomen statt Alltags-Nomen.
+#   - Begriff-zuerst (Rule 3): der Fachbegriff steht schon im Opener.
+# Projektneutral: der Fachbegriff kommt als Parameter rein (kein Projektwert).
+# Eine krumme, konkrete Zahl OHNE Prozent ist ausdruecklich erwuenscht (Rule 8) und
+# loest KEINE Warnung aus.
+ABSTRACT_CONSULTANT_TERMS: tuple[str, ...] = (
+    "durchsatz", "overhead", "marge", "synergie", "synergien", "effizienzgewinn",
+    "ressourcenallokation", "time-to-market", "wertschoepfungskette", "skalierbarkeit",
+    "prozessoptimierung", "operational excellence", "roi-optimierung",
+)
+
+# Statistik-Opener: eine Prozent-Zahl (NN % / NN Prozent) im ersten Satz.
+_STAT_OPENER_RE = re.compile(r"\b\d{1,3}\s*(?:%|prozent)\b", re.IGNORECASE)
+
+
+def _first_sentence(text: str) -> str:
+    """Erster Satz/erste Zeile eines Textes (bis zum ersten . ! ? oder Zeilenumbruch)."""
+    t = (text or "").strip()
+    if not t:
+        return ""
+    for i, ch in enumerate(t):
+        if ch in ".!?\n":
+            return t[:i]
+    return t
+
+
+def human_rule_warnings(text: str, *, category_term: str | None = None) -> list[str]:
+    """SKILL-089/091: automatisierbare Human-Rule-Checks als Warn-Funktion.
+
+    Prueft `text` gegen die maschinell pruefbaren Human-Rules (Statistik-Opener,
+    Consultant-Abstrakta, Begriff-zuerst). `category_term` ist der projekt-spezifische
+    Fachbegriff (Parameter, KEIN hartkodierter Projektwert) — nur gesetzt wird er
+    geprueft. Reine Warnungen, keine Sperre.
+    """
+    out: list[str] = []
+    opener = _first_sentence(text)
+    if _STAT_OPENER_RE.search(opener):
+        out.append(
+            "Human-Rule-Warnung (Szene statt Statistik): der Opener startet mit einer "
+            "Prozent-Statistik. Kalte Zielgruppen reagieren auf eine konkrete Alltagsszene "
+            "(Uhrzeit/Zahl/Handgriff), nicht auf einen Statistik-Claim. Eine krumme, "
+            "konkrete Zahl ohne Prozent ist erwuenscht."
+        )
+    blob = (text or "").lower()
+    hits = sorted({t for t in ABSTRACT_CONSULTANT_TERMS if t in blob})
+    if hits:
+        out.append(
+            f"Human-Rule-Warnung (ihre Nomen): Consultant-Abstrakta {hits} gefunden. "
+            "Nutze die konkreten Alltags-Nomen der Zielgruppe (Objekte, Buchungen, "
+            "Fristen) statt abstrakter Kennzahl-Begriffe."
+        )
+    if category_term and category_term.strip():
+        term = category_term.strip().lower()
+        if term in opener.lower():
+            out.append(
+                f"Human-Rule-Warnung (Begriff zuletzt): der Fachbegriff '{category_term}' "
+                "steht schon im Opener. Kalte Zielgruppen kennen ihn nicht: erst die "
+                "Szene zeigen, den Begriff hoechstens am Ende als Name nennen."
+            )
+    return out
+
+
+# === SKILL-092: Brand-Voice-Leitplanken (Companion zu compliance_warnings) ====
+# Ergaenzt die legale DACH-Compliance (compliance_warnings) um MARKEN-Leitplanken
+# aus dem Playbook (§2): keine Tool-Namen, kein Preis, kein FOMO/Angst, kein
+# "Geschaeftsfuehrer", "individueller" statt "komplizierter". Reine WARNUNGEN.
+# Projektneutral: die generischen Tool-Marken sind allgemein bekannte Dritt-Produkte
+# (kein Projektwert); projekt-eigene Tool-Namen kommen als `forbidden_tools`-Parameter rein.
+GENERIC_AI_TOOL_NAMES: tuple[str, ...] = (
+    "chatgpt", "openai", "gpt-4", "gpt4", "claude", "gemini", "copilot",
+    "midjourney", "n8n", "zapier", "make.com", "langchain",
+)
+FEAR_FOMO_TRIGGERS: tuple[str, ...] = (
+    "sonst haengst du ab", "sonst hängst du ab", "abgehaengt", "abgehängt",
+    "verpasst du den", "zu spaet dran", "zu spät dran", "letzte chance",
+    "wer jetzt nicht", "der zug faehrt ab", "der zug fährt ab", "bevor es zu spaet",
+)
+# Preis: eine Zahl mit Waehrungssymbol/-wort (kein Preis in der Copy, §2).
+_PRICE_RE = re.compile(
+    r"\d[\d.,\s]*\s*€|\d[\d.,\s]*\s*(?:eur|euro)\b|€\s*\d|\b(?:eur|euro)\s*\d",
+    re.IGNORECASE,
+)
+
+
+def brand_voice_warnings(text: str, *, forbidden_tools: tuple[str, ...] = (),
+                         forbid_price: bool = True) -> list[str]:
+    """SKILL-092: Marken-Leitplanken (Playbook §2) als Warn-Funktion.
+
+    Companion zu compliance_warnings (legal) — hier die Brand-Voice-Regeln:
+    keine Tool-Namen, kein Preis, kein FOMO/Angst, kein "Geschaeftsfuehrer",
+    "individueller" statt "komplizierter". `forbidden_tools` ergaenzt die generische
+    Tool-Marken-Liste um projekt-eigene Namen (projektneutral, per Parameter).
+    Reine Warnungen, keine Sperre.
+    """
+    out: list[str] = []
+    blob = (text or "").lower()
+
+    tools = tuple(GENERIC_AI_TOOL_NAMES) + tuple(t.lower() for t in forbidden_tools)
+    found_tools = sorted({t for t in tools if t and t in blob})
+    if found_tools:
+        out.append(
+            f"Brand-Voice-Warnung (keine Tool-Namen): {found_tools} in der Copy. "
+            "Nenne das Ergebnis/die Alltagsszene, nicht das Werkzeug. Tool-Namen "
+            "wirken technisch und verschrecken die kalte Zielgruppe."
+        )
+    if forbid_price and _PRICE_RE.search(text or ""):
+        out.append(
+            "Brand-Voice-Warnung (kein Preis): ein Preis/Waehrungsbetrag steht in der "
+            "Copy. Preis gehoert nicht in die Ad (Playbook §2) — Ergebnis/Entlastung "
+            "kommunizieren, Preis erst im Gespraech."
+        )
+    if "geschaeftsfuehrer" in blob or "geschäftsführer" in blob:
+        out.append(
+            "Brand-Voice-Warnung (Ansprache): 'Geschaeftsfuehrer' vermeiden. Sprich die "
+            "Person direkt an (du/Inhaber), nicht ueber ihre Funktionsbezeichnung."
+        )
+    if "kompliziert" in blob or "komplizierter" in blob:
+        out.append(
+            "Brand-Voice-Warnung (Wortwahl): 'kompliziert(er)' vermeiden. 'individueller' "
+            "formulieren — es rahmt dieselbe Sache positiv statt abschreckend."
+        )
+    fomo = sorted({t for t in FEAR_FOMO_TRIGGERS if t in blob})
+    if fomo:
+        out.append(
+            f"Brand-Voice-Warnung (Motivation statt Angst): FOMO-/Angst-Formulierung "
+            f"{fomo} gefunden. Motiviere ueber die Chance/Einladung, nicht ueber die "
+            "Drohung, sonst abgehaengt zu werden (Playbook §2)."
+        )
+    return out
+
+
+# === SKILL-096: Anti-Hype / Hype-Warnung (Ehrlichkeit = Vertrauen) ============
+# Ad-Lesson (Playbook §8, VoC): Ehrlichkeit, wo KI (noch) nicht lohnt, schlaegt
+# Hype. hype_warnings markiert Hype-/Wunder-Vokabular und empfiehlt die
+# Anti-Hype-Formel (frameworks.FRAMEWORKS["anti_hype"], F5). Reine Warnungen.
+HYPE_TRIGGERS: tuple[str, ...] = (
+    "revolutionaer", "revolutionär", "game changer", "gamechanger", "bahnbrechend",
+    "muehelos", "mühelos", "auf autopilot", "voll automatisch", "in nur",
+    "garantiert schnell", "ueber nacht", "über nacht", "zauberformel",
+    "geheimtrick", "der heilige gral", "wie von selbst",
+)
+
+
+def hype_warnings(text: str) -> list[str]:
+    """SKILL-096: markiert Hype-/Wunder-Vokabular (Anti-Hype = Vertrauensanker).
+
+    Eine Warnung je Fund mit Verweis auf die ehrliche Anti-Hype-Formel. Reine
+    Warnung, keine Sperre. Projektneutral.
+    """
+    blob = (text or "").lower()
+    hits = sorted({t for t in HYPE_TRIGGERS if t in blob})
+    if not hits:
+        return []
+    return [
+        f"Hype-Warnung: {hits} klingt nach Hype/Wunderversprechen. Ehrlichkeit schlaegt "
+        "Hype (Playbook §8): benenne die unbequeme Wahrheit und warum es sich trotzdem "
+        "lohnt (Anti-Hype-Formel F5, frameworks.FRAMEWORKS['anti_hype'])."
+    ]
+
+
+# === SKILL-098: Visual-Anti-KI-Klischee-Check (Image-Prompt-Ebene) ============
+# Creative-relevante Visual-Leitplanke (Playbook §10): keine KI-Klischees (Glow,
+# Neuronen, Roboter, Violett-Gradient, Sparkle). Prueft einen Bild-/Motiv-Prompt
+# auf Klischee-Begriffe. Projektneutral (die warme Marken-Palette/Founder-Face-
+# Guidance bleibt Projekt-Doku/Parameter, hier nur die generische Klischee-Liste).
+AI_CLICHE_TERMS: tuple[str, ...] = (
+    "glow", "leuchten", "neuronen", "neuronal", "roboter", "android", "humanoid",
+    "sparkle", "glitzer", "funkeln", "violett-gradient", "lila gradient", "hologramm",
+    "matrix-code", "schaltkreis", "platine", "cyborg", "ki-gehirn", "digital brain",
+)
+
+
+def visual_cliche_warnings(prompt: str) -> list[str]:
+    """SKILL-098: warnt vor KI-Klischee-Motiven in einem Bild-/Motiv-Prompt.
+
+    Eine Warnung je gefundenem Klischee-Begriff-Set. Empfiehlt den menschlichen
+    Founder-/Delegation-/Ordnung-Look statt Roboter/Glow. Reine Warnung. Projektneutral.
+    """
+    blob = (prompt or "").lower()
+    hits = sorted({t for t in AI_CLICHE_TERMS if t in blob})
+    if not hits:
+        return []
+    return [
+        f"Visual-Warnung (Anti-KI-Klischee): {hits} im Motiv-Prompt. Vermeide "
+        "Glow/Neuronen/Roboter/Violett-Gradient/Sparkle. Zeige stattdessen Delegation/"
+        "Ordnung, echten Founder-/Handy-Look statt Hochglanz (Playbook §10)."
+    ]
+
+
 # === SKILL-028: KI-Disclosure-Gate (Pflicht-Label + Metadaten) ================
 # Sobald KI ein Creative generiert/substanziell veraendert/composited hat —
 # explizit inkl. synthetischer Stimme/Voice-Clone (SKILL-027) — ist eine
@@ -352,6 +545,12 @@ class AdContent:
     # wandert in variant_id/Dateiname/Sidecar-Metadaten (Ad-Tracking nach Methode).
     framework: str = "default"
     landing_promise: str = ""       # SKILL-026: optionale LP-Promise fuer Ad<->LP-Message-Match
+    # SKILL-089/092: projektneutrale Copy-Guard-Parameter. category_term = der
+    # projekt-spezifische Fachbegriff, der nicht im Opener stehen soll (Begriff-
+    # zuletzt-Regel); forbidden_tools = projekt-eigene Tool-Namen, die nicht in der
+    # Copy vorkommen sollen. Beide Default leer -> Bestandsverhalten unveraendert.
+    category_term: str = ""
+    forbidden_tools: tuple[str, ...] = ()
     # SKILL-028: KI-Anteil-Flags. ai_image = KI-generiertes/compositetes Bild,
     # ai_voice = synthetische Stimme / Voice-Clone (SKILL-027). Default False ->
     # bestehende Aufrufer (rein echtes Material) brechen nicht (EARS-4).
@@ -372,6 +571,15 @@ class AdContent:
         # SKILL-087: Gedankenstrich-Verbot (Em-/En-Dash) in der Copy — reine
         # Warnung, konsistent mit compliance_warnings (Mensch-im-Loop).
         out.extend(dash_warnings(blob))
+        # SKILL-089/091: Human-Messaging-Rule-Checks (Statistik-Opener, Consultant-
+        # Abstrakta, optional Begriff-zuerst). category_term kommt projektneutral
+        # per Feld rein (Default None -> Begriff-Check inaktiv).
+        out.extend(human_rule_warnings(blob, category_term=self.category_term or None))
+        # SKILL-092: Marken-Leitplanken (keine Tool-Namen, kein Preis, kein FOMO,
+        # kein "Geschaeftsfuehrer", "individueller" statt "komplizierter").
+        out.extend(brand_voice_warnings(blob, forbidden_tools=tuple(self.forbidden_tools)))
+        # SKILL-096: Hype-/Wunder-Vokabular (Anti-Hype = Vertrauensanker).
+        out.extend(hype_warnings(blob))
         # SKILL-026: Ad<->LP-Message-Match (nur wenn landing_promise gesetzt ist).
         mm = message_match_warning(self.headline, self.landing_promise)
         if mm:

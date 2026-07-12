@@ -1,0 +1,526 @@
+<!doctype html>
+<!-- =====================================================================
+     creative-studio · Content-Type `landingpage` — TEMPLATE / SKELETT (SKILL-105)
+     Abstrahiert aus der Referenz-LP AgentischesArbeiten/landing/warteliste-02.
+     PROJEKTNEUTRAL: alle {{PLATZHALTER}} ersetzen, keine projektspezifische Copy.
+     Bau-Anleitung: templates/landingpage/README.md · Doku: SKILL.md §16.
+
+     PFLICHTEN (SKILL.md §16):
+       - Brand-Tokens: nur --brand-* (ADR-010), kein hartkodierter Hex. Fonts self-hosted.
+       - Mobile-first, Desktop = eigenes Editorial-Layout (NICHT hochskalierte Handy-Spalte).
+       - Voice §16e (du-Form, Szene statt These, KEINE Gedankenstriche, kein Preis).
+       - Nur freigegebene Beweis-Zahlen §16f.
+       - Vision-QA §16g: Desktop 1440 + Mobile 390, Default + utm-Szene, vor "fertig".
+     ===================================================================== -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><!-- Warteliste: nicht indexieren -->
+<title>{{PAGE_TITLE}}</title>
+<meta name="description" content="{{META_DESCRIPTION}}">
+
+<!-- tokens.css: aus branding.env via gen-tokens.ps1 gerendert, VOR dem Deploy mit-deployt.
+     Lokaler file://-Test funktioniert auch ohne (Fallback-Defaults unten greifen). -->
+<link rel="stylesheet" href="tokens.css">
+
+<style>
+  /* === FONTS: self-hosted (kein CDN). woff2 mitliefern oder base64 einbetten. ===
+     Serif-Display fuer H1/H2 (Personal-Brand), Grotesk/Sans fuer Body. */
+  @font-face {
+    font-family: "DisplaySerif"; font-style: normal; font-weight: 500 700; font-display: swap;
+    src: url("fonts/display-serif.woff2") format("woff2"); /* {{SERIF_FONT_FILE}} */
+  }
+  @font-face {
+    font-family: "BodySans"; font-style: normal; font-weight: 400 700; font-display: swap;
+    src: url("fonts/body-sans.woff2") format("woff2"); /* {{BODY_FONT_FILE}} */
+  }
+
+  /* ====================================================================
+     BRAND-TOKENS -> lokale Aliase (kein hartkodierter Brand-Hex; ADR-010).
+     Fallback = Live-Default, falls tokens.css fehlt (file://-Test).
+     ==================================================================== */
+  :root {
+    --navy:        var(--brand-bg,        #0a0e27);
+    --navy-soft:   var(--brand-bg-soft,   #11163a);
+    --navy-card:   var(--brand-card,      #151b45);
+    --cream:       var(--brand-ink,       #faf7f2);
+    --ink-muted:   var(--brand-ink-muted, #9a9ec0);
+    --coral:       var(--brand-accent,    #f25d3e);
+    --coral-hover: var(--brand-accent-hover, #ff7257);
+    --ok:          var(--brand-ok,        #4fd190);
+    --err:         var(--brand-err,       #ff6b6b);
+    --radius:      var(--brand-radius,    14px);
+
+    --serif: "DisplaySerif", "Iowan Old Style", Palatino, Georgia, "Times New Roman", serif;
+    --sans:  "BodySans", var(--brand-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif);
+
+    /* Sekundaerfarben tokenbasiert ableiten (NICHT neu hardcoden) */
+    --on-cream:        var(--navy);
+    --on-cream-muted:  color-mix(in srgb, var(--navy) 66%, var(--cream));
+    --on-cream-line:   color-mix(in srgb, var(--navy) 14%, transparent);
+    --cream-alt:       color-mix(in srgb, var(--cream) 88%, var(--navy));
+
+    /* Fluide Typo-Skala (clamp, hohe Mobile-Minima) */
+    --step--1: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
+    --step-0:  clamp(1.06rem, 1.0rem + 0.35vw, 1.2rem);
+    --step-1:  clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+    --step-2:  clamp(1.5rem, 1.3rem + 1vw, 2rem);
+    --step-3:  clamp(1.9rem, 1.55rem + 1.7vw, 2.8rem);
+    --step-4:  clamp(2.35rem, 1.85rem + 2.5vw, 3.9rem);
+
+    --wrap: 1180px;      /* breiter, strukturierter Container (kein Handy-Column-Blowup) */
+    --measure: 680px;    /* ruhige Lesespalte */
+    --gap: clamp(2.6rem, 1.8rem + 3vw, 5rem);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  html, body { max-width: 100%; overflow-x: hidden; } /* kein Horizontal-Scroll */
+
+  body {
+    background: var(--cream); color: var(--on-cream);
+    font-family: var(--sans); font-size: var(--step-0); line-height: 1.62;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.08; letter-spacing: -0.015em; overflow-wrap: break-word; }
+  h1 { font-size: var(--step-4); }
+  h2 { font-size: var(--step-3); }
+  h3 { font-size: var(--step-1); }
+  p  { overflow-wrap: break-word; }
+  em { font-style: italic; }
+
+  /* ---- Layout-Helfer ---- */
+  .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 clamp(20px, 5vw, 56px); }
+  .measure { max-width: var(--measure); }
+  .band { padding: var(--gap) 0; }
+
+  /* ---- Editorial-Buehnen (warmer Cream/Navy-Rhythmus, Coral = EIN Akzent) ---- */
+  .band--cream     { background: var(--cream);     color: var(--on-cream); }
+  .band--cream-alt { background: var(--cream-alt);  color: var(--on-cream); }
+  .band--navy      { background: var(--navy);       color: var(--cream); }
+  .band--navy p { color: color-mix(in srgb, var(--cream) 82%, var(--navy)); }
+  .band--cream p.muted, .band--cream-alt p.muted { color: var(--on-cream-muted); }
+
+  /* ---- Kicker / Eyebrow ---- */
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--sans);
+    font-size: var(--step--1); font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--coral); }
+  .eyebrow::before { content: ""; width: 26px; height: 2px; background: var(--coral); display: inline-block; }
+  .eyebrow--pill { border: 1px solid color-mix(in srgb, var(--coral) 55%, transparent); border-radius: 999px; padding: 7px 16px; }
+  .eyebrow--pill::before { display: none; }
+
+  /* ---- Buttons (Tap-Target >=44px) ---- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: var(--sans); font-size: var(--step-0); font-weight: 700; text-decoration: none; text-align: center;
+    background: var(--coral); color: var(--navy); padding: 16px 30px; border-radius: 999px; border: none; cursor: pointer;
+    min-height: 52px; box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--coral) 80%, transparent);
+    transition: background .15s ease, transform .15s ease; }
+  .btn:hover { background: var(--coral-hover); transform: translateY(-2px); }
+  .micro-trust { font-size: var(--step--1); }
+  .micro-trust .dot { color: var(--coral); padding: 0 8px; }
+
+  /* ============ S0 STICKY HEADER ============ */
+  .site-header { position: sticky; top: 0; z-index: 900;
+    background: color-mix(in srgb, var(--cream) 90%, transparent);
+    backdrop-filter: saturate(140%) blur(10px); -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--on-cream-line); }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding-top: 10px; padding-bottom: 10px; }
+  .wordmark { font-family: var(--serif); font-weight: 600; font-size: 1.28rem; letter-spacing: -0.01em; color: var(--on-cream); text-decoration: none; display: inline-flex; align-items: baseline; gap: 9px; }
+  .wordmark .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); display: inline-block; }
+  .header-cta { padding: 11px 22px; min-height: 44px; font-size: var(--step--1); }
+
+  /* ============ S1 HERO — zweispaltig, asymmetrisch, Navy-Buehne ============ */
+  .hero { background: var(--navy); color: var(--cream); position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 88% 8%, color-mix(in srgb, var(--coral) 26%, transparent), transparent 55%); opacity: .9; }
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero-grid { display: grid; grid-template-columns: 1fr; gap: clamp(2rem, 1rem + 5vw, 4.5rem); align-items: center;
+    padding: clamp(2rem,1.2rem+3vw,3.4rem) 0 clamp(2.4rem,1.4rem+3.5vw,4rem); }
+  .hero-copy { max-width: 620px; }
+  .hero h1 { margin: 20px 0 22px; color: var(--cream); }
+  .hero h1 em { font-style: normal; color: var(--coral); }
+  .hero-lead { font-size: var(--step-1); line-height: 1.5; color: color-mix(in srgb, var(--cream) 85%, var(--navy)); margin-bottom: 26px; max-width: 34em; }
+  .hero-actions { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  .hero-actions .btn { width: 100%; max-width: 420px; } /* mobile: voll-breit */
+  .hero .micro-trust { color: color-mix(in srgb, var(--cream) 70%, var(--navy)); }
+  /* Founder-Portrait: Coral-Versatzrahmen (Editorial/Magazin) */
+  .hero-figure { position: relative; justify-self: center; width: 100%; max-width: 440px; }
+  .hero-figure::before { content: ""; position: absolute; inset: 18px -16px -18px 16px; border: 2px solid color-mix(in srgb, var(--coral) 70%, transparent); border-radius: calc(var(--radius) + 6px); z-index: 0; }
+  .hero-figure img { position: relative; z-index: 1; width: 100%; border-radius: calc(var(--radius) + 6px); box-shadow: 0 30px 60px -24px rgba(0,0,0,.6); object-fit: cover; }
+  .hero-figure .stat-tag { position: absolute; z-index: 2; left: -6px; bottom: -14px; background: var(--cream); color: var(--navy); border-radius: 12px; padding: 12px 16px; line-height: 1.15; box-shadow: 0 18px 40px -18px rgba(0,0,0,.55); max-width: 200px; }
+  .hero-figure .stat-tag b { font-family: var(--serif); font-size: 1.55rem; color: var(--coral); display: block; }
+  .hero-figure .stat-tag span { font-size: .82rem; color: var(--on-cream-muted); }
+
+  /* ============ S2 MESSAGE-BRIDGE — Editorial-Pull-Quotes ============ */
+  .quotes { display: grid; gap: clamp(1.6rem,1rem+2vw,2.6rem); }
+  .pull { font-family: var(--serif); font-weight: 500; font-size: var(--step-2); line-height: 1.24; letter-spacing: -0.01em; padding-left: clamp(18px,3vw,28px); border-left: 3px solid var(--coral); color: var(--on-cream); }
+  .bridge { margin-top: clamp(1.8rem,1rem+2vw,2.8rem); font-size: var(--step-1); }
+  .bridge .accent { color: var(--coral); font-weight: 600; }
+
+  /* ============ S3 ENGPASS — schmale Lesespalte ============ */
+  .lede { font-family: var(--serif); font-size: var(--step-2); line-height: 1.2; letter-spacing: -0.015em; margin-bottom: 22px; }
+  .flow > * + * { margin-top: 20px; }
+
+  /* ============ S4 MECHANISMUS — Kontrast + 3 Schritte ============ */
+  .contrast { display: grid; grid-template-columns: 1fr; gap: 14px; margin: clamp(1.8rem,1rem+2vw,2.8rem) 0 0; }
+  .contrast .row { border: 1px solid color-mix(in srgb, var(--cream) 16%, transparent); border-radius: var(--radius); padding: 20px 22px; background: color-mix(in srgb, var(--navy-card) 60%, transparent); }
+  .contrast .row .tag { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 6px; display: block; color: var(--ink-muted); }
+  .contrast .row.is-primary { border-color: color-mix(in srgb, var(--coral) 55%, transparent); background: color-mix(in srgb, var(--coral) 12%, transparent); }
+  .contrast .row.is-primary .tag { color: var(--coral); }
+  .contrast .row .line { font-family: var(--serif); font-size: var(--step-1); line-height: 1.24; }
+  .steps { display: grid; gap: 16px; margin-top: clamp(2rem,1.2rem+2vw,3rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+  .step { background: color-mix(in srgb, var(--navy-card) 70%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent); border-radius: var(--radius); padding: 24px 22px; }
+  .step .num { font-family: var(--serif); font-size: 1.7rem; color: var(--coral); line-height: 1; }
+  .step h3 { margin: 12px 0 8px; color: var(--cream); }
+  .step p { font-size: var(--step--1); line-height: 1.55; }
+
+  /* ============ S5 DIMENSIONEN — Editorial-Zeilen (Name | Szene + Nutzen) ============ */
+  .dims { margin-top: clamp(2rem,1.2rem+2vw,3rem); border-top: 1px solid var(--on-cream-line); }
+  .dim { display: grid; grid-template-columns: 1fr; gap: 6px; padding: clamp(20px,2vw,30px) 0; border-bottom: 1px solid var(--on-cream-line); }
+  .dim .dname { font-family: var(--serif); font-size: var(--step-1); color: var(--coral); display: flex; align-items: baseline; gap: 12px; }
+  .dim .dname .idx { font-size: .9rem; font-family: var(--sans); font-weight: 700; color: var(--on-cream-muted); letter-spacing: .05em; }
+  .dim .dscene { font-weight: 600; font-size: var(--step-0); }
+  .dim .dbenefit { color: var(--on-cream-muted); font-size: var(--step-0); }
+
+  /* ============ S6 FORMAT — 4 Karten ============ */
+  .cards { display: grid; gap: 16px; margin-top: clamp(2rem,1.2rem+2vw,2.8rem); grid-template-columns: 1fr; }
+  .card { border: 1px solid var(--on-cream-line); border-radius: var(--radius); padding: 22px; background: color-mix(in srgb, var(--cream) 96%, var(--navy)); }
+  .card h3 { margin-bottom: 8px; }
+
+  /* ============ S7 BEWEIS-LAYER — Stat-Hero ============ */
+  .proof-grid { display: grid; grid-template-columns: 1fr; gap: clamp(1.6rem,1rem+3vw,3rem); align-items: center; }
+  .proof-figure img { border-radius: var(--radius); }
+  .proof-stat b { font-family: var(--serif); font-size: clamp(3rem, 2rem + 6vw, 5rem); color: var(--coral); line-height: 1; display: block; }
+
+  /* ============ S9 FORMULAR ============ */
+  .form-layout { display: grid; grid-template-columns: 1fr; gap: clamp(1.6rem,1rem+2vw,2.4rem); }
+  .form-card { background: var(--cream); border: 1px solid var(--on-cream-line); border-radius: var(--radius); padding: clamp(22px,4vw,32px); max-width: 520px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-weight: 700; font-size: var(--step--1); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-family: inherit; font-size: 16px; /* 16px: kein iOS-Zoom */
+    padding: 13px 14px; border: 1px solid color-mix(in srgb, var(--navy) 22%, var(--cream)); border-radius: 10px; background: var(--cream); color: var(--on-cream); min-height: 48px; }
+  .field .err { display: none; color: var(--err); font-size: .85rem; margin-top: 5px; }
+  .form-card .btn { width: 100%; margin-top: 8px; }
+  .consent-row { display: flex; gap: 10px; align-items: flex-start; }
+  .consent-row input { width: auto; min-height: auto; margin-top: 4px; }
+  #form-success { display: none; }
+
+  /* ============ S10 FOOTER + Mobile-CTA ============ */
+  footer { background: var(--navy); color: color-mix(in srgb, var(--cream) 80%, var(--navy)); padding: clamp(2rem,1.4rem+2vw,3rem) 0; font-size: var(--step--1); }
+  footer a { color: var(--cream); }
+  .mobile-cta { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 800; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--cream) 94%, transparent); border-top: 1px solid var(--on-cream-line); }
+  .mobile-cta .btn { width: 100%; }
+
+  /* ====================================================================
+     RESPONSIVE — Desktop-Editorial ab 720/960px (NICHT Handy-Spalte breiter)
+     ==================================================================== */
+  @media (min-width: 720px) {
+    .hero-actions { flex-direction: row; align-items: center; flex-wrap: wrap; }
+    .hero-actions .btn { width: auto; }
+    .quotes { grid-template-columns: 1fr 1fr; }
+    .contrast { grid-template-columns: 1fr 1fr; }
+    .dim { grid-template-columns: 240px 1fr; column-gap: 32px; align-items: baseline; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    .form-layout { grid-template-columns: 1.15fr 0.85fr; }
+  }
+  @media (min-width: 960px) {
+    .hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+    .hero-figure { justify-self: end; max-width: 460px; }
+    .proof-grid { grid-template-columns: 0.95fr 1.05fr; }
+    .proof-figure { order: 2; } .proof-text { order: 1; }
+  }
+  @media (max-width: 719px) { /* Mobile-Sticky-CTA nur klein */
+    .mobile-cta { display: block; } body { padding-bottom: 76px; } .header-cta { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+  /* ============ Consent-Banner (DSGVO) — Wortlaut mit Recht abstimmen ============ */
+  #cookie-banner { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999; background: var(--navy-card); border-top: 1px solid color-mix(in srgb, var(--cream) 14%, transparent); padding: 18px 0 max(18px, env(safe-area-inset-bottom)); }
+  #cookie-banner .cb-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 clamp(20px,5vw,56px); display: flex; flex-direction: column; gap: 14px; }
+  #cookie-banner p { font-size: .9rem; color: color-mix(in srgb, var(--cream) 78%, var(--navy)); }
+  #cookie-banner a { color: var(--cream); }
+  #cookie-banner .cb-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  #cookie-banner .cb-btn { flex: 1 1 auto; min-width: 140px; min-height: 44px; font-weight: 700; padding: 12px 18px; border-radius: 999px; cursor: pointer; border: 1px solid color-mix(in srgb, var(--cream) 18%, transparent); font-family: inherit; }
+  #cookie-banner .cb-accept { background: var(--coral); color: var(--navy); border-color: var(--coral); }
+  #cookie-banner .cb-decline { background: transparent; color: var(--cream); }
+  @media (min-width: 640px) { #cookie-banner .cb-inner { flex-direction: row; align-items: center; gap: 20px; } #cookie-banner .cb-btn { flex: 0 0 auto; min-width: 120px; } }
+</style>
+</head>
+<body>
+
+<!-- ===== Consent-Banner (nur per JS eingeblendet, wenn keine Entscheidung vorliegt) ===== -->
+<div id="cookie-banner" role="dialog" aria-live="polite">
+  <div class="cb-inner">
+    <p>{{CONSENT_TEXT}} <a href="{{DATENSCHUTZ_URL}}">Datenschutz</a></p>
+    <div class="cb-actions">
+      <button class="cb-btn cb-decline" id="cb-decline">Nur notwendige</button>
+      <button class="cb-btn cb-accept"  id="cb-accept">Akzeptieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== S0 STICKY HEADER (CTA immer sichtbar, KEINE Navigation) ===== -->
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="#top"><span class="dot"></span>{{WORDMARK}}</a>
+    <a class="btn header-cta" href="#warteliste">{{CTA_HEADER}}</a>
+  </div>
+</header>
+<span id="top"></span>
+
+<!-- ===== S1 HERO (Attention) — zweispaltig, Founder gross. LCP-Element. ===== -->
+<section class="band hero" aria-labelledby="hero-h1">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow eyebrow--pill" id="hero-kicker">{{HERO_KICKER}}</span>
+        <!-- H1: Szene statt These. <em> faerbt den Aufloesungs-Teil in Coral.
+             Wird per Szenen-Match (unten) an die Ad angeglichen. -->
+        <h1 id="hero-h1">{{HERO_H1}} <em>{{HERO_H1_ACCENT}}</em></h1>
+        <p class="hero-lead" id="hero-lead">{{HERO_LEAD}}</p>
+        <div class="hero-actions">
+          <a class="btn" href="#warteliste">{{CTA_PRIMARY}}</a>
+          <span class="micro-trust">{{TRUST_1}}<span class="dot">·</span>{{TRUST_2}}<span class="dot">·</span>{{TRUST_3}}</span>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="{{FOUNDER_IMG}}" width="1081" height="1621" alt="{{FOUNDER_ALT}}" fetchpriority="high">
+        <!-- Stat-Tag: NUR freigegebene Zahl (SKILL.md §16f) -->
+        <div class="stat-tag"><b>{{STAT_NUMBER}}</b><span>{{STAT_LABEL}}</span></div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===== S2 AD-ERKENNUNGSWERT / MESSAGE-BRIDGE ===== -->
+<section class="band band--cream">
+  <div class="wrap">
+    <span class="eyebrow">{{BRIDGE_EYEBROW}}</span>
+    <div class="quotes" style="margin-top:26px;">
+      <p class="pull">{{PULL_QUOTE_1}}</p>
+      <p class="pull">{{PULL_QUOTE_2}}</p>
+    </div>
+    <p class="bridge measure">{{BRIDGE_TEXT}} <span class="accent">{{BRIDGE_ACCENT}}</span></p>
+  </div>
+</section>
+
+<!-- ===== S3 ENGPASS (Problem, verdichtet — kurz, sofort aufloesen) ===== -->
+<section class="band band--cream-alt">
+  <div class="wrap">
+    <div class="measure flow">
+      <span class="eyebrow">{{ENGPASS_EYEBROW}}</span>
+      <p class="lede">{{ENGPASS_LEDE}}</p>
+      <p class="muted">{{ENGPASS_BODY}}</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== S4 MECHANISMUS (Kategorie-Reframe) ===== -->
+<section class="band band--navy">
+  <div class="wrap">
+    <div class="measure">
+      <span class="eyebrow">{{MECH_EYEBROW}}</span>
+      <h2 style="margin-top:16px;">{{MECH_HEADLINE}}</h2>
+    </div>
+    <div class="contrast">
+      <div class="row"><span class="tag">{{CONTRAST_A_TAG}}</span><p class="line">{{CONTRAST_A_LINE}}</p></div>
+      <div class="row is-primary"><span class="tag">{{CONTRAST_B_TAG}}</span><p class="line">{{CONTRAST_B_LINE}}</p></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>{{STEP_1_TITLE}}</h3><p>{{STEP_1_TEXT}}</p></div>
+      <div class="step"><div class="num">2</div><h3>{{STEP_2_TITLE}}</h3><p>{{STEP_2_TEXT}}</p></div>
+      <div class="step"><div class="num">3</div><h3>{{STEP_3_TITLE}}</h3><p>{{STEP_3_TEXT}}</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== S5 DIMENSIONEN (entwaessert: je Zeile Szene + Nutzen, max ~20 Woerter) ===== -->
+<section class="band band--cream">
+  <div class="wrap">
+    <span class="eyebrow">{{DIMS_EYEBROW}}</span>
+    <div class="dims">
+      <!-- Wiederhole je Dimension: -->
+      <div class="dim">
+        <div class="dname"><span class="idx">01</span>{{DIM_1_NAME}}</div>
+        <div class="dtext"><div class="dscene">{{DIM_1_SCENE}}</div><div class="dbenefit">{{DIM_1_BENEFIT}}</div></div>
+      </div>
+      <!-- ... DIM_2 ... DIM_n ... -->
+    </div>
+  </div>
+</section>
+
+<!-- ===== S6 FORMAT / ANGEBOT (KEIN Preis) ===== -->
+<section class="band band--cream-alt">
+  <div class="wrap">
+    <span class="eyebrow">{{FORMAT_EYEBROW}}</span>
+    <div class="cards">
+      <div class="card"><h3>{{FORMAT_1_TITLE}}</h3><p class="muted">{{FORMAT_1_TEXT}}</p></div>
+      <div class="card"><h3>{{FORMAT_2_TITLE}}</h3><p class="muted">{{FORMAT_2_TEXT}}</p></div>
+      <div class="card"><h3>{{FORMAT_3_TITLE}}</h3><p class="muted">{{FORMAT_3_TEXT}}</p></div>
+      <div class="card"><h3>{{FORMAT_4_TITLE}}</h3><p class="muted">{{FORMAT_4_TEXT}}</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== S7 BEWEIS-LAYER ("einer von euch") — NUR freigegebene Zahlen (§16f) ===== -->
+<section class="band band--navy">
+  <div class="wrap">
+    <div class="proof-grid">
+      <div class="proof-text">
+        <span class="eyebrow">{{PROOF_EYEBROW}}</span>
+        <div class="proof-stat"><b>{{PROOF_STAT}}</b></div>
+        <p>{{PROOF_BODY}}</p>
+      </div>
+      <figure class="proof-figure"><img src="{{PROOF_IMG}}" width="1200" height="900" alt="{{PROOF_ALT}}" loading="lazy"></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===== S8 TESTIMONIAL (optional — Struktur bauen, leer bis echtes Zitat + Freigabe) =====
+<section class="band band--cream" id="stimmen">
+  <div class="wrap"><span class="eyebrow">{{TESTIMONIAL_EYEBROW}}</span>
+    <blockquote class="pull">{{TESTIMONIAL_QUOTE}}</blockquote><p class="muted">{{TESTIMONIAL_AUTHOR}}</p></div>
+</section> -->
+
+<!-- ===== S9 WARTELISTE-FORMULAR (Action) ===== -->
+<section class="band band--cream-alt" id="warteliste">
+  <div class="wrap">
+    <div class="form-layout">
+      <div class="form-card">
+        <form id="wl-form" novalidate>
+          <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" required><div class="err" id="err-name">Bitte Namen angeben.</div></div>
+          <div class="field"><label for="f-email">E-Mail</label><input id="f-email" name="email" type="email" inputmode="email" autocomplete="email" required><div class="err" id="err-email">Bitte gueltige E-Mail angeben.</div></div>
+          <!-- bewusste Vorqualifizierungs-Frage: -->
+          <div class="field"><label for="f-range">{{QUALIFY_LABEL}}</label>
+            <select id="f-range" name="range" required>
+              <option value="">Bitte waehlen</option>
+              <option>{{QUALIFY_OPT_1}}</option><option>{{QUALIFY_OPT_2}}</option><option>{{QUALIFY_OPT_3}}</option>
+            </select><div class="err" id="err-range">Bitte auswaehlen.</div></div>
+          <div class="field"><label for="f-telefon">Telefon (optional)</label><input id="f-telefon" name="telefon" type="tel" inputmode="tel" autocomplete="tel"></div>
+          <div class="field"><label for="f-freitext">Nachricht (optional)</label><textarea id="f-freitext" name="freitext" rows="3"></textarea></div>
+          <div class="field consent-row"><input id="f-consent" name="consent" type="checkbox" required><label for="f-consent">{{CONSENT_CHECKBOX}}</label></div>
+          <div class="err" id="err-consent">Bitte zustimmen.</div>
+          <!-- Hidden: UTM / Attribution / abgeleitete Zielgruppe -->
+          <input type="hidden" id="f-utm_source"   name="utm_source">
+          <input type="hidden" id="f-utm_medium"   name="utm_medium">
+          <input type="hidden" id="f-utm_campaign" name="utm_campaign">
+          <input type="hidden" id="f-utm_content"  name="utm_content">
+          <input type="hidden" id="f-utm_term"     name="utm_term">
+          <input type="hidden" id="f-zielgruppe"   name="zielgruppe">
+          <button class="btn" id="wl-submit" type="submit">{{CTA_PRIMARY}}</button>
+          <div class="err" id="form-error" style="margin-top:12px;">Etwas ist schiefgelaufen. Bitte erneut versuchen.</div>
+        </form>
+        <div id="form-success">
+          <h3>{{SUCCESS_TITLE}}</h3>
+          <p class="muted">{{SUCCESS_TEXT}}</p>
+          <a class="btn" id="ns-instagram" href="{{NEXT_STEP_URL}}">{{NEXT_STEP_CTA}}</a>
+        </div>
+      </div>
+      <div class="form-reassure">
+        <span class="eyebrow">{{REASSURE_EYEBROW}}</span>
+        <p class="muted">{{REASSURE_TEXT}}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== S10 FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <p>{{FOOTER_BRAND}}</p>
+    <p style="margin-top:10px;">
+      <a href="{{IMPRESSUM_URL}}" id="link-impressum">Impressum</a> ·
+      <a href="{{DATENSCHUTZ_URL}}" id="link-datenschutz">Datenschutz</a> ·
+      <a href="{{SOCIAL_URL}}">{{SOCIAL_LABEL}}</a>
+    </p>
+  </div>
+</footer>
+
+<!-- ===== Mobile-Sticky-CTA (nur <720px) ===== -->
+<div class="mobile-cta" id="mobile-cta"><a class="btn" href="#warteliste">{{CTA_PRIMARY}}</a></div>
+
+<script>
+(function () {
+  "use strict";
+  var UTM_KEYS = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"];
+
+  function readUrlUtm() {
+    var p = new URLSearchParams(window.location.search), o = {}, has = false;
+    UTM_KEYS.forEach(function (k) { var v = p.get(k); if (v) { o[k] = v; has = true; } });
+    return has ? o : null;
+  }
+  function currentUtm() { return readUrlUtm() || {}; }
+
+  // Abgeleitete Zielgruppe aus utm_content-Praefix (an eigenes Namensschema anpassen).
+  function deriveZielgruppe(utmContent) {
+    var c = (utmContent || "").toLowerCase();
+    var m = c.match(/^h(\d)/); // z.B. "h1-...", "h2-..."
+    return m ? "H" + m[1] : "allgemein";
+  }
+  function fillHiddenFields() {
+    var utm = currentUtm();
+    UTM_KEYS.forEach(function (k) { var el = document.getElementById("f-" + k); if (el) el.value = utm[k] || ""; });
+    var zg = document.getElementById("f-zielgruppe"); if (zg) zg.value = deriveZielgruppe(utm.utm_content);
+  }
+  fillHiddenFields();
+
+  // === SZENEN-MATCH (§16d): Hero-H1 an die Ad angleichen, aus der jemand kommt. ===
+  // Match ueber Fragmente im utm_content (= Ad-Slug). EIN Eintrag je live geschaltetem Top-Ad-Slug.
+  // Kein Treffer -> starker Default-Hero bleibt. Robust in try/catch. PLATZHALTER ersetzen.
+  var HERO_SCENES = [
+    { m: ["{{SLUG_A}}", "{{SLUG_A_SYN}}"], h1: '{{SCENE_A}} <em>{{SCENE_A_ACCENT}}</em>' },
+    { m: ["{{SLUG_B}}"],                    h1: '{{SCENE_B}} <em>{{SCENE_B_ACCENT}}</em>' }
+    // ... weitere Szenen ...
+  ];
+  function swapHeroForUtm() {
+    try {
+      var c = (currentUtm().utm_content || "").toLowerCase();
+      if (!c) return;
+      var el = document.getElementById("hero-h1"); if (!el) return;
+      for (var i = 0; i < HERO_SCENES.length; i++)
+        for (var j = 0; j < HERO_SCENES[i].m.length; j++)
+          if (c.indexOf(HERO_SCENES[i].m[j]) !== -1) { el.innerHTML = HERO_SCENES[i].h1; return; }
+    } catch (e) { /* Default-Hero bleibt stehen */ }
+  }
+  swapHeroForUtm();
+
+  // === Formular-Validierung + Submit (Endpoint projektspezifisch anbinden) ===
+  var form = document.getElementById("wl-form");
+  function setErr(id, show) { var el = document.getElementById(id); if (el) el.style.display = show ? "block" : "none"; }
+  function validate() {
+    var ok = true;
+    var name = document.getElementById("f-name").value.trim();
+    var email = document.getElementById("f-email").value.trim();
+    var range = document.getElementById("f-range").value;
+    var consent = document.getElementById("f-consent").checked;
+    var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    setErr("err-name", !name); if (!name) ok = false;
+    setErr("err-email", !emailOk); if (!emailOk) ok = false;
+    setErr("err-range", !range); if (!range) ok = false;
+    setErr("err-consent", !consent); if (!consent) ok = false;
+    return ok;
+  }
+  if (form) form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!validate()) return;
+    // TODO: fetch(POST) an den Warteliste-Endpoint; bei Erfolg Erfolgs-View zeigen:
+    form.style.display = "none";
+    document.getElementById("form-success").style.display = "block";
+  });
+
+  // === Consent-Banner (DSGVO) — minimal; Marketing-Pixel erst nach Zustimmung laden ===
+  function readConsent() { try { return localStorage.getItem("mkt_consent"); } catch (e) { return null; } }
+  function writeConsent(v) { try { localStorage.setItem("mkt_consent", v); } catch (e) {} }
+  var banner = document.getElementById("cookie-banner");
+  if (banner && !readConsent()) banner.style.display = "block";
+  var acc = document.getElementById("cb-accept"), dec = document.getElementById("cb-decline");
+  if (acc) acc.addEventListener("click", function () { writeConsent("granted"); banner.style.display = "none"; /* loadPixel(); */ });
+  if (dec) dec.addEventListener("click", function () { writeConsent("denied");  banner.style.display = "none"; });
+})();
+</script>
+</body>
+</html>
