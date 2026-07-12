@@ -14,7 +14,7 @@ from creative_studio.specs import make_utm_content, make_variant_id
 
 def _fake_render(monkeypatch, out_root_holder):
     """Ersetzt render_image.render durch einen Stub, der eine leere PNG-Datei anlegt."""
-    def fake(content, format_keys, brand, out_dir, debug_safe=False):
+    def fake(content, format_keys, brand, out_dir, debug_safe=False, write_meta=True, **kwargs):
         written = []
         stem = content.ad_id or "creative"
         for key in format_keys:
@@ -100,7 +100,7 @@ def test_no_hardcoded_project_value(tmp_path, monkeypatch):
 def test_single_failure_does_not_abort(tmp_path, monkeypatch):
     calls = {"n": 0}
 
-    def flaky(content, format_keys, brand, out_dir, debug_safe=False):
+    def flaky(content, format_keys, brand, out_dir, debug_safe=False, write_meta=True, **kwargs):
         calls["n"] += 1
         if calls["n"] == 2:                       # zweiter Render-Aufruf scheitert
             raise RuntimeError("Chromium-Boom")

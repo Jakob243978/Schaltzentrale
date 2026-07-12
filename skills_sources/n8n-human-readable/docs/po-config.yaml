@@ -1,0 +1,11 @@
+# PO-Skill-Konfiguration (self-contained)
+po_skill:
+  outcome_review_days: 14
+  cooldown_default_hours: 48
+  strict_vision_principle: false
+  rice_effort_mapping:
+    XS: 1
+    S: 2
+    M: 3
+    L: 5
+    XL: 8

@@ -4,6 +4,7 @@ import { getVideoMetadata } from "@remotion/media-utils";
 import { AdVideo } from "./AdVideo";
 import { AdReel, AdReelProps } from "./AdReel";
 import { TalkingHead, TalkingHeadProps } from "./TalkingHead";
+import { BrollMessage, BrollMessageProps } from "./BrollMessage";
 
 // Default-Props = Erst-Einsatz AgentischesArbeiten (h1-immo, Brand aus branding.env).
 // Multi-Projekt: beim Render via --props <json> ueberschreiben.
@@ -119,6 +120,30 @@ const calculateTalkingHeadMetadata = async ({
   return { durationInFrames, fps: FPS, width: WIDTH, height: HEIGHT };
 };
 
+// SKILL-078: Dauer der BrollMessage-Composition. Prioritaet: expliziter
+// durationInFrames-Prop > Summe der B-Roll-Sekunden > Summe der messageScenes-
+// Sekunden > Fallback. (Der reel_spec-Loader liefert durationInFrames i.d.R.
+// bereits berechnet.)
+const calculateBrollMessageMetadata = async ({
+  props,
+}: {
+  props: BrollMessageProps & { durationInFrames?: number };
+}) => {
+  let durationInFrames = FALLBACK_DURATION_FRAMES;
+
+  if (props.durationInFrames && props.durationInFrames > 0) {
+    durationInFrames = Math.ceil(props.durationInFrames);
+  } else if (props.broll && props.broll.length > 0) {
+    const total = props.broll.reduce((s, c) => s + Math.max(0, c.seconds), 0);
+    if (total > 0) durationInFrames = Math.ceil(total * FPS);
+  } else if (props.messageScenes && props.messageScenes.length > 0) {
+    const total = props.messageScenes.reduce((s, c) => s + Math.max(0, c.seconds), 0);
+    if (total > 0) durationInFrames = Math.ceil(total * FPS);
+  }
+
+  return { durationInFrames, fps: FPS, width: WIDTH, height: HEIGHT };
+};
+
 export const RemotionRoot: React.FC = () => {
   return (
     <>
@@ -188,6 +213,32 @@ export const RemotionRoot: React.FC = () => {
             ctaOutro: true,
             ctaOutroSeconds: 1.5,
           } as unknown as TalkingHeadProps
+        }
+      />
+
+      {/* SKILL-078: B-Roll + Message-Composition (eigenstaendiges Reel-Format). */}
+      <Composition
+        id="BrollMessage"
+        component={BrollMessage}
+        durationInFrames={FALLBACK_DURATION_FRAMES}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        calculateMetadata={calculateBrollMessageMetadata}
+        defaultProps={
+          {
+            ...BRAND_DEFAULTS,
+            // Editorial-Serif-Default (Hook + Message). Override per Spec-brand.font.
+            font: "Georgia, 'Times New Roman', 'Palatino Linotype', serif",
+            broll: null,
+            hookText: "",
+            message: "",
+            messageScenes: null,
+            textBox: false,
+            voiceoverSrc: null,
+            musicSrc: null,
+            musicVolume: 0.5,
+          } as unknown as BrollMessageProps
         }
       />
     </>

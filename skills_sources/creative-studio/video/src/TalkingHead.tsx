@@ -127,18 +127,6 @@ export const TalkingHead: React.FC<TalkingHeadProps> = ({
         />
       </AbsoluteFill>
 
-      {/* Akzent-Leiste oben (Brand). */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: height * 0.01,
-          background: accent,
-        }}
-      />
-
       {/* SKILL-056 EARS-3: Hook-Promise im Frame < hookWindowSeconds. */}
       {hookText ? (
         <div

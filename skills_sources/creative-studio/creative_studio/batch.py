@@ -63,6 +63,9 @@ def _content_from_variant(ad_id: str, brand_name: str, variant: dict) -> AdConte
         brand_name=str(variant.get("brand_name", "") or brand_name),
         bg_image=str(variant.get("bg_image", "")),
         ad_id=ad_id,
+        # SKILL-086: Framework-Tag ins Creative (durchgaengig; Dateiname == variant_id
+        # traegt es hier bereits, das manifest.json ebenso).
+        framework=str(variant.get("framework", "default")),
     )
 
 
@@ -129,9 +132,11 @@ def run_batch(job: dict, out_dir: str, brand_env_override: str | None = None,
                 if var_warnings:
                     entry["warnings"] = list(var_warnings)
                 try:
-                    # render() schreibt mit Stem <ad_id>__<fmt>; wir benennen danach auf variant_id um,
-                    # damit Dateiname == variant_id (eindeutig je Hook).
-                    paths = render(content, [fmt_key], brand, str(out_root), debug_safe=debug_safe)
+                    # render() schreibt mit Framework-Stem; wir benennen danach auf variant_id um,
+                    # damit Dateiname == variant_id (eindeutig je Hook). SKILL-086: write_meta=False,
+                    # weil batch das Methoden-Tag bereits im manifest.json + variant_id fuehrt.
+                    paths = render(content, [fmt_key], brand, str(out_root),
+                                   debug_safe=debug_safe, write_meta=False)
                     src = pathlib.Path(paths[0])
                     final = out_root / f"{vid}.png"
                     if src.resolve() != final.resolve():

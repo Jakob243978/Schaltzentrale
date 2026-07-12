@@ -24,7 +24,55 @@ from .specs import (
     LAYOUTS, THEMES, apply_theme, layout_warnings, HERO_SCALE_DEFAULT,
     # SKILL-073: KI-Disclosure-Gate im echten Render-Pfad verdrahten
     requires_ai_disclosure, AI_LABEL_TEXT,
+    # SKILL-086: Methoden-Tagging (variant_id/utm_content aus der zentralen Systematik, SKILL-024)
+    make_variant_id, make_utm_content, slugify,
 )
+
+# SKILL-086: Default-Framework-Marker. Ist der Wert das (oder leer), bleibt der
+# Bestands-Dateiname unveraendert (kein Framework-Token im PNG-Namen).
+DEFAULT_FRAMEWORK = "default"
+
+
+def _framework_of(content: AdContent) -> str:
+    """SKILL-086: liefert den Framework-Key des Creatives (Default-Marker als Fallback)."""
+    return (getattr(content, "framework", "") or DEFAULT_FRAMEWORK)
+
+
+def image_output_stem(content: AdContent, fmt: AdFormat) -> str:
+    """SKILL-086: Dateiname-Stamm (ohne Endung) fuer ein gerendertes Bild.
+
+    Traegt den Framework-Key im Namen, SOBALD ein nicht-Default-Framework gesetzt ist
+    (`<ad_id>__<framework>__<format>`). Ohne/mit Default-Framework bleibt der
+    Bestands-Name `<ad_id>__<format>` unveraendert (nicht-brechend, "Default beibehalten").
+    """
+    ad = content.ad_id or "creative"
+    fw = _framework_of(content)
+    if fw and fw != DEFAULT_FRAMEWORK:
+        return f"{ad}__{slugify(fw)}__{fmt.key}"
+    return f"{ad}__{fmt.key}"
+
+
+def build_image_meta(content: AdContent, fmt: AdFormat) -> dict:
+    """SKILL-086: Sidecar-Metadaten eines Bild-Creatives (mit explizitem `framework`).
+
+    Enthaelt das durchgaengige Methoden-Tag (`framework`) sowie variant_id/utm_content
+    aus der zentralen SKILL-024-Systematik (Hook = Headline; hook_index=None -> Hook-Slug),
+    sodass aus jedem Artefakt eindeutig ablesbar ist, mit welcher Methode es gebaut wurde.
+    Reine Datenfunktion (kein Playwright) -> unit-testbar ohne Chromium.
+    """
+    fw = _framework_of(content)
+    hook = content.headline or content.eyebrow
+    vid = make_variant_id(content.ad_id or "creative", hook, fw, fmt.key)
+    return {
+        "framework": fw,
+        "ad_id": content.ad_id or "creative",
+        "format": fmt.key,
+        "variant_id": vid,
+        "utm_content": make_utm_content(vid),
+        "headline": content.headline,
+        "cta": content.cta,
+        "media": "image",
+    }
 
 _TEMPLATE_DIR = pathlib.Path(__file__).resolve().parent.parent / "templates"
 
@@ -434,7 +482,7 @@ def _bg_image_for_format(content: AdContent, fmt: AdFormat, out_dir: pathlib.Pat
 
 def render(content: AdContent, format_keys, brand: dict, out_dir: str,
            debug_safe: bool = False, smartcrop_bg: bool = True,
-           style: dict | None = None) -> list[str]:
+           style: dict | None = None, write_meta: bool = True) -> list[str]:
     """Rendert das Creative in allen angegebenen Formaten. Gibt die PNG-Pfade zurueck.
 
     SKILL-032: Ist ``content.bg_image`` ein lokales Foto und ``smartcrop_bg`` True
@@ -444,13 +492,19 @@ def render(content: AdContent, format_keys, brand: dict, out_dir: str,
 
     SKILL-072: ``style`` (optional) waehlt Layout-Archetyp + Stil-Parameter. Ohne
     ``style`` (Bestands-Aufrufer wie batch.py) gilt DEFAULT_STYLE -> Bestandsverhalten.
+
+    SKILL-086 (Methoden-Tagging): Der Dateiname traegt den Framework-Key, sobald ein
+    nicht-Default-Framework gesetzt ist (`image_output_stem`), und je PNG wird ein
+    Sidecar `<name>.json` mit explizitem `framework`-Feld + variant_id/utm_content
+    geschrieben (``write_meta`` True, Default). So ist aus jedem Artefakt die Methode
+    ablesbar. ``write_meta=False`` unterdrueckt den Sidecar (z.B. batch.py, das ein
+    eigenes manifest.json fuehrt).
     """
     from playwright.sync_api import sync_playwright
 
     out = pathlib.Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     written: list[str] = []
-    stem = content.ad_id or "creative"
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -469,11 +523,19 @@ def render(content: AdContent, format_keys, brand: dict, out_dir: str,
                 )
                 page.set_content(html, wait_until="load")
                 page.wait_for_timeout(150)  # Layout/Fonts settlen
-                path = out / f"{stem}__{fmt.key}.png"
+                # SKILL-086: Framework-taggender Dateiname (Default -> Bestands-Name).
+                stem = image_output_stem(content, fmt)
+                path = out / f"{stem}.png"
                 page.screenshot(path=str(path),
                                 clip={"x": 0, "y": 0, "width": fmt.width, "height": fmt.height})
                 page.close()
                 written.append(str(path))
+                # SKILL-086: Sidecar-Metadaten mit explizitem framework-Feld.
+                if write_meta:
+                    meta = build_image_meta(content, fmt)
+                    (out / f"{stem}.json").write_text(
+                        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+                    )
         finally:
             browser.close()
     return written
@@ -488,6 +550,10 @@ def main(argv=None) -> int:
     ap.add_argument("--brand", default="", help="Brand-Name-Override (sonst aus branding.env)")
     ap.add_argument("--bg-image", default="")
     ap.add_argument("--ad-id", default="creative")
+    ap.add_argument("--framework", default=DEFAULT_FRAMEWORK,
+                    help="SKILL-086: Copy-Framework-Key (Methoden-Tagging) — wandert in "
+                         "Dateiname + Sidecar-Metadaten. Keys aus frameworks.FRAMEWORKS "
+                         "(pas/aida/mindset_shift/opportunity/avatar_story/heros_journey ...).")
     ap.add_argument("--brand-env", default="", help="Pfad zu branding.env (Brand-Tokens)")
     ap.add_argument("--brand-json", default="",
                     help="SKILL-029: Pfad zu brand.json (Token-Rollen + Logo; ueberschreibt branding.env)")
@@ -556,6 +622,7 @@ def main(argv=None) -> int:
     content = AdContent(
         headline=args.headline, subline=args.subline, cta=args.cta, eyebrow=args.eyebrow,
         brand_name=args.brand, bg_image=args.bg_image, ad_id=args.ad_id,
+        framework=args.framework,  # SKILL-086: Methoden-Tag ins Creative
     )
 
     # SKILL-073: Bildquelle aufloesen (search-first). Nur wenn gewaehlt UND kein

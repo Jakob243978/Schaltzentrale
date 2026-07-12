@@ -1,0 +1,10 @@
+# SDD-Verifier-Konfiguration fuer den geplanten Skill "n8n-human-readable"
+sdd_verifier:
+  test_command: 'echo "Geplanter Skill: noch kein Code / keine Tests"'
+  health_check: 'python -c "print(1)"'
+  ticket_path: "docs/tickets/"
+  verify_report_path: "docs/tickets/verify/"
+  manual_verify_required: false
+  property_based_tests_enabled: false
+  approach_block_required_for_ML: false
+  enabled: true

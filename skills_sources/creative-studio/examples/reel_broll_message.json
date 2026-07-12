@@ -1,0 +1,22 @@
+{
+  "ad_id": "broll-msg-demo",
+  "content_type": "broll_message",
+  "framework": "hook",
+  "hook_index": 0,
+  "hook": "Die meisten arbeiten noch von Hand.",
+  "message": "Ein Agent erledigt den Rest — du entscheidest nur noch.",
+  "text_box": "auto",
+  "broll": [
+    { "src": "broll1.mp4", "seconds": 6.0 },
+    { "src": "broll2.mp4", "seconds": 6.0 }
+  ],
+  "brand": {
+    "name": "JAKSE-Automations",
+    "accent": "#f25d3e",
+    "bg": "#0a0e27",
+    "bgSoft": "#11163a",
+    "ink": "#faf7f2",
+    "inkMuted": "#9a9ec0",
+    "font": "Georgia, 'Times New Roman', 'Palatino Linotype', serif"
+  }
+}

@@ -84,9 +84,159 @@ DEFAULT_CAPTION_FONT = (
 DEFAULT_CAPTION_BG = "pill"
 DEFAULT_CAPTION_BG_ALPHA = 0.62
 
+# SKILL-078: Content-Type-Key des B-Roll+Message-Formats (eigenstaendig, KEIN
+# zweckentfremdeter talking_head mehr). Steuert Validierung (hook+message Pflicht)
+# und die Remotion-Composition-Auswahl (BrollMessage).
+BROLL_MESSAGE = "broll_message"
+
+# SKILL-078: Mapping Composition-Auswahl ueber content_type. Der reel_spec-Loader
+# liefert NUR die Props; die Composition-Id waehlt der Renderer (`npx remotion
+# render … <CompositionId>`). Diese Tabelle ist die Single Source dafuer.
+_CONTENT_TYPE_TO_COMPOSITION = {
+    BROLL_MESSAGE: "BrollMessage",
+    "talking_head": "TalkingHead",
+}
+DEFAULT_COMPOSITION = "AdReel"
+
 
 class ReelSpecError(ValueError):
     """SKILL-045 EARS-2: klare Fehlermeldung bei ungueltiger/unvollstaendiger Spec."""
+
+
+# === SKILL-078: Reel-Pfad zentral an die Brand anbinden ======================
+# Bisher trug JEDE Reel-Spec ihren eigenen brand-Block; eine zentrale
+# Brand-Aenderung (brand.json / branding.env) schlug NICHT auf Reels durch
+# (anders als beim Bild-Pfad via render_image.resolve_brand). Das widerspricht
+# Jakobs Prinzip „Config zentral entkoppeln".
+#
+# Loesung: dieselbe resolve-Logik wie der Bild-Pfad wiederverwenden
+# (render_image.resolve_brand) — KEIN zweites Schema. Die zentral aufgeloesten
+# internen BRAND_*-Keys werden auf die Reel-Token-Namen gemappt. Der brand-Block
+# IN der Spec wird zum optionalen Override.
+# Praezedenz: Spec-brand > zentrale brand.json/branding.env > Defaults.
+
+# Interne render_image-BRAND_*-Keys -> Reel-Token-Namen (die AdVideo/AdReel-Props).
+_CENTRAL_TO_REEL_TOKEN = {
+    "BRAND_NAME": "name",
+    "BRAND_ACCENT": "accent",
+    "BRAND_BG": "bg",
+    "BRAND_BG_SOFT": "bgSoft",
+    "BRAND_INK": "ink",
+    "BRAND_INK_MUTED": "inkMuted",
+    "BRAND_FONT": "font",
+}
+
+# SKILL-057 Reel-/Caption-Tokens leben ebenfalls zentral in derselben
+# branding.env (BRAND_HIGHLIGHT/BRAND_CAPTION_FONT/BRAND_CAPTION_BG_ALPHA) bzw.
+# im brand.json (highlight/caption_font/caption_bg_alpha). Sie sind reel-spezifisch
+# (der Bild-Renderer kennt sie nicht), werden also aus derselben Quelle nachgelesen.
+_CAPTION_ENV_TO_REEL_TOKEN = {
+    "BRAND_HIGHLIGHT": "highlight",
+    "BRAND_CAPTION_FONT": "captionFont",
+    "BRAND_CAPTION_BG_ALPHA": "captionBgAlpha",
+}
+_CAPTION_JSON_TO_REEL_TOKEN = {
+    "highlight": "highlight",
+    "caption_font": "captionFont",
+    "caption_bg_alpha": "captionBgAlpha",
+}
+
+
+def _read_caption_extras(brand_env: Any, brand_json: Any) -> dict[str, Any]:
+    """Liest die reel-spezifischen SKILL-057-Caption-Tokens aus derselben
+    Brand-Quelle (branding.env / brand.json). branding.env verliert diese Keys
+    im Bild-Resolver (nicht Teil von _BRAND_DEFAULTS), daher hier direkt gelesen —
+    aus DERSELBEN Datei, kein zweites Schema fuer die Kern-Tokens.
+
+    Praezedenz innerhalb der zentralen Quelle: brand.json > branding.env.
+    """
+    out: dict[str, Any] = {}
+
+    # branding.env (Pfad -> Zeilen KEY="value").
+    if isinstance(brand_env, str) and brand_env:
+        try:
+            for raw in pathlib.Path(brand_env).read_text(encoding="utf-8").splitlines():
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                tok = _CAPTION_ENV_TO_REEL_TOKEN.get(k.strip())
+                if tok:
+                    val = v.strip().strip('"').strip("'")
+                    if val:
+                        out[tok] = val
+        except OSError:
+            pass
+    elif isinstance(brand_env, dict):
+        for k, tok in _CAPTION_ENV_TO_REEL_TOKEN.items():
+            if brand_env.get(k):
+                out[tok] = brand_env[k]
+
+    # brand.json (Pfad ODER dict) ueberschreibt branding.env.
+    data: dict[str, Any] | None = None
+    if isinstance(brand_json, dict):
+        data = brand_json
+    elif isinstance(brand_json, str) and brand_json:
+        try:
+            loaded = json.loads(pathlib.Path(brand_json).read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                data = loaded
+        except (OSError, ValueError):
+            data = None
+    if data:
+        for jkey, tok in _CAPTION_JSON_TO_REEL_TOKEN.items():
+            val = data.get(jkey)
+            if val not in (None, ""):
+                out[tok] = val
+
+    return out
+
+
+def resolve_central_reel_brand(brand_env: Any = None, brand_json: Any = None,
+                               warn=None) -> dict[str, Any]:
+    """SKILL-078: zentrale Reel-Brand-Tokens aus brand.json/branding.env.
+
+    Reused die Bild-Pfad-Logik (render_image.resolve_brand) fuer die
+    Kern-Tokens (name/accent/bg/bgSoft/ink/inkMuted/font) und ergaenzt die
+    reel-spezifischen SKILL-057-Caption-Tokens aus derselben Quelle. Rueckgabe
+    ist ein Reel-Token-dict (name/accent/... — dieselben Keys wie ein
+    Spec-brand-Block), das als Basis unter den Spec-brand-Override gelegt wird.
+
+    Eine Brand-Datei aendern -> Bilder UND Reels folgen automatisch.
+    """
+    from .render_image import resolve_brand  # lokal, um Import-Zyklus zu meiden
+
+    resolved = resolve_brand(brand_env=brand_env, brand_json=brand_json, warn=warn)
+    tokens: dict[str, Any] = {}
+    for internal_key, reel_token in _CENTRAL_TO_REEL_TOKEN.items():
+        val = resolved.get(internal_key)
+        if val not in (None, ""):
+            tokens[reel_token] = val
+    tokens.update(_read_caption_extras(brand_env, brand_json))
+    return tokens
+
+
+def _resolve_text_box(value: Any) -> bool:
+    """SKILL-078: dunkle Box hinter der Message aufloesen.
+
+    `text_box`-Flag: True | False | "auto" (Default). Der Render kann den
+    tatsaechlichen B-Roll-Kontrast nicht messen (das ist der Job des Vision-QA-
+    Passes, SKILL-075) — deshalb loest "auto" KONSERVATIV auf Box-AN auf: lieber
+    eine lesbare Message mit dezenter Box als ein still unleserliches Reel. Der
+    Agent setzt nach dem Vision-QA-Blick `text_box:false`, wenn die B-Roll dunkel
+    genug ist, dass die Box unnoetig waere.
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        v = value.strip().lower()
+        if v in ("true", "1", "yes", "on"):
+            return True
+        if v in ("false", "0", "no", "off"):
+            return False
+        # "auto" (und alles Unbekannte) -> konservativ Box-AN.
+        return True
+    return True
 
 
 @dataclass
@@ -167,6 +317,9 @@ class ReelSpec:
     # SKILL-056: Talking-Head-Felder (additiv, optional).
     content_type: str | None = None
     speaker: SpeakerSpec | None = None
+    # SKILL-078: broll_message-Format — abholender Haupttext + optionale dunkle Box.
+    message: str = ""
+    text_box: Any = "auto"  # True | False | "auto" (siehe _resolve_text_box)
 
     # --- abgeleitete Werte (Single-Source-Naming via SKILL-024) ---------------
     @property
@@ -179,6 +332,15 @@ class ReelSpec:
     @property
     def utm_content(self) -> str:
         return make_utm_content(self.variant_id)
+
+    @property
+    def composition_id(self) -> str:
+        """SKILL-078: Remotion-Composition-Id fuer diese Spec (Single Source).
+
+        broll_message -> BrollMessage, talking_head -> TalkingHead, sonst AdReel.
+        Der Renderer nutzt den Wert im `npx remotion render … <CompositionId>`.
+        """
+        return _CONTENT_TYPE_TO_COMPOSITION.get(self.content_type or "", DEFAULT_COMPOSITION)
 
     def duration_frames(self) -> int | None:
         """Dauer in Frames, falls aus der Spec berechenbar (sonst None -> Composition
@@ -212,23 +374,53 @@ def _require(data: dict[str, Any], key: str) -> Any:
     return data[key]
 
 
-def parse_reel_spec(data: dict[str, Any]) -> ReelSpec:
+def parse_reel_spec(data: dict[str, Any],
+                    central_brand: dict[str, Any] | None = None) -> ReelSpec:
     """SKILL-045: validiert ein Spec-Dict und baut eine ReelSpec.
 
-    EARS-2: fehlt ein Pflichtfeld (ad_id/hook/brand), wird ReelSpecError geworfen
+    EARS-2: fehlt ein Pflichtfeld (ad_id/hook), wird ReelSpecError geworfen
     — kein stilles leeres Reel.
     EARS-3: captions/broll/voiceover/music/scenes sind optional.
+
+    SKILL-078 (zentrale Brand): `central_brand` (Reel-Token-dict aus
+    resolve_central_reel_brand) wird als Basis unter den Spec-brand-Block gelegt.
+    Praezedenz: Spec-brand > central_brand > Defaults. Der brand-Block IN der Spec
+    ist damit ein optionaler OVERRIDE — Pflicht ist nur noch, dass die EFFEKTIVE
+    Brand einen Namen traegt (aus Spec ODER zentraler Quelle).
+
+    SKILL-078 (broll_message): ist `content_type == "broll_message"`, sind `hook`
+    UND `message` Pflicht (kein still leeres/textloses Reel — EARS-Geist).
     """
     if not isinstance(data, dict):
         raise ReelSpecError("Reel-Spec muss ein JSON-Objekt (Mapping) sein.")
 
     ad_id = str(_require(data, "ad_id"))
     hook = str(_require(data, "hook"))
-    brand = _require(data, "brand")
-    if not isinstance(brand, dict):
+
+    # SKILL-078: Spec-brand ist ein optionaler Override ueber der zentralen Brand.
+    spec_brand = data.get("brand") or {}
+    if not isinstance(spec_brand, dict):
         raise ReelSpecError("Reel-Spec: 'brand' muss ein Objekt mit Brand-Tokens sein.")
-    if not (brand.get("name") or "").strip():
-        raise ReelSpecError("Reel-Spec: 'brand.name' ist Pflicht (Brand-Token).")
+    brand: dict[str, Any] = dict(central_brand or {})
+    for k, v in spec_brand.items():  # Spec gewinnt (hoechste Praezedenz)
+        if v not in (None, ""):
+            brand[k] = v
+    if not (str(brand.get("name") or "")).strip():
+        raise ReelSpecError(
+            "Reel-Spec: 'brand.name' ist Pflicht — weder der Spec-brand-Block noch "
+            "die zentrale Brand (brand.json/branding.env) liefern einen Namen."
+        )
+
+    content_type = (data.get("content_type") or None)
+    message = str(data.get("message", ""))
+    if content_type == BROLL_MESSAGE:
+        # EARS: hook (bereits oben) UND message Pflicht -> kein stilles leeres Reel.
+        if not message.strip():
+            raise ReelSpecError(
+                "Reel-Spec (broll_message): Pflichtfeld 'message' (der abholende "
+                "Haupttext) fehlt oder ist leer. Ein broll_message-Reel ohne "
+                "durchdachte Message waere unvollstaendig (redaktionelle Copy-Pflicht)."
+            )
 
     scenes = [
         SceneSpec(text=str(s.get("text", "")), seconds=float(s.get("seconds", 0)))
@@ -283,8 +475,10 @@ def parse_reel_spec(data: dict[str, Any]) -> ReelSpec:
         voiceover=(data.get("voiceover") or None),
         music=(data.get("music") or None),
         broll=broll,
-        content_type=(data.get("content_type") or None),
+        content_type=content_type,
         speaker=speaker,
+        message=message,
+        text_box=data.get("text_box", "auto"),
     )
 
 
@@ -332,6 +526,11 @@ def reel_spec_to_props(spec: ReelSpec) -> dict[str, Any]:
         # Naming (Single Source SKILL-024) — fuer Output-Dateinamen/Reporting
         "variantId": spec.variant_id,
         "utmContent": spec.utm_content,
+        # SKILL-086: Methoden-Tagging — das verwendete Copy-Framework als explizites
+        # Metadaten-Feld (zusaetzlich zu variant_id/utm_content, die es bereits
+        # positional tragen). So ist aus props.json ablesbar, mit welcher Methode das
+        # Reel gebaut wurde. Der Output-MP4 soll nach variant_id benannt werden.
+        "framework": spec.framework,
     }
     # SKILL-056: Talking-Head-Sprecher-Layer (optional) in die Props reichen.
     if spec.speaker is not None:
@@ -339,20 +538,42 @@ def reel_spec_to_props(spec: ReelSpec) -> dict[str, Any]:
         props["speakerObjectPosition"] = spec.speaker.object_position
     if spec.content_type:
         props["contentType"] = spec.content_type
+    # SKILL-078: broll_message-Props. Composition = BrollMessage (via composition_id).
+    # Hook liegt oben (Serif, obere Safe-Zone), Message als abholender Haupttext
+    # (Serif, unteres Mittel-Drittel). Szenen -> zeitlich abgestufte Sub-Messages.
+    if spec.content_type == BROLL_MESSAGE:
+        props["hookText"] = spec.hook
+        props["message"] = spec.message
+        props["messageScenes"] = [s.to_dict() for s in spec.scenes] or None
+        props["textBox"] = _resolve_text_box(spec.text_box)
+        # broll_message hat KEINE Captions -> der `font`-Prop ist die editorial
+        # Serif (Hook + Message). Er kommt aus brand.font (Spec-Override > zentral),
+        # NICHT aus dem Caption-Font (der Captions-Fall gilt hier nicht).
+        props["font"] = str(b.get("font") or caption_font)
     dur = spec.duration_frames()
     if dur:
         props["durationInFrames"] = dur
     return props
 
 
-def load_reel_spec(spec_path: str) -> ReelSpec:
-    """Liest eine Reel-Spec-JSON-Datei und validiert sie zu einer ReelSpec."""
+def load_reel_spec(spec_path: str, brand_env: Any = None, brand_json: Any = None,
+                   warn=None) -> ReelSpec:
+    """Liest eine Reel-Spec-JSON-Datei und validiert sie zu einer ReelSpec.
+
+    SKILL-078: sind `brand_env`/`brand_json` gesetzt, wird die zentrale Brand
+    (resolve_central_reel_brand) als Basis unter den Spec-brand-Override gelegt —
+    eine Brand-Datei aendern -> Bilder UND Reels folgen.
+    """
     raw = pathlib.Path(spec_path).read_text(encoding="utf-8")
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ReelSpecError(f"Reel-Spec {spec_path} ist kein gueltiges JSON: {exc}") from exc
-    return parse_reel_spec(data)
+    central = None
+    if brand_env or brand_json:
+        central = resolve_central_reel_brand(brand_env=brand_env, brand_json=brand_json,
+                                             warn=warn)
+    return parse_reel_spec(data, central_brand=central)
 
 
 def _main(argv: list[str] | None = None) -> int:
@@ -361,14 +582,21 @@ def _main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--spec", required=True, help="Pfad zur Reel-Spec-JSON.")
     ap.add_argument("--out", help="Pfad fuer das --props-JSON (Default: stdout).")
+    ap.add_argument("--brand-env", dest="brand_env",
+                    help="SKILL-078: zentrale branding.env (Basis unter Spec-brand-Override).")
+    ap.add_argument("--brand-json", dest="brand_json",
+                    help="SKILL-078: zentrales brand.json (Basis unter Spec-brand-Override).")
     args = ap.parse_args(argv)
 
-    spec = load_reel_spec(args.spec)
+    spec = load_reel_spec(args.spec, brand_env=args.brand_env, brand_json=args.brand_json)
     props = reel_spec_to_props(spec)
     out_json = json.dumps(props, ensure_ascii=False, indent=2)
     if args.out:
         pathlib.Path(args.out).write_text(out_json, encoding="utf-8")
-        print(f"props geschrieben: {args.out} (variant_id={spec.variant_id})")
+        print(
+            f"props geschrieben: {args.out} "
+            f"(variant_id={spec.variant_id}, composition={spec.composition_id})"
+        )
     else:
         print(out_json)
     return 0

@@ -1,0 +1,27 @@
+# PO-Skill-Konfiguration fuer diesen Skill (self-contained).
+# Gelesen von /po-challenge, /po-prioritize, /po-verify-outcome.
+
+po_skill:
+  outcome_review_days: 14
+  cooldown_default_hours: 48
+  strict_vision_principle: false
+  rice_effort_mapping:
+    XS: 1
+    S: 2
+    M: 3
+    L: 5
+    XL: 8
+  reconcile_trigger:
+    max_days_since_sharpen: 30
+    max_done_tickets_since_sharpen: 8
+    new_adr_triggers: true
+    sources:
+      - adr
+      - tickets_done
+      - governance
+  reconcile:
+    living_docs: []
+  moscow_default:
+    Must:   { reach: 8, impact: 8, confidence: 0.7 }
+    Should: { reach: 5, impact: 6, confidence: 0.6 }
+    Could:  { reach: 3, impact: 4, confidence: 0.5 }

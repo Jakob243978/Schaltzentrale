@@ -218,6 +218,65 @@ def compliance_warnings(text: str) -> list[str]:
     return out
 
 
+# === SKILL-087: Gedankenstrich-Verbot in Copy (Em-/En-Dash TABU) =============
+# Em-Dash (—, U+2014) und En-Dash (–, U+2013) wirken nach KI/unnatuerlich in
+# authentischer Ad-/Reel-Copy (Hook, Body, Subline, CTA) und sollen dort nicht
+# vorkommen. Ersatz: Punkt, Komma, Doppelpunkt oder Umformulierung. Der normale
+# Bindestrich/Hyphen-Minus (-, U+002D) in Komposita ("Kurzzeit-Vermieter") bleibt
+# ausdruecklich ERLAUBT — nur die langen Striche sind verboten. Typografisches
+# Minus (−, U+2212), Figure-Dash (‒, U+2012) und Horizontal-Bar (―, U+2015)
+# werden vorsorglich mit erfasst (optisch nicht von Em/En zu unterscheiden).
+# Multi-Projekt: reine Zeichen-Regel, kein Projektwert.
+FORBIDDEN_DASHES: dict[str, str] = {
+    "—": "Em-Dash (—)",
+    "–": "En-Dash (–)",
+    "‒": "Figure-Dash (‒)",
+    "―": "Horizontal-Bar (―)",
+    "−": "Minus-Zeichen (−)",
+}
+
+
+@dataclass(frozen=True)
+class DashViolation:
+    """Ein Fund eines verbotenen langen Strichs in Copy: Zeichen, Name, Index."""
+    char: str
+    name: str
+    index: int
+
+
+def check_no_emdash(text: str) -> list[DashViolation]:
+    """SKILL-087: findet Em-/En-Dash (und verwandte lange Striche) in `text`.
+
+    Gibt je Fund eine DashViolation mit dem Zeichen, seinem menschenlesbaren
+    Namen und der Zeichen-Position (0-basiert) zurueck — analog zu den bestehenden
+    Copy-Checks (compliance_warnings). Der normale Bindestrich (-, U+002D) wird
+    NICHT gemeldet. Leerer/None-Text -> leere Liste.
+    """
+    out: list[DashViolation] = []
+    for idx, ch in enumerate(text or ""):
+        if ch in FORBIDDEN_DASHES:
+            out.append(DashViolation(char=ch, name=FORBIDDEN_DASHES[ch], index=idx))
+    return out
+
+
+def dash_warnings(text: str) -> list[str]:
+    """SKILL-087: Warn-Wrapper (analog compliance_warnings) fuer den Copy-Vorpruef-Flow.
+
+    Eine Warnung je gefundenem langem Strich — KEINE harte Sperre (Mensch-im-Loop,
+    konsistent mit compliance_warnings/contrast_warnings). Haelt der Text die Regel
+    ein, ist die Liste leer.
+    """
+    out: list[str] = []
+    for v in check_no_emdash(text):
+        out.append(
+            f"Gedankenstrich-Verstoss: {v.name} an Position {v.index} — "
+            "in Ad-/Reel-Copy TABU (wirkt nach KI/unnatuerlich). Ersetze durch "
+            "Punkt, Komma, Doppelpunkt oder formuliere um. Normaler Bindestrich "
+            "(-) in Komposita bleibt erlaubt."
+        )
+    return out
+
+
 def message_match_warning(headline: str, landing_promise: str) -> str | None:
     """SKILL-026: Ad<->LP-Message-Match-Heuristik (§3.6).
 
@@ -288,6 +347,10 @@ class AdContent:
     brand_name: str = ""
     bg_image: str = ""              # optionaler Pfad/URL zum Hintergrundmotiv
     ad_id: str = ""                 # z.B. "h1-immo" (fuer UTM/Dateinamen)
+    # SKILL-086: Copy-Framework-Key (Methoden-Tagging). Default "default" haelt das
+    # Bestandsverhalten (Aufrufer ohne Framework brechen nicht); ein gesetzter Wert
+    # wandert in variant_id/Dateiname/Sidecar-Metadaten (Ad-Tracking nach Methode).
+    framework: str = "default"
     landing_promise: str = ""       # SKILL-026: optionale LP-Promise fuer Ad<->LP-Message-Match
     # SKILL-028: KI-Anteil-Flags. ai_image = KI-generiertes/compositetes Bild,
     # ai_voice = synthetische Stimme / Voice-Clone (SKILL-027). Default False ->
@@ -306,6 +369,9 @@ class AdContent:
         # mit ab (COMPLIANCE_TRIGGER_SETS enthaelt COACHING_CLAIM_TRIGGERS). Reine
         # Warnungen, keine harte Sperre.
         out.extend(compliance_warnings(blob))
+        # SKILL-087: Gedankenstrich-Verbot (Em-/En-Dash) in der Copy — reine
+        # Warnung, konsistent mit compliance_warnings (Mensch-im-Loop).
+        out.extend(dash_warnings(blob))
         # SKILL-026: Ad<->LP-Message-Match (nur wenn landing_promise gesetzt ist).
         mm = message_match_warning(self.headline, self.landing_promise)
         if mm:

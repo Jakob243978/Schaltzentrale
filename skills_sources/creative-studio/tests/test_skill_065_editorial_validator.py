@@ -26,7 +26,7 @@ def _good_spec():
     """Eine strukturell saubere Spec (DISC-rot, alle Teile vorhanden)."""
     return {
         "ad_id": "th-x",
-        "hook": "150 Nachrichten pro Woche — so kommen wir hinterher.",
+        "hook": "150 Nachrichten pro Woche. So kommen wir hinterher.",
         "subline": "Ein System buendelt alle Gast-Nachrichten an einem Ort.",
         "cta": "Auf die Warteliste",
         "captions": _caption_track(20.0, keyword_idxs=[4, 10]),

@@ -114,6 +114,9 @@ REGELN:
 - Captions kommen spaeter AUS DIESEM Segment (echtes Wort) — erfinde KEINE Caption-Texte.
 - keyword_words: sparsam, ein Akzent pro Phrase (Zahlen/Ergebnis bevorzugt).
 - Hook DISC-rot: Ergebnis/Zahl/These zuerst, keine Frage-Floskel.
+- KEINE Gedankenstriche (Em-Dash — / En-Dash –) in hook/subline/eyebrow/cta —
+  sie wirken nach KI/unnatuerlich. Nutze Punkt, Komma oder Doppelpunkt. Der
+  normale Bindestrich (-) in Komposita (z.B. "Kurzzeit-Vermieter") ist erlaubt.
 """
 
 
@@ -292,6 +295,16 @@ def content_structure_warnings(
     """
     out: list[str] = []
     captions = spec.get("captions") or []
+
+    # --- SKILL-087: Gedankenstrich-Verbot (Em-/En-Dash) in der Reel-Copy ----
+    # Konsistent mit AdContent.warnings() (Bild-Pfad): Hook/Subline/CTA/Eyebrow
+    # der Reel-Spec duerfen keine langen Striche tragen. Reine Warnung.
+    from .specs import dash_warnings
+    copy_blob = " ".join(
+        str(spec.get(k, "")) for k in ("hook", "hook_accent", "eyebrow", "subline", "cta")
+    )
+    caption_blob = " ".join(str(c.get("text", "")) for c in captions)
+    out.extend(dash_warnings(copy_blob + " " + caption_blob))
 
     # --- Segment-Laenge ----------------------------------------------------
     seconds = _spec_seconds(spec)

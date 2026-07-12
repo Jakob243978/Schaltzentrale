@@ -45,8 +45,9 @@ def test_ears1_template_placeholders_match_slots():
 
 
 def test_ears1_pas_slots_exact():
-    # Stichprobe: PAS = problem/agitate/solution in Reihenfolge.
-    assert fw.FRAMEWORKS["pas"].slots == ("problem", "agitate", "solution")
+    # Stichprobe: PAS = problem/agitate/solution/cta in Reihenfolge.
+    # SKILL-081-Delta (Baulig #1): expliziter CTA-Slot additiv ergaenzt.
+    assert fw.FRAMEWORKS["pas"].slots == ("problem", "agitate", "solution", "cta")
 
 
 def test_ears5_no_hardcoded_project_values():
