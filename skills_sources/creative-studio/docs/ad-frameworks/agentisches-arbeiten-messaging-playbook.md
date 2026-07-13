@@ -27,7 +27,12 @@ Companion-Frameworks: `baulig-methoden.md` (Copy-Gerüste). Baukasten-Rohmateria
 ## 2. Leitplanken (Brand-Regeln, immer)
 „du" · **keine Tool-Namen** (kein Claude/n8n/Coder) · Ergebnis/Szene zuerst · **Motivation statt Angst** ·
 **kein Preis** · Beweis **nur** „eigenen Betrieb verdoppelt, ohne mehr Personal" (weitere Zahlen erst nach Jakob-Freigabe) ·
-**keine Gedankenstriche** · nie „Geschäftsführer" · „individueller" statt „komplizierter".
+**keine Gedankenstriche** · nie „Geschäftsführer" · „individueller" statt „komplizierter" · **„Business" statt „Geschäft"**.
+
+**Wortwahl (statt → sag) — Jakobs Sprache, erweiterbar:**
+- **„Geschäft" → „Business"** (immer, in jeder Copy; Jakob 2026-07-13)
+- **„kompliziert" / „komplizierter" → „individuell" / „individueller"**
+- **nie „Geschäftsführer"** — Zielgruppe wird als „du" / Unternehmer angesprochen
 
 ---
 
