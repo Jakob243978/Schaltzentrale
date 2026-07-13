@@ -37,10 +37,17 @@ Bis 3 Testimonials genuegt ein statisches Grid. **Ab 4** die fertige Slider-Komp
 (CSS scroll-snap + defensives JS fuer Pfeile/Dots, mobil 1 / Desktop 2-3 pro View, kein Framework).
 Weniger Karten? Einfach `.t-card`-Bloecke entfernen, der Slider bleibt robust.
 
-## Layout-Linter (SKILL-107)
+## Mobil: Block-Abstand + Sticky-CTA (§16i.8 / §16b, SKILL-108)
+Wenn ein 2-Spalten-Layout auf schmaler Breite auf **eine Spalte** kollabiert, muss der Gap zwischen den
+gestapelten Bloecken grosszuegig sein (Desktop-Gutter ist mobil zu klein). Muster:
+`@media (max-width:959px){ .form-layout{ gap: var(--space-xl); } }`. Der mobile **Sticky-CTA**
+(`.mobile-cta`) blendet sich aus, sobald `#warteliste` im Viewport ist (throttled Scroll-Handler,
+`.is-hidden`), und kommt beim Hochscrollen zurueck. Beides ist im Template fertig verdrahtet.
+
+## Layout-Linter (SKILL-107/108)
 Vor "fertig" den Playwright-Layout-Linter laufen lassen (Exit-Code = Gate). Checks: overflow /
-tote-spalte / kacheln-ungleich (FAIL) und karten-leere / mobil-bottom-space / testimonial-slider /
-enge-abstaende (WARN):
+tote-spalte / kacheln-ungleich / mobil-block-abstand (FAIL) und karten-leere / mobil-bottom-space /
+mobil-block-abstand / testimonial-slider / enge-abstaende (WARN):
 ```
 python tests/lp_layout_lint.py --url landing/<site>/index.html --strict   # lokal (file://)
 python tests/lp_layout_lint.py --url https://<deine-lp>/                  # Live

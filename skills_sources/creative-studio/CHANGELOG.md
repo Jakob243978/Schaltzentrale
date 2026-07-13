@@ -3,6 +3,28 @@
 Skill-Aenderungen pro Datum, neueste oben. Pro `done`-Ticket ein Eintrag
 (`### Technical` + `### User-Facing`), nicht gesammelt am Ende.
 
+## [2026-07-13]: Mobiler Block-Abstand + Sticky-CTA am Anker ausblenden (SKILL-108)
+
+### Technical
+- Neuer Linter-Check `mobil-block-abstand` in `tests/lp_layout_lint.py`: prueft @ ≤ 480px in auf 1
+  Spalte kollabierten Layouts (grid 1-col / flex-column) den Gap zwischen gestapelten substanziellen
+  Bloecken. Schlichter Block < 32px vor einer Karte/Form → FAIL; zwei enge Content-Bloecke < 24px →
+  WARN. Robust: Form-Feld-Gruppen, Listen (ul/ol/li) und Pills/Chips (inline/schmal) ausgenommen.
+  Schwellen `BLOCK_GAP_FAIL_PX=32`, `BLOCK_GAP_WARN_PX=24`, `BLOCK_MIN_HEIGHT_PX=48`,
+  `BLOCK_MIN_WIDTH_RATIO=0.55`, `CARD_PAD_MIN_PX=16`.
+- Template `index.template.html`: `@media (max-width:959px){ .form-layout{ gap: var(--space-xl); } }`
+  (der reale warteliste-Fix, 29px → 54px); wiederverwendbares Sticky-CTA-Pattern
+  `.mobile-cta.is-hidden{display:none!important}` + throttled rAF-Scroll-Handler (kein
+  IntersectionObserver), der den CTA ausblendet, sobald `#warteliste` im Viewport ist.
+- SKILL.md §16i.8 (mobiler Block-Abstand + Fix-Muster), §16b (Sticky-CTA am Anker ausblenden),
+  Linter-Check-Liste + Do/Don't ergaenzt. Ticket SKILL-108 (review).
+- Belege: Live-LP warteliste-02 nach Fix → grün inkl. @390; synthetischer Bad-Case (8px vor Karte) →
+  FAIL; Template → grün; `pytest tests/ -q` → 429 passed.
+
+### User-Facing
+- Landingpages aus dem Template haben mobil grosszuegigen Abstand zwischen gestapelten Bloecken, und der
+  Sticky-CTA verschwindet, sobald man am Warteliste-Formular ist (kommt beim Hochscrollen zurueck).
+
 ## [2026-07-13]: LP-Layout-Fehler verhindern + Playwright-Layout-Linter (SKILL-107)
 
 ### Technical

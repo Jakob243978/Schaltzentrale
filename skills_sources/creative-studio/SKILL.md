@@ -936,6 +936,13 @@ Zusatz: **Mobile-Sticky-CTA** (nur `max-width:719px`) haelt die Aktion am Daumen
   Text | Bild) die kurze Spalte **vertikal balancieren** (`align-items:center`), nie oben ankleben
   (`align-items:start`): sonst tote Leere unter der kurzen Spalte (Details + Karten-Regel: §16i.5/.6).
   Der Playwright-Linter `tests/lp_layout_lint.py` faengt diesen Fehler automatisch (§16i).
+- **Sticky-CTA am Anker verschwinden lassen (SKILL-108):** Der mobile Sticky-CTA (`.mobile-cta`,
+  `position:fixed` unten) fuehrt per Anchor zur Ziel-Sektion (`#warteliste`). Er soll **verschwinden,
+  sobald diese Sektion im Viewport ist** (man ist am Anker angekommen), und beim Hochscrollen wieder
+  erscheinen. Muster: CSS `.mobile-cta.is-hidden { display:none !important; }` + ein **throttled
+  Scroll-Handler** (rAF), der `is-hidden` togglet, wenn die Ziel-Sektion sichtbar ist.
+  **IntersectionObserver hier vermeiden** (im Verify unzuverlaessig). Komponente liegt im Template
+  (S0/S10 + Script).
 
 ### 16c. Brand-Tokens (Pflicht — ADR-010)
 
@@ -1116,9 +1123,23 @@ equal-height-Kacheln unten **keine tote Flaeche** haben. `.card { display:flex; 
 erlaubt bei Bedarf saubere vertikale Verteilung des Karteninhalts, ersetzt aber nicht das Angleichen.
 
 **7) Mobiler Sektions-Boden (SKILL-107).** Auf schmaler Breite darf das **letzte Element** einer
-`.band`-Sektion nicht unten an der Sektionskante kleben — die untere Sektions-Polsterung
+`.band`-Sektion nicht unten an der Sektionskante kleben: die untere Sektions-Polsterung
 (`--space-section`) muss auch mobil greifen (Anlass: ein Absatz klebte auf Mobil an der Unterkante).
 Faustwert: mindestens ~24px Abstand letztes Element → Sektions-Unterkante.
+
+**8) Mobiler Block-Abstand in kollabierten Layouts (SKILL-108).** Ein 2-Spalten-Layout, das auf
+schmaler Breite auf **eine Spalte** kollabiert (grid 1-col / flex-column), stapelt seine Bloecke
+untereinander. Dann muss der **vertikale Gap zwischen den gestapelten Bloecken grosszuegig** sein: der
+Desktop-Gutter ist mobil oft zu klein. Anlass: ein kurzer Text-Block klebte auf 390px am darunter
+gestapelten Formular (Gap 29px). Faustwert: mindestens ~32px zwischen gestapelten Layout-Bloecken,
+mehr wenn darunter eine **Karte/Form** (eigener Hintergrund) sitzt. Fix-Muster:
+
+```css
+@media (max-width: 959px) { .form-layout { gap: var(--space-xl); } }  /* 29px -> 54px */
+```
+
+Der Linter-Check `mobil-block-abstand` faengt genau das: schlichter Block < 32px vor einer Karte/Form
+→ FAIL, zwei enge Content-Bloecke < 24px → WARN (Form-Feld-Gruppen und Listen sind bewusst ausgenommen).
 
 > [!tip] Do / Don't — Space als Absicht
 > - **Do:** Makro-Space setzen, wo er ein Fokus-Element rahmt (Hero-Zahl, Beweis-Bild, eine starke Zeile).
@@ -1133,6 +1154,7 @@ Faustwert: mindestens ~24px Abstand letztes Element → Sektions-Unterkante.
 > - **Don't:** in einem 2-Spalter die kurze Spalte oben ankleben (`align-items:start`) → tote Leere darunter.
 > - **Don't:** Kacheln in einem Grid ungleich hoch stehen lassen (`align-items:start`) → unsauber; stattdessen Text angleichen (equal-height bleibt Pflicht).
 > - **Don't:** das letzte Element einer Sektion mobil unten an der Kante kleben lassen (untere Polsterung fehlt).
+> - **Don't:** in einem mobil auf 1 Spalte kollabierten Layout die gestapelten Bloecke mit dem Desktop-Gutter kleben lassen (Gap mobil hochsetzen, §16i.8).
 
 **Automatischer Layout-Check (SKILL-107).** Die Fehler oben (Skala nicht genutzt, tote Spalte, tote
 Kartenflaeche, Horizontal-Scroll) faengt der Playwright-Linter `tests/lp_layout_lint.py` heuristisch
@@ -1149,6 +1171,8 @@ Checks: **overflow** (Horizontal-Scroll → FAIL), **tote-spalte** (2-Spalter, H
 Zeile unterschiedlich hoch → FAIL: equal-height ist Pflicht, Text angleichen), **karten-leere** (gleich
 hohe Kacheln, aber eine hat unten tote Flaeche > 22 % → WARN: Text angleichen), **mobil-bottom-space**
 (auf ≤ 480px klebt das letzte Element einer `.band` mit < 24px an der Unterkante → WARN),
+**mobil-block-abstand** (auf ≤ 480px kollabiertes 1-Spalten-Layout, gestapelter schlichter Block < 32px
+vor einer Karte/Form → FAIL; zwei enge Content-Bloecke < 24px → WARN),
 **testimonial-slider** (> 3 Testimonials ohne Slider-Markup → WARN, siehe §16j), **enge-abstaende**
 (winziger fester `margin-top` in grosszuegig gepolsterter `.band` → WARN, heuristisch). Schwellen als
 Konstanten oben im File. Nicht als pytest-Blocker eingehaengt (braucht eine gerenderte LP-URL); als

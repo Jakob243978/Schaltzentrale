@@ -285,6 +285,8 @@
   footer a { color: var(--cream); }
   .mobile-cta { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 800; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--cream) 94%, transparent); border-top: 1px solid var(--on-cream-line); }
   .mobile-cta .btn { width: 100%; }
+  /* Sticky-CTA verschwindet, sobald man an der Ziel-Sektion ist (§16b), und kommt beim Hochscrollen zurueck. */
+  .mobile-cta.is-hidden { display: none !important; }
 
   /* ====================================================================
      RESPONSIVE — Desktop-Editorial ab 720/960px (NICHT Handy-Spalte breiter)
@@ -304,6 +306,11 @@
     /* Lesespalte >= Bild (§16i): Text-Track NICHT vom Bild erdruecken lassen. */
     .proof-grid { grid-template-columns: 1.05fr 0.95fr; }
     .proof-figure { order: 2; } .proof-text { order: 1; }
+  }
+  /* Gestapelt (< 960px): 2-Spalter kollabieren auf 1 Spalte -> grosszuegiger Block-Gap,
+     damit ein schlichter Block nicht an der darunter gestapelten Karte/Form klebt (§16i.8). */
+  @media (max-width: 959px) {
+    .form-layout { gap: var(--space-xl); }
   }
   @media (max-width: 719px) { /* Mobile-Sticky-CTA nur klein */
     .mobile-cta { display: block; } body { padding-bottom: 76px; } .header-cta { display: none; }
@@ -666,6 +673,29 @@
         update();
       });
     } catch (e) { /* Slider ist progressive enhancement */ }
+  })();
+
+  // === Sticky-CTA am Anker verschwinden lassen (§16b): mobiler Sticky-CTA blendet aus,
+  //     sobald die Ziel-Sektion (#warteliste) im Viewport ist, und kommt beim Hochscrollen
+  //     zurueck. Throttled Scroll-Handler (IntersectionObserver war im Verify unzuverlaessig). ===
+  (function () {
+    try {
+      var cta = document.getElementById("mobile-cta"),
+          wl = document.getElementById("warteliste");
+      if (!cta || !wl) return;
+      var ticking = false;
+      function check() {
+        ticking = false;
+        try {
+          var r = wl.getBoundingClientRect();
+          cta.classList.toggle("is-hidden", r.top < window.innerHeight * 0.9 && r.bottom > 0);
+        } catch (e) {}
+      }
+      function onScroll() { if (!ticking) { ticking = true; window.requestAnimationFrame(check); } }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      check();
+    } catch (e) { /* Sticky-CTA bleibt sichtbar (harmloser Fallback) */ }
   })();
 
   // === Consent-Banner (DSGVO) — minimal; Marketing-Pixel erst nach Zustimmung laden ===

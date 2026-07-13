@@ -17,9 +17,12 @@ warteliste-02 real aufgetreten sind (siehe SKILL.md §16i, Ticket SKILL-107):
                          der Kartenhoehe -> WARN (Text der Kacheln angleichen).
   5. mobil-bottom-space  Auf schmaler Breite (<= 480) klebt das letzte Element einer
                          `.band` mit < 24 px an der Sektions-Unterkante -> WARN.
-  6. testimonial-slider  > 3 Testimonials in statischem Layout (kein Slider-Markup) -> WARN
+  6. mobil-block-abstand In einem auf 1 Spalte kollabierten Layout (grid 1-col / flex-column)
+                         kleben gestapelte Bloecke zu eng: Gap < 32 px VOR einer Karte/Form
+                         (oberer Block schlicht) -> FAIL; zwei enge Content-Bloecke < 24 px -> WARN.
+  7. testimonial-slider  > 3 Testimonials in statischem Layout (kein Slider-Markup) -> WARN
                          (ab 4 Testimonials Slider/Carousel: scroll-snap + Pfeile/Dots).
-  7. enge-abstaende      Aufeinanderfolgende Bloecke in einer grosszuegig gepolsterten
+  8. enge-abstaende      Aufeinanderfolgende Bloecke in einer grosszuegig gepolsterten
                          `.band`, deren fester margin-top winzig (< 20 px) ist -> WARN
                          (Skala vermutlich nicht genutzt; heuristisch, non-gating).
 
@@ -84,6 +87,17 @@ SECTION_PADDING_PX = 60              # ... waehrend die Sektion mehr als 60px Po
 # mobil-bottom-space: letztes Element einer .band klebt unten an der Sektionskante
 MOBILE_WIDTH_MAX = 480               # Check nur auf schmaler Breite
 MOBILE_BOTTOM_MIN_PX = 24            # Mindestabstand letztes Element -> Sektions-Unterkante
+
+# mobil-block-abstand: in einem auf 1 Spalte kollabierten Layout (grid 1-col / flex-column)
+# kleben gestapelte direkte Kinder zu eng aneinander. Zwei Stufen:
+#  - Gap < FAIL, und das untere Element ist eine Karte/ein Formular mit sichtbarem Hintergrund,
+#    waehrend das obere ein schlichter Content-Block ist -> FAIL (der reale warteliste-Fehler).
+#  - Gap < WARN und beide sind substanzielle Content-Bloecke -> WARN.
+BLOCK_GAP_FAIL_PX = 32               # Gap unter diesem Wert VOR einer Karte/Form = FAIL
+BLOCK_GAP_WARN_PX = 24               # generisches zu-enges Stapeln zweier Content-Bloecke = WARN
+BLOCK_MIN_HEIGHT_PX = 48            # Kinder unter dieser Hoehe als Block ignorieren (Rauschen)
+BLOCK_MIN_WIDTH_RATIO = 0.55        # Block muss >= 55 % der Container-Breite sein (keine Pills/Chips)
+CARD_PAD_MIN_PX = 16                # ein „Karten"-Block hat sichtbaren Hintergrund + so viel Polsterung
 
 # testimonial-slider: ab > 3 Testimonials gehoert ein Slider her (nicht statisches Grid)
 TESTIMONIAL_SLIDER_MIN = 3           # ab 4 Testimonials (> 3) Slider-Pflicht
@@ -271,6 +285,86 @@ _LINT_JS = r"""
     }
   }
 
+  // ---- 3d) MOBIL-BLOCK-ABSTAND: gestapelte Bloecke in 1-Spalten-Layout zu eng (nur schmal) ----
+  if (cfg.WIDTH <= cfg.MOBILE_WIDTH_MAX) {
+    // „Karten"-Block: sichtbarer Hintergrund + Polsterung ODER card/form-Klasse.
+    const hasBg = (cs) => {
+      try {
+        const bg = cs.backgroundColor || "";
+        const m = bg.match(/rgba?\(([^)]+)\)/);
+        if (!m) return bg && bg !== "transparent";
+        const parts = m[1].split(",").map((x) => parseFloat(x));
+        return parts.length < 4 || parts[3] > 0.01;   // Alpha > 0
+      } catch (e) { return false; }
+    };
+    const isCardLike = (el) => {
+      try {
+        const cs = getComputedStyle(el);
+        const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+        const cls = (el.className && el.className.toString ? el.className.toString() : "");
+        if (/(^|\s|-)(card|form-card)(\s|$|-)/.test(cls)) return true;
+        return hasBg(cs) && pad >= cfg.CARD_PAD_MIN_PX;
+      } catch (e) { return false; }
+    };
+    const hasFormControl = (el) => {
+      try { return !!el.querySelector(":scope > input, :scope > select, :scope > textarea, :scope > label"); }
+      catch (e) { return false; }
+    };
+    const INLINE_DISPLAYS = ["inline", "inline-block", "inline-flex", "inline-grid", "contents", "none"];
+    // Substanzieller Layout-Block: block-level, breit (keine Pill/Chip), hoch genug.
+    const substantial = (el, containerW) => {
+      try {
+        const cs = getComputedStyle(el);
+        if (INLINE_DISPLAYS.indexOf(cs.display) !== -1) return false;
+        const r = el.getBoundingClientRect();
+        return r.height >= cfg.BLOCK_MIN_HEIGHT_PX
+               && containerW > 0 && r.width >= cfg.BLOCK_MIN_WIDTH_RATIO * containerW;
+      } catch (e) { return false; }
+    };
+    for (const el of all) {
+      try {
+        if (!isVisible(el)) continue;
+        const tag = (el.tagName || "").toUpperCase();
+        if (tag === "UL" || tag === "OL") continue;    // Listen haben eigene Abstands-Semantik
+        const cs = getComputedStyle(el);
+        // gestapeltes Layout: grid mit 1 Spalten-Track ODER flex-column
+        let stacked = false;
+        if (cs.display === "grid") {
+          const tracks = (cs.gridTemplateColumns || "none").trim().split(/\s+/).filter(Boolean);
+          if (tracks.length <= 1) stacked = true;
+        } else if (cs.display === "flex" && cs.flexDirection.startsWith("column")) {
+          stacked = true;
+        }
+        if (!stacked) continue;
+        if (hasFormControl(el)) continue;              // Form-Field-Gruppe (label/input): bewusst eng
+        let kids = elementChildren(el).filter((k) => (k.tagName || "").toUpperCase() !== "LI");
+        if (kids.length < 2) continue;
+        const containerW = el.getBoundingClientRect().width;
+
+        for (let i = 1; i < kids.length; i++) {
+          const prev = kids[i - 1], cur = kids[i];
+          const pr = prev.getBoundingClientRect(), cr = cur.getBoundingClientRect();
+          if (cr.top < pr.bottom - 2) continue;         // nicht wirklich untereinander gestapelt
+          const gap = cr.top - pr.bottom;
+          if (gap < 0) continue;
+          const prevSub = substantial(prev, containerW), curSub = substantial(cur, containerW);
+          if (!prevSub) continue;                        // oberer Block muss ein echter Content-Block sein
+          const prevCard = isCardLike(prev), curCard = isCardLike(cur);
+          if (gap < cfg.BLOCK_GAP_FAIL_PX && curCard && curSub && !prevCard) {
+            add("mobil-block-abstand", "FAIL",
+              label(el) + ": gestapelte Bloecke auf " + cfg.WIDTH + "px zu eng (" + Math.round(gap) +
+              "px) vor einer Karte/Form (" + label(cur) + "). Gap erhoehen (z.B. @media (max-width:959px) " +
+              "{ gap: var(--space-xl) }), sonst klebt der Block an der Karte.");
+          } else if (gap > 0 && gap < cfg.BLOCK_GAP_WARN_PX && !prevCard && !curCard && curSub) {
+            add("mobil-block-abstand", "WARN",
+              label(el) + ": gestapelte Content-Bloecke auf " + cfg.WIDTH + "px zu eng (" +
+              Math.round(gap) + "px, < " + cfg.BLOCK_GAP_WARN_PX + "px). Vertikalen Gap erhoehen.");
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
   // ---- 3c) TESTIMONIAL-SLIDER: > 3 Testimonials gehoeren in einen Slider ----
   try {
     const containers = Array.from(document.querySelectorAll(
@@ -371,6 +465,11 @@ def run_lint(url: str, widths, headed: bool = False, verbose: bool = True) -> di
         "SECTION_PADDING_PX": SECTION_PADDING_PX,
         "MOBILE_WIDTH_MAX": MOBILE_WIDTH_MAX,
         "MOBILE_BOTTOM_MIN_PX": MOBILE_BOTTOM_MIN_PX,
+        "BLOCK_GAP_FAIL_PX": BLOCK_GAP_FAIL_PX,
+        "BLOCK_GAP_WARN_PX": BLOCK_GAP_WARN_PX,
+        "BLOCK_MIN_HEIGHT_PX": BLOCK_MIN_HEIGHT_PX,
+        "BLOCK_MIN_WIDTH_RATIO": BLOCK_MIN_WIDTH_RATIO,
+        "CARD_PAD_MIN_PX": CARD_PAD_MIN_PX,
         "TESTIMONIAL_SLIDER_MIN": TESTIMONIAL_SLIDER_MIN,
         "SAFE_ALIGN_ITEMS": sorted(SAFE_ALIGN_ITEMS),
     }
