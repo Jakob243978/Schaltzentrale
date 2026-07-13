@@ -3,6 +3,33 @@
 Skill-Aenderungen pro Datum, neueste oben. Pro `done`-Ticket ein Eintrag
 (`### Technical` + `### User-Facing`), nicht gesammelt am Ende.
 
+## [2026-07-13]: LP-Layout-Fehler verhindern + Playwright-Layout-Linter (SKILL-107)
+
+### Technical
+- SKILL.md §16i geschaerft: `--space-*`-Skala ist PFLICHT in der ausgelieferten LP (nicht nur
+  benannt), feste px zwischen Bloecken = Fehler (Ausnahme eyebrow → Heading, tokenbasiert); bewaehrte
+  `--space-sm/-md/-lg/-xl`-Werte hinterlegt; neue Regeln 5) Spalten-Balance (`align-items:center` statt
+  `start`), 6) Kacheln MUESSEN gleich gross sein (equal-height Pflicht, bei ungleichem Inhalt Text
+  angleichen, NICHT `align-items:start`) und 7) mobiler Sektions-Boden; §16b um 2-Spalten-Balance-Bullet,
+  neues §16j Testimonial-Slider (ab > 3).
+- Template `templates/landingpage/index.template.html` gehaertet: `--space-sm/-md/-lg/-xl` im `:root`,
+  inline `margin-top:*px` entfernt/auf Skala umgestellt, `.eyebrow + h1/h2/h3` tight tokenbasiert,
+  `.form-layout` auf `align-items:center`, `.card`/`.step` equal-height (flex-column). Neue
+  wiederverwendbare **Testimonial-Slider-Komponente** (S8): CSS scroll-snap + defensives JS fuer
+  Pfeile/Dots, mobil 1 / Desktop 2-3 pro View, `data-testimonials`/`data-testimonial`-Marker, kein Framework.
+- Neuer wiederverwendbarer Playwright-Layout-Linter `tests/lp_layout_lint.py` (`--url` file://|http,
+  Breiten 1900/1440/390, breitenabhaengige Checks). Checks: overflow / tote-spalte / kacheln-ungleich
+  (FAIL), karten-leere / mobil-bottom-space / testimonial-slider / enge-abstaende (WARN). Schwellen als
+  Konstanten, Exit-Code = Gate, robust (kein Crash bei fehlenden Elementen). Live-LP warteliste-02 → rot
+  (faengt reale Layout-Fehler), gehaertetes Template → gruen; synthetischer Bad-Case triggert alle neuen
+  Checks. `pytest tests/ -q` → 429 passed (Linter kein pytest-Blocker). Ticket SKILL-107 (review).
+
+### User-Facing
+- Neue Landingpages aus dem Template haben von Anfang an konsistente Abstaende, balancierte Spalten und
+  gleich grosse Kacheln; ab 4 Testimonials steht eine fertige Slider-Komponente bereit. Die
+  „gequetscht / tote Leere"-Fehler werden entweder gar nicht mehr gebaut oder vom Layout-Linter vor
+  „fertig" gefangen.
+
 ## [2026-07-12] — Cold-Audience-Ad-Messaging testbar encodiert (SKILL-089..098)
 
 ### Technical

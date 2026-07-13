@@ -90,6 +90,14 @@
     --space-2xl: clamp(3.50rem, 2.80rem + 3.50vw, 6.00rem);
     --space-section: var(--space-2xl); /* Makro: Sektions-Polsterung (oben+unten) */
 
+    /* BEWAEHRTE Block-Rhythmus-Tokens (aus dem warteliste-02-Fix, SKILL-107).
+       PFLICHT fuer Abstaende ZWISCHEN Inhaltsbloecken in der ausgelieferten LP:
+       keine festen px zwischen Bloecken (Ausnahme: eyebrow -> Heading, gehoert zusammen). */
+    --space-sm: clamp(1rem, 0.8rem + 0.9vw, 1.6rem);
+    --space-md: clamp(1.6rem, 1.15rem + 1.8vw, 2.8rem);
+    --space-lg: clamp(2.4rem, 1.7rem + 2.9vw, 4rem);
+    --space-xl: clamp(3.4rem, 2.4rem + 3.8vw, 5.4rem);
+
     /* Editorial-Gutter Text↔Bild: fluid MIT Boden (klebt nie), waechst mit Viewport */
     --gap-editorial: clamp(1.75rem, 1.2rem + 2.75vw, 3.5rem);
 
@@ -165,10 +173,13 @@
   .hero-grid { display: grid; grid-template-columns: 1fr; gap: clamp(2rem, 1rem + 5vw, 4.5rem); align-items: center;
     padding: clamp(2rem,1.2rem+3vw,3.4rem) 0 clamp(2.4rem,1.4rem+3.5vw,4rem); }
   .hero-copy { max-width: 620px; }
-  .hero h1 { margin: 20px 0 22px; color: var(--cream); }
+  /* Block-Rhythmus aus der --space-*-Skala (keine festen px zwischen Bloecken, §16i).
+     eyebrow -> Heading darf eng bleiben (gehoert zusammen), aber tokenbasiert: */
+  .eyebrow + h1, .eyebrow + h2, .eyebrow + h3 { margin-top: var(--space-xs); }
+  .hero h1 { margin: var(--space-xs) 0 var(--space-sm); color: var(--cream); }
   .hero h1 em { font-style: normal; color: var(--coral); }
-  .hero-lead { font-size: var(--step-1); line-height: 1.5; color: color-mix(in srgb, var(--cream) 85%, var(--navy)); margin-bottom: 26px; max-width: 34em; }
-  .hero-actions { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  .hero-lead { font-size: var(--step-1); line-height: 1.5; color: color-mix(in srgb, var(--cream) 85%, var(--navy)); margin-bottom: var(--space-md); max-width: 34em; }
+  .hero-actions { display: flex; flex-direction: column; gap: var(--space-sm); align-items: flex-start; }
   .hero-actions .btn { width: 100%; max-width: 420px; } /* mobile: voll-breit */
   .hero .micro-trust { color: color-mix(in srgb, var(--cream) 70%, var(--navy)); }
   /* Founder-Portrait: Coral-Versatzrahmen (Editorial/Magazin) */
@@ -180,13 +191,13 @@
   .hero-figure .stat-tag span { font-size: .82rem; color: var(--on-cream-muted); }
 
   /* ============ S2 MESSAGE-BRIDGE — Editorial-Pull-Quotes ============ */
-  .quotes { display: grid; gap: clamp(1.6rem,1rem+2vw,2.6rem); }
+  .quotes { display: grid; gap: clamp(1.6rem,1rem+2vw,2.6rem); margin-top: var(--space-md); }
   .pull { font-family: var(--serif); font-weight: 500; font-size: var(--step-2); line-height: 1.24; letter-spacing: -0.01em; padding-left: clamp(18px,3vw,28px); border-left: 3px solid var(--coral); color: var(--on-cream); }
   .bridge { margin-top: clamp(1.8rem,1rem+2vw,2.8rem); font-size: var(--step-1); }
   .bridge .accent { color: var(--coral); font-weight: 600; }
 
   /* ============ S3 ENGPASS — schmale Lesespalte ============ */
-  .lede { font-family: var(--serif); font-size: var(--step-2); line-height: 1.2; letter-spacing: -0.015em; margin-bottom: 22px; }
+  .lede { font-family: var(--serif); font-size: var(--step-2); line-height: 1.2; letter-spacing: -0.015em; margin-bottom: var(--space-sm); }
   .flow > * + * { margin-top: var(--space-s); }
 
   /* ============ S4 MECHANISMUS — Kontrast + 3 Schritte ============ */
@@ -197,7 +208,11 @@
   .contrast .row.is-primary .tag { color: var(--coral); }
   .contrast .row .line { font-family: var(--serif); font-size: var(--step-1); line-height: 1.24; }
   .steps { display: grid; gap: var(--space-s); margin-top: var(--space-l); grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
-  .step { background: color-mix(in srgb, var(--navy-card) 70%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent); border-radius: var(--radius); padding: 24px 22px; }
+  /* Equal-Height-Kacheln PFLICHT: Grid streckt sie auf gleiche Hoehe (align-items:stretch,
+     Grid-Default). Kacheln muessen gleich gross sein (sonst unsauber). Bei ungleicher
+     Textmenge NICHT ungleich stehen lassen, sondern den TEXT der Kacheln angleichen (§16i.6).
+     flex-column erlaubt bei Bedarf saubere vertikale Verteilung des Karteninhalts. */
+  .step { display: flex; flex-direction: column; background: color-mix(in srgb, var(--navy-card) 70%, transparent); border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent); border-radius: var(--radius); padding: 24px 22px; }
   .step .num { font-family: var(--serif); font-size: 1.7rem; color: var(--coral); line-height: 1; }
   .step h3 { margin: 12px 0 8px; color: var(--cream); }
   .step p { font-size: var(--step--1); line-height: 1.55; }
@@ -212,7 +227,7 @@
 
   /* ============ S6 FORMAT — 4 Karten ============ */
   .cards { display: grid; gap: var(--space-s); margin-top: var(--space-l); grid-template-columns: 1fr; }
-  .card { border: 1px solid var(--on-cream-line); border-radius: var(--radius); padding: 22px; background: color-mix(in srgb, var(--cream) 96%, var(--navy)); }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--on-cream-line); border-radius: var(--radius); padding: 22px; background: color-mix(in srgb, var(--cream) 96%, var(--navy)); }
   .card h3 { margin-bottom: 8px; }
 
   /* ============ S7 BEWEIS-LAYER — Stat-Hero ============ */
@@ -221,16 +236,46 @@
   .proof-figure img { border-radius: var(--radius); }
   .proof-stat b { font-family: var(--serif); font-size: clamp(3rem, 2rem + 6vw, 5rem); color: var(--coral); line-height: 1; display: block; }
 
+  /* ============ S8 TESTIMONIAL-SLIDER (ab > 3 Testimonials Pflicht, §16j) ============
+     Reines CSS scroll-snap (horizontal) + minimales defensives JS fuer Pfeile/Dots.
+     Mobil 1 Karte pro View, Desktop 2-3. Kein Framework. Progressive Enhancement:
+     ohne JS bleibt es ein swipebarer scroll-snap-Streifen. */
+  .t-slider { position: relative; margin-top: var(--space-md); }
+  .t-track { display: grid; grid-auto-flow: column; grid-auto-columns: 86%;
+    gap: var(--space-md); overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; padding-bottom: var(--space-xs); scrollbar-width: thin; }
+  .t-track::-webkit-scrollbar { height: 8px; }
+  .t-track::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--on-cream) 22%, transparent); border-radius: 999px; }
+  .t-card { scroll-snap-align: start; display: flex; flex-direction: column; gap: var(--space-sm);
+    border: 1px solid var(--on-cream-line); border-radius: var(--radius); padding: clamp(20px,3vw,28px);
+    background: color-mix(in srgb, var(--cream) 96%, var(--navy)); }
+  .t-card blockquote { font-family: var(--serif); font-size: var(--step-1); line-height: 1.3; }
+  .t-card .t-author { font-size: var(--step--1); color: var(--on-cream-muted); font-weight: 700; }
+  .t-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: var(--space-sm); }
+  .t-dots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .t-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0; cursor: pointer;
+    background: color-mix(in srgb, var(--on-cream) 24%, transparent); }
+  .t-dot[aria-current="true"] { background: var(--coral); }
+  .t-arrows { display: flex; gap: 10px; }
+  .t-arrow { width: 44px; height: 44px; min-height: 44px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--on-cream-line); background: var(--cream); color: var(--on-cream);
+    font-size: 1.2rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  .t-arrow:disabled { opacity: .4; cursor: default; }
+  @media (min-width: 720px)  { .t-track { grid-auto-columns: calc((100% - var(--space-md)) / 2); } }
+  @media (min-width: 1040px) { .t-track { grid-auto-columns: calc((100% - 2 * var(--space-md)) / 3); } }
+
   /* ============ S9 FORMULAR ============ */
-  .form-layout { display: grid; grid-template-columns: 1fr; gap: var(--gap-editorial); }
+  /* Text|Formular: ungleich lange Spalten -> vertikal balancieren (align-items:center),
+     NIE die kurze Spalte oben ankleben (sonst tote Leere darunter, §16i). */
+  .form-layout { display: grid; grid-template-columns: 1fr; gap: var(--gap-editorial); align-items: center; }
   .form-card { background: var(--cream); border: 1px solid var(--on-cream-line); border-radius: var(--radius); padding: clamp(22px,4vw,32px); max-width: 520px; }
-  .field { margin-bottom: 16px; }
+  .field { margin-bottom: var(--space-sm); }
   .field label { display: block; font-weight: 700; font-size: var(--step--1); margin-bottom: 6px; }
   .field input, .field select, .field textarea {
     width: 100%; font-family: inherit; font-size: 16px; /* 16px: kein iOS-Zoom */
     padding: 13px 14px; border: 1px solid color-mix(in srgb, var(--navy) 22%, var(--cream)); border-radius: 10px; background: var(--cream); color: var(--on-cream); min-height: 48px; }
   .field .err { display: none; color: var(--err); font-size: .85rem; margin-top: 5px; }
-  .form-card .btn { width: 100%; margin-top: 8px; }
+  .form-card .btn { width: 100%; margin-top: var(--space-xs); }
   .consent-row { display: flex; gap: 10px; align-items: flex-start; }
   .consent-row input { width: auto; min-height: auto; margin-top: 4px; }
   #form-success { display: none; }
@@ -327,7 +372,7 @@
 <section class="band band--cream">
   <div class="wrap">
     <span class="eyebrow">{{BRIDGE_EYEBROW}}</span>
-    <div class="quotes" style="margin-top:26px;">
+    <div class="quotes">
       <p class="pull">{{PULL_QUOTE_1}}</p>
       <p class="pull">{{PULL_QUOTE_2}}</p>
     </div>
@@ -351,7 +396,7 @@
   <div class="wrap">
     <div class="measure">
       <span class="eyebrow">{{MECH_EYEBROW}}</span>
-      <h2 style="margin-top:16px;">{{MECH_HEADLINE}}</h2>
+      <h2>{{MECH_HEADLINE}}</h2>
     </div>
     <div class="contrast">
       <div class="row"><span class="tag">{{CONTRAST_A_TAG}}</span><p class="line">{{CONTRAST_A_LINE}}</p></div>
@@ -407,11 +452,43 @@
   </div>
 </section>
 
-<!-- ===== S8 TESTIMONIAL (optional — Struktur bauen, leer bis echtes Zitat + Freigabe) =====
+<!-- ===== S8 TESTIMONIAL-SLIDER (optional; ab > 3 Testimonials Pflicht, §16j) =====
+     Anti-Fake: Struktur bauen, echte Zitate + Freigabe abwarten (nie erfinden).
+     Bei <= 3 Testimonials genuegt ein statisches Grid; ab 4 diesen Slider nutzen.
+     Weniger Karten? Einfach Karten entfernen, Slider bleibt robust. -->
 <section class="band band--cream" id="stimmen">
-  <div class="wrap"><span class="eyebrow">{{TESTIMONIAL_EYEBROW}}</span>
-    <blockquote class="pull">{{TESTIMONIAL_QUOTE}}</blockquote><p class="muted">{{TESTIMONIAL_AUTHOR}}</p></div>
-</section> -->
+  <div class="wrap">
+    <span class="eyebrow">{{TESTIMONIAL_EYEBROW}}</span>
+    <div class="t-slider" data-testimonials>
+      <div class="t-track" role="region" aria-label="{{TESTIMONIAL_ARIA}}" tabindex="0">
+        <figure class="t-card" data-testimonial>
+          <blockquote>{{TESTIMONIAL_1_QUOTE}}</blockquote>
+          <figcaption class="t-author">{{TESTIMONIAL_1_AUTHOR}}</figcaption>
+        </figure>
+        <figure class="t-card" data-testimonial>
+          <blockquote>{{TESTIMONIAL_2_QUOTE}}</blockquote>
+          <figcaption class="t-author">{{TESTIMONIAL_2_AUTHOR}}</figcaption>
+        </figure>
+        <figure class="t-card" data-testimonial>
+          <blockquote>{{TESTIMONIAL_3_QUOTE}}</blockquote>
+          <figcaption class="t-author">{{TESTIMONIAL_3_AUTHOR}}</figcaption>
+        </figure>
+        <figure class="t-card" data-testimonial>
+          <blockquote>{{TESTIMONIAL_4_QUOTE}}</blockquote>
+          <figcaption class="t-author">{{TESTIMONIAL_4_AUTHOR}}</figcaption>
+        </figure>
+        <!-- ... weitere Testimonial-Karten ... -->
+      </div>
+      <div class="t-controls">
+        <div class="t-dots" aria-hidden="true"></div>
+        <div class="t-arrows">
+          <button class="t-arrow" type="button" data-dir="-1" aria-label="Vorheriges Testimonial">&#8249;</button>
+          <button class="t-arrow" type="button" data-dir="1"  aria-label="Naechstes Testimonial">&#8250;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ===== S9 WARTELISTE-FORMULAR (Action) ===== -->
 <section class="band band--cream-alt" id="warteliste">
@@ -439,7 +516,7 @@
           <input type="hidden" id="f-utm_term"     name="utm_term">
           <input type="hidden" id="f-zielgruppe"   name="zielgruppe">
           <button class="btn" id="wl-submit" type="submit">{{CTA_PRIMARY}}</button>
-          <div class="err" id="form-error" style="margin-top:12px;">Etwas ist schiefgelaufen. Bitte erneut versuchen.</div>
+          <div class="err" id="form-error" style="margin-top:var(--space-xs);">Etwas ist schiefgelaufen. Bitte erneut versuchen.</div>
         </form>
         <div id="form-success">
           <h3>{{SUCCESS_TITLE}}</h3>
@@ -459,7 +536,7 @@
 <footer>
   <div class="wrap">
     <p>{{FOOTER_BRAND}}</p>
-    <p style="margin-top:10px;">
+    <p style="margin-top:var(--space-xs);">
       <a href="{{IMPRESSUM_URL}}" id="link-impressum">Impressum</a> ·
       <a href="{{DATENSCHUTZ_URL}}" id="link-datenschutz">Datenschutz</a> ·
       <a href="{{SOCIAL_URL}}">{{SOCIAL_LABEL}}</a>
@@ -538,6 +615,58 @@
     form.style.display = "none";
     document.getElementById("form-success").style.display = "block";
   });
+
+  // === Testimonial-Slider (§16j): scroll-snap + Pfeile/Dots, defensiv, kein Framework ===
+  // Progressive Enhancement: ohne JS bleibt der Track ein swipebarer scroll-snap-Streifen.
+  (function initSliders() {
+    try {
+      var sliders = document.querySelectorAll(".t-slider");
+      Array.prototype.forEach.call(sliders, function (sl) {
+        var track = sl.querySelector(".t-track"); if (!track) return;
+        var cards = track.querySelectorAll(".t-card"); if (!cards.length) return;
+        var dotsWrap = sl.querySelector(".t-dots");
+        var arrows = sl.querySelectorAll(".t-arrow");
+        function pageWidth() { return Math.max(1, track.clientWidth); }
+        function update() {
+          try {
+            var i = Math.round(track.scrollLeft / pageWidth());
+            if (dotsWrap) {
+              var dots = dotsWrap.querySelectorAll(".t-dot");
+              Array.prototype.forEach.call(dots, function (d, di) {
+                d.setAttribute("aria-current", di === i ? "true" : "false");
+              });
+            }
+            if (arrows.length === 2) {
+              arrows[0].disabled = track.scrollLeft <= 2;
+              arrows[1].disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+            }
+          } catch (e) {}
+        }
+        // Dots: eine pro sichtbarer "Seite" (Kartenanzahl pro View).
+        if (dotsWrap) {
+          var cw = cards[0].getBoundingClientRect().width || pageWidth();
+          var perView = Math.max(1, Math.round(track.clientWidth / cw));
+          var pages = Math.max(1, Math.ceil(cards.length / perView));
+          for (var p = 0; p < pages; p++) {
+            var b = document.createElement("button");
+            b.className = "t-dot"; b.type = "button"; b.setAttribute("aria-label", "Seite " + (p + 1));
+            (function (idx) { b.addEventListener("click", function () {
+              track.scrollTo({ left: idx * pageWidth(), behavior: "smooth" }); }); })(p);
+            dotsWrap.appendChild(b);
+          }
+        }
+        Array.prototype.forEach.call(arrows, function (a) {
+          a.addEventListener("click", function () {
+            var dir = parseInt(a.getAttribute("data-dir"), 10) || 1;
+            track.scrollBy({ left: dir * pageWidth(), behavior: "smooth" });
+          });
+        });
+        track.addEventListener("scroll", function () { window.requestAnimationFrame(update); });
+        window.addEventListener("resize", update);
+        update();
+      });
+    } catch (e) { /* Slider ist progressive enhancement */ }
+  })();
 
   // === Consent-Banner (DSGVO) — minimal; Marketing-Pixel erst nach Zustimmung laden ===
   function readConsent() { try { return localStorage.getItem("mkt_consent"); } catch (e) { return null; } }

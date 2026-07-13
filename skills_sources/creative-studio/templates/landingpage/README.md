@@ -24,6 +24,29 @@ Text↔Bild-Grids nutzen `--gap-editorial` (Gutter mit Boden) und geben der **Le
 mindestens Paritaet** (Text-Fraktion ≥ Bild-Fraktion). Kein Space als leere Flaeche um
 eine winzige Text-Insel — Makro-Space muss ein Fokus-Element umhaloen ("Space ≠ Leere").
 
+**Zusatzregeln (SKILL-107):** Die Skala ist **Pflicht in der ausgelieferten LP**, nicht nur im
+Template benannt: keine festen px-Abstaende zwischen Bloecken (Ausnahme: eyebrow → Heading, tight,
+aber tokenbasiert). In 2-Spalten-Layouts mit ungleich langen Spalten die kurze Spalte
+`align-items:center` (nie oben ankleben → tote Leere). **Kacheln in einem Grid muessen gleich gross
+sein** (equal-height, `align-items:stretch`): ungleiche Hoehen sind ein Fehler, nicht die Loesung;
+bei ungleichem Inhalt den **Text der Kacheln angleichen**. Mobil darf das letzte Element einer Sektion
+nicht unten an der Kante kleben (untere `--space-section`-Polsterung muss greifen).
+
+## Testimonial-Slider (§16j, SKILL-107)
+Bis 3 Testimonials genuegt ein statisches Grid. **Ab 4** die fertige Slider-Komponente aus S8 nutzen
+(CSS scroll-snap + defensives JS fuer Pfeile/Dots, mobil 1 / Desktop 2-3 pro View, kein Framework).
+Weniger Karten? Einfach `.t-card`-Bloecke entfernen, der Slider bleibt robust.
+
+## Layout-Linter (SKILL-107)
+Vor "fertig" den Playwright-Layout-Linter laufen lassen (Exit-Code = Gate). Checks: overflow /
+tote-spalte / kacheln-ungleich (FAIL) und karten-leere / mobil-bottom-space / testimonial-slider /
+enge-abstaende (WARN):
+```
+python tests/lp_layout_lint.py --url landing/<site>/index.html --strict   # lokal (file://)
+python tests/lp_layout_lint.py --url https://<deine-lp>/                  # Live
+```
+Der Linter ergaenzt die Vision-QA (§16g), ist aber kein pytest-Blocker (braucht eine gerenderte URL).
+
 ## Schritt fuer Schritt
 
 1. **Kopieren.** `index.template.html` → `landing/<site>/index.html` im Projekt-Repo.

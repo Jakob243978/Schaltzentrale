@@ -932,6 +932,10 @@ Zusatz: **Mobile-Sticky-CTA** (nur `max-width:719px`) haelt die Aktion am Daumen
   Pull-Quotes / Zahlen-Karten / Rules statt Textwaende. Der Whitespace selbst folgt dem **Spacing-System
   §16i** (fluide `--space-*`-Skala, Makro > Mikro, Text↔Bild-Gap mit Boden, „Space ≠ Leere") — das ist
   der Hebel gegen „mal zu eng, mal leer".
+- **2-Spalten-Balance:** In zweispaltigen Layouts mit ungleich langen Spalten (Text | Formular,
+  Text | Bild) die kurze Spalte **vertikal balancieren** (`align-items:center`), nie oben ankleben
+  (`align-items:start`): sonst tote Leere unter der kurzen Spalte (Details + Karten-Regel: §16i.5/.6).
+  Der Playwright-Linter `tests/lp_layout_lint.py` faengt diesen Fehler automatisch (§16i).
 
 ### 16c. Brand-Tokens (Pflicht — ADR-010)
 
@@ -1056,6 +1060,22 @@ zum 8px-Grid, nur fluid. Jeder Section-/Block-Abstand kommt aus der Skala:
 }
 ```
 
+**PFLICHT, nicht nur „benannt" (SKILL-107).** Die Skala im `:root` zu definieren reicht NICHT: sie muss
+in der **ausgelieferten** LP auch **konsequent angewendet** sein. Der reale warteliste-02-Fehler war
+genau das: Skala im Template benannt, aber Bloecke trotzdem mit `margin-top:16px/18px/30px` fest
+verdrahtet, waehrend die Sektion aussen grosszuegig war (`.band` bis 120px) und die Bloecke innen
+aneinander klebten. **Feste px-Abstaende ZWISCHEN Inhaltsbloecken sind ein Fehler.** Einzige Ausnahme:
+**eyebrow → Heading** darf eng bleiben (gehoert zusammen), aber auch das tokenbasiert
+(`.eyebrow + h2 { margin-top: var(--space-xs); }`), nicht als rohes px. In der Praxis bewaehrte
+Block-Rhythmus-Tokens (aus dem Fix uebernommen, im Template als `--space-sm/-md/-lg/-xl`):
+
+```css
+--space-sm: clamp(1rem, 0.8rem + 0.9vw, 1.6rem);
+--space-md: clamp(1.6rem, 1.15rem + 1.8vw, 2.8rem);
+--space-lg: clamp(2.4rem, 1.7rem + 2.9vw, 4rem);
+--space-xl: clamp(3.4rem, 2.4rem + 3.8vw, 5.4rem);
+```
+
 **2) Zwei-Ebenen-Rhythmus: Makro > Mikro.** Der klassische vertikale Rhythmus ist „**innen eng
 (verwandt), zwischen den Sektionen grosszuegig**". Darum bekommt die Sektions-Polsterung einen
 **eigenen, grossen** Token (`--space-section`, oben UND unten), waehrend Abstaende **innerhalb** einer
@@ -1080,6 +1100,26 @@ beides ist der Root-Cause von „mal eng, mal leer".
 (Headline, Zahl, Bild) — das ist aktiver Whitespace und liest als Absicht. Eine weite Band-Flaeche um
 eine winzige, zentrierte Text-Insel ist passiver Whitespace und liest als „leer/kaputt".
 
+**5) Spalten-Balance in 2-Spalten-Layouts (SKILL-107).** In Zweispaltern mit **ungleich langen**
+Spalten (Text | Formular, Text | Bild) die kurze Spalte **NIE oben ankleben** (`align-items:start`):
+sonst entsteht eine grosse tote Leere unten unter der kurzen Spalte (realer warteliste-02-Fehler:
+Formular-Spalte 330px oben geklebt neben 916px Text). Regel: `align-items:center` (vertikal
+balancieren) ODER die Inhalte so waehlen, dass die Spaltenhoehen aehnlich sind. `stretch` ist auch
+ok (beide Spalten gleich hoch); verboten ist nur die kurze Spalte oben mit toter Flaeche darunter.
+
+**6) Kacheln in einem Grid MUESSEN gleich gross sein (equal-height, SKILL-107).** Karten/Kacheln in
+einem Grid muessen **gleiche Hoehe** haben (`align-items:stretch`, Grid-Default). Ungleich hohe Kacheln
+in einer Zeile wirken unsauber und sind ein **Fehler**, NICHT die Loesung. `align-items:start` (Kacheln
+auf natuerliche Hoehe fallen lassen) ist hier deshalb **falsch**. Die richtige Loesung bei ungleicher
+Textmenge ist, den **Text der Kacheln aneinander anzugleichen** (aehnliche Laenge je Kachel), damit die
+equal-height-Kacheln unten **keine tote Flaeche** haben. `.card { display:flex; flex-direction:column }`
+erlaubt bei Bedarf saubere vertikale Verteilung des Karteninhalts, ersetzt aber nicht das Angleichen.
+
+**7) Mobiler Sektions-Boden (SKILL-107).** Auf schmaler Breite darf das **letzte Element** einer
+`.band`-Sektion nicht unten an der Sektionskante kleben — die untere Sektions-Polsterung
+(`--space-section`) muss auch mobil greifen (Anlass: ein Absatz klebte auf Mobil an der Unterkante).
+Faustwert: mindestens ~24px Abstand letztes Element → Sektions-Unterkante.
+
 > [!tip] Do / Don't — Space als Absicht
 > - **Do:** Makro-Space setzen, wo er ein Fokus-Element rahmt (Hero-Zahl, Beweis-Bild, eine starke Zeile).
 > - **Do:** Sparsame Sektion? Entweder Band-Polsterung reduzieren **oder** Gewicht/Anker hinzufuegen
@@ -1090,3 +1130,43 @@ eine winzige, zentrierte Text-Insel ist passiver Whitespace und liest als „lee
 > - **Don't:** ein einziger Abstands-Token fuer Makro und Mikro.
 > - **Don't:** dem Bild die groessere Grid-Fraktion geben oder den Text↔Bild-Gutter ohne Boden lassen.
 > - **Don't:** eine breite Band um eine schmale zentrierte `.measure` ohne Anker (wirkt leer).
+> - **Don't:** in einem 2-Spalter die kurze Spalte oben ankleben (`align-items:start`) → tote Leere darunter.
+> - **Don't:** Kacheln in einem Grid ungleich hoch stehen lassen (`align-items:start`) → unsauber; stattdessen Text angleichen (equal-height bleibt Pflicht).
+> - **Don't:** das letzte Element einer Sektion mobil unten an der Kante kleben lassen (untere Polsterung fehlt).
+
+**Automatischer Layout-Check (SKILL-107).** Die Fehler oben (Skala nicht genutzt, tote Spalte, tote
+Kartenflaeche, Horizontal-Scroll) faengt der Playwright-Linter `tests/lp_layout_lint.py` heuristisch
+ab: er rendert die LP auf mehreren Breiten und ist ein Exit-Code-Gate (0 gruen / 1 rot):
+
+```
+python tests/lp_layout_lint.py --url https://<deine-lp>/           # Live
+python tests/lp_layout_lint.py --url landing/<site>/index.html     # lokal (file://)
+python tests/lp_layout_lint.py --url <url> --strict                # WARN ebenfalls als Gate
+```
+
+Checks: **overflow** (Horizontal-Scroll → FAIL), **tote-spalte** (2-Spalter, Hoehendiff > 30 % und
+`align-items` weder center noch stretch → FAIL), **kacheln-ungleich** (Karten-Grid, Kacheln in einer
+Zeile unterschiedlich hoch → FAIL: equal-height ist Pflicht, Text angleichen), **karten-leere** (gleich
+hohe Kacheln, aber eine hat unten tote Flaeche > 22 % → WARN: Text angleichen), **mobil-bottom-space**
+(auf ≤ 480px klebt das letzte Element einer `.band` mit < 24px an der Unterkante → WARN),
+**testimonial-slider** (> 3 Testimonials ohne Slider-Markup → WARN, siehe §16j), **enge-abstaende**
+(winziger fester `margin-top` in grosszuegig gepolsterter `.band` → WARN, heuristisch). Schwellen als
+Konstanten oben im File. Nicht als pytest-Blocker eingehaengt (braucht eine gerenderte LP-URL); als
+LP-QA-Schritt vor „fertig" laufen lassen (ergaenzt die Vision-QA §16g).
+
+### 16j. Testimonial-Slider (ab > 3 Testimonials, SKILL-107)
+
+Bis **3 Testimonials** genuegt ein statisches Grid. **Ab 4** (mehr als 3) gehoeren sie in einen
+**Slider/Carousel**, nicht in ein statisches Grid, das die Sektion in die Laenge zieht. Das Muster:
+
+- **Reines CSS scroll-snap** (horizontal): ein `.t-track` mit `display:grid; grid-auto-flow:column;
+  overflow-x:auto; scroll-snap-type:x mandatory`, die Karten mit `scroll-snap-align:start`. **Mobil 1
+  Karte pro View**, **Desktop 2-3** (per `grid-auto-columns` in Breakpoints).
+- **Minimales, defensives JS** fuer Pfeile + Dots (kein Framework, alles in try/catch): Pfeile
+  scrollen um eine View-Breite, Dots je „Seite", Ende/Anfang deaktivieren die Pfeile. Ohne JS bleibt
+  der Track ein **swipebarer scroll-snap-Streifen** (Progressive Enhancement).
+- **A11y:** `.t-track` als `role="region"` mit `aria-label` + `tabindex="0"` (Tastatur-Scroll),
+  Pfeile als echte `<button>` mit `aria-label`, Tap-Target ≥ 44px.
+- Der Container traegt `data-testimonials`, die Karten `data-testimonial` (Marker fuer den
+  Linter-Check `testimonial-slider`). Fertige, wiederverwendbare Komponente (CSS + HTML + JS) im
+  Template `templates/landingpage/index.template.html` (Sektion S8).

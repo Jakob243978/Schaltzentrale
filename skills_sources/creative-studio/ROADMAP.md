@@ -3,6 +3,9 @@
 Format: Now / Next / Later. Tickets liegen in `docs/tickets/SKILL-NNN.md`.
 
 ## Now (aktiv in Arbeit)
+- **SKILL-107** (review): LP-Layout-Fehler verhindern (Spacing-Pflicht, Spalten-Balance,
+  Equal-Height-Karten) + Playwright-Layout-Linter `tests/lp_layout_lint.py`. Warten auf
+  zentrales Review/Commit durch Jakob.
 - Historische Tickets aus der zentralen skill_dev-Phase liegen migriert in
   `docs/tickets/`. Offene (`spec`/`in_progress`/`review`) hier eintragen,
   sobald sie wieder angefasst werden.
