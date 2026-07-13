@@ -12,8 +12,17 @@ hochskalierte zentrierte Handy-Spalte.
 
 ## Dateien
 - `index.template.html` — kommentiertes Skelett mit `{{PLATZHALTER}}` je Sektion,
-  Brand-Token-Aliasen, fluider Typo-Skala, Editorial-Responsive-CSS, Szenen-Match-JS,
-  Consent-Banner + Formular-Skelett.
+  Brand-Token-Aliasen, fluider Typo-Skala, **fluidem Spacing-System** (`--space-*`,
+  §16i), Editorial-Responsive-CSS, Szenen-Match-JS, Consent-Banner + Formular-Skelett.
+
+## Spacing/Whitespace (§16i, SKILL-106)
+Whitespace gilt **allseitig** (rechts/links/oben/unten) und ist Absicht, nicht Lücke.
+Alle Abstaende kommen aus der fluiden `--space-*`-Skala im `:root` — **keine neuen
+festen px** fuer Section-/Block-Rhythmus. Regeln: Sektions-Polsterung `--space-section`
+(Makro, grosszuegig) **>** Abstaende innerhalb einer Sektion (`--space-m`/`-l`, Mikro);
+Text↔Bild-Grids nutzen `--gap-editorial` (Gutter mit Boden) und geben der **Lesespalte
+mindestens Paritaet** (Text-Fraktion ≥ Bild-Fraktion). Kein Space als leere Flaeche um
+eine winzige Text-Insel — Makro-Space muss ein Fokus-Element umhaloen ("Space ≠ Leere").
 
 ## Schritt fuer Schritt
 

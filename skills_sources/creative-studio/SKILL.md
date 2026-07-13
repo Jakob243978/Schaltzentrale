@@ -929,7 +929,9 @@ Zusatz: **Mobile-Sticky-CTA** (nur `max-width:719px`) haelt die Aktion am Daumen
   Serif-Headline ist der schnellste Hebel weg vom „SaaS-Tech"-Look. Fluide `clamp()`-Skala mit
   **hohen Mobile-Minima**.
 - **Struktur statt Leere:** Container ~1180px, Lesespalte (`.measure`) ~680px, gezielte Weissraeume,
-  Pull-Quotes / Zahlen-Karten / Rules statt Textwaende.
+  Pull-Quotes / Zahlen-Karten / Rules statt Textwaende. Der Whitespace selbst folgt dem **Spacing-System
+  §16i** (fluide `--space-*`-Skala, Makro > Mikro, Text↔Bild-Gap mit Boden, „Space ≠ Leere") — das ist
+  der Hebel gegen „mal zu eng, mal leer".
 
 ### 16c. Brand-Tokens (Pflicht — ADR-010)
 
@@ -1009,7 +1011,9 @@ selbst angeschaut** hat — **Desktop 1440 UND Mobile 390**, jeweils **Default-H
 eine utm-Szene** (`?utm_content=<slug>`), plus die Erfolgs-View des Formulars. Geprueft wird:
 kein Horizontal-Scroll, Founder-Gesicht frei, Umlaute korrekt (kein Tofu/Mojibake), Kontrast
 (WCAG-AA), Tap-Targets ≥44px, Editorial-Desktop greift wirklich (nicht die hochskalierte
-Handy-Spalte), Szenen-Match tauscht die H1. Fuer web-Surfaces gilt zusaetzlich die Projekt-Regel
+Handy-Spalte), Szenen-Match tauscht die H1. **Spacing-Check (§16i):** Sektionen setzen sich klar
+voneinander ab (Makro > Mikro), Text neben Bild klebt nicht (Gutter + Lesespalte-Paritaet), und keine
+Band wirkt als leere Flaeche um eine winzige Text-Insel („Space ≠ Leere"). Fuer web-Surfaces gilt zusaetzlich die Projekt-Regel
 **surface: web ⇒ Playwright/UI-Verifier-Pflicht** (Desktop- + Mobile-Viewport), und der
 `web-mobile-design`-Skill ist die Bau-Checkliste, **bevor** HTML/CSS geschrieben wird.
 
@@ -1019,6 +1023,70 @@ Handy-Spalte), Szenen-Match tauscht die H1. Fuer web-Surfaces gilt zusaetzlich d
 2. Brand-Tokens binden: `tokens.css` aus `branding.env` rendern lassen und einbinden; Fonts einbetten.
 3. Sektions-Copy je Block fuellen (Voice-Regeln 16e), nur freigegebene Zahlen (16f).
 4. `HERO_SCENES` an die live geschalteten Ad-Slugs binden (16d).
-5. Vision-QA (16g): Desktop 1440 + Mobile 390, Default + utm-Szene.
+5. Spacing pruefen: alle Abstaende aus der `--space-*`-Skala, Makro > Mikro, Text↔Bild-Gutter mit
+   Boden (§16i) — keine neuen festen px-Abstaende fuer Section-/Block-Rhythmus.
+6. Vision-QA (16g): Desktop 1440 + Mobile 390, Default + utm-Szene, inkl. Spacing-Check.
 
 Details Schritt-fuer-Schritt: `templates/landingpage/README.md`.
+
+### 16i. Spacing-/Whitespace-System (Space ≠ Leere) — SKILL-106
+
+Whitespace ist **Gestaltung, nicht Fuellmaterial** — und er gilt **allseitig** (rechts, links, oben,
+unten). Der haeufigste LP-Fehler ist nicht „zu wenig" oder „zu viel", sondern **unsystematisch**:
+ein einziger Abstands-Wert fuer alles, dazu feste px-Innenabstaende. Dann kleben content-dichte
+Sektionen (zu eng), waehrend sparsame Sektionen als leere Flaeche wirken. Anlass: warteliste-02 —
+„Chatbot"-Block zu eng, nach „Ein Format…" zu wenig Abstand zur naechsten Sektion, „Einer von euch"
+Text↔Bild zu eng, Formular zu eng.
+
+**1) Fluide `--space-*`-Skala als Tokens (kein festes px fuer Rhythmus).** Wie die Typo-Skala, aber
+fuer Abstaende: eine gestufte, clamp-basierte Skala, die mit dem Viewport waechst. Editorial-Aequivalent
+zum 8px-Grid, nur fluid. Jeder Section-/Block-Abstand kommt aus der Skala:
+
+```css
+:root{
+  --space-3xs: clamp(0.25rem, 0.23rem + 0.10vw, 0.31rem);
+  --space-2xs: clamp(0.50rem, 0.46rem + 0.20vw, 0.63rem);
+  --space-xs:  clamp(0.75rem, 0.69rem + 0.30vw, 0.94rem);
+  --space-s:   clamp(1.00rem, 0.92rem + 0.40vw, 1.25rem);
+  --space-m:   clamp(1.50rem, 1.36rem + 0.70vw, 2.00rem);
+  --space-l:   clamp(2.00rem, 1.70rem + 1.50vw, 3.00rem);
+  --space-xl:  clamp(2.75rem, 2.30rem + 2.25vw, 4.25rem);
+  --space-2xl: clamp(3.50rem, 2.80rem + 3.50vw, 6.00rem);
+  --space-section: var(--space-2xl); /* Makro: Abstand ZWISCHEN Sektionen */
+}
+```
+
+**2) Zwei-Ebenen-Rhythmus: Makro > Mikro.** Der klassische vertikale Rhythmus ist „**innen eng
+(verwandt), zwischen den Sektionen grosszuegig**". Darum bekommt die Sektions-Polsterung einen
+**eigenen, grossen** Token (`--space-section`, oben UND unten), waehrend Abstaende **innerhalb** einer
+Sektion aus den kleineren Stufen (`--space-m`/`--space-l`) kommen. Ein einziger Abstands-Wert fuer
+beides ist der Root-Cause von „mal eng, mal leer".
+
+```css
+.band { padding: var(--space-section) 0; }   /* Makro: allseitig grosszuegig */
+.band > * + * { margin-top: var(--space-m); } /* Mikro: gestuft, kleiner als Section */
+```
+
+**3) Text↔Bild-Gap-Regel (allseitig).** In Editorial-Grids mit Text neben Bild (Hero, Beweis) gilt:
+- **Gutter mit skalierender Untergrenze** — der Gap zwischen Text und Bild hat einen echten Boden und
+  waechst mit dem Viewport (`gap: clamp(1.75rem, 1.2rem + 2.75vw, 3.5rem)`), damit Text nie am Bild klebt.
+- **Lesespalte ≥ Bild** — die Text-Fraktion ist mindestens so gross wie die Bild-Fraktion
+  (`1.05fr 0.95fr`, Copy zuerst), nie dem Bild die groessere Fraktion geben (sonst erdrueckt das Bild
+  den Text — genau der warteliste-Fehler `0.95fr 1.05fr`).
+- **Allseitig heisst allseitig** — nicht nur der Gutter zwischen den Spalten, auch das Bild braucht
+  Atem nach oben/unten/aussen; die Sektions-Polsterung (`--space-section`) liefert ihn am Bildrand.
+
+**4) „Space ≠ Leere" (aktiver vs. passiver Whitespace).** Grosszuegiger Space **umhalot immer etwas**
+(Headline, Zahl, Bild) — das ist aktiver Whitespace und liest als Absicht. Eine weite Band-Flaeche um
+eine winzige, zentrierte Text-Insel ist passiver Whitespace und liest als „leer/kaputt".
+
+> [!tip] Do / Don't — Space als Absicht
+> - **Do:** Makro-Space setzen, wo er ein Fokus-Element rahmt (Hero-Zahl, Beweis-Bild, eine starke Zeile).
+> - **Do:** Sparsame Sektion? Entweder Band-Polsterung reduzieren **oder** Gewicht/Anker hinzufuegen
+>   (Eyebrow-Rule, Zahl, Bild, zweite Spalte) — nicht die Leere so lassen.
+> - **Do:** Alle Rhythmus-Abstaende aus der `--space-*`-Skala ziehen (fluid, konsistent).
+> - **Don't:** feste px-Abstaende (`margin-top:16px`, `gap:14px`) fuer Section-/Block-Rhythmus — sie
+>   bleiben auf Desktop winzig, waehrend der Container aufgeht → eng trotz viel Flaeche.
+> - **Don't:** ein einziger Abstands-Token fuer Makro und Mikro.
+> - **Don't:** dem Bild die groessere Grid-Fraktion geben oder den Text↔Bild-Gutter ohne Boden lassen.
+> - **Don't:** eine breite Band um eine schmale zentrierte `.measure` ohne Anker (wirkt leer).
