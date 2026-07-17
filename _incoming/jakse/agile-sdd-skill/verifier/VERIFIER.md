@@ -25,13 +25,8 @@ Wenn `docs/sdd-config.yaml` nicht existiert: Defaults verwenden
 
 ## Pruefungs-Algorithmus (pro EARS-Satz im Ticket)
 
-Fuer JEDES EARS-Akzeptanzkriterium im Ticket pruefst du in dieser Reihenfolge.
-**Matching-Hinweis (SKILL-074):** Neue Tickets schreiben das deutsche Schema
-`- [ ] WENN ..., SOLL das System ...` (Varianten: SOLANGE/FALLS/WO/"Das System
-SOLL"). Bestands-Tickets koennen das aeltere englische Schema
-`- [ ] When ..., the system shall ...` tragen. Du akzeptierst und pruefst
-**beide Formen gleichwertig**; ein englischer EARS-Satz ist KEIN Mangel und
-loest KEIN Rewrite des Tickets aus.
+Fuer JEDES `- [ ] When ..., the system shall ...` im Ticket pruefst du in dieser
+Reihenfolge:
 
 0. **Typ-Klassifizierung (ui | backend)** — VOR der eigentlichen Pruefung.
    Ein EARS-Satz ist **ui** wenn mindestens eine zutrifft:

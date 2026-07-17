@@ -46,7 +46,7 @@ was fehlt. Empfehlung: Status `done` setzen / Ticket nachschaerfen / Tests erwei
 
 ## EARS-Kriterien Pruefung
 
-### EARS-1: WENN ..., SOLL das System ... <!-- Bestands-Tickets ggf. englisch: "When ..., the system shall ..." (SKILL-074, beide Formen OK) -->
+### EARS-1: When ..., the system shall ...
 
 - **Typ:** ui | backend  (UI = PO-Klick-Test noetig, Backend = Verifier reicht)
 - **Status:** pass | fail | partial  (UI-EARS max. `partial` bis `po_acceptance: confirmed`)

@@ -78,7 +78,9 @@ if (-not (Test-Path $SkillsSource)) {
         # /XD: Build-Artefakte NICHT mit-deployen (sonst blaehen Node/Python-Skills wie
         # creative-studio das Deploy-Target mit Hunderten MB auf). node_modules wird beim
         # ersten Nutzen per `npm install` im Skill regeneriert (siehe Skill-SKILL.md).
-        $result = robocopy $SkillsSource $SkillsTarget /MIR /XD node_modules __pycache__ .git .pytest_cache /XF "*.pyc" /NFL /NDL /NJH /NJS /NC /NS
+        # /XF "*.jinja": copier-Infra (Answers-Template pro Skill, TICKET-313) gehoert
+        # NICHT in die lokale ~/.claude/skills-Spiegelung - nur in den copier-Rollout.
+        $result = robocopy $SkillsSource $SkillsTarget /MIR /XD node_modules __pycache__ .git .pytest_cache /XF "*.pyc" "*.jinja" /NFL /NDL /NJH /NJS /NC /NS
         # Robocopy: exit code <8 = success
         if ($LASTEXITCODE -lt 8) {
             Write-Host "  OK: Skills deployt nach $SkillsTarget" -ForegroundColor Green

@@ -10,19 +10,11 @@
 
 <!-- Ein Satz: Wer profitiert wie davon? Kein technisches Detail. -->
 
-## Akzeptanzkriterien (EARS-Format, deutsch)
+## Akzeptanzkriterien (EARS-Format)
 
-<!--
-SKILL-074 (2026-07-15): Deutsches EARS-Schema, eine Zeile pro Kriterium.
-Grundform: "WENN <Ausloeser/Bedingung>, SOLL <System> <Verhalten>."
-Varianten: Ubiquitous "Das System SOLL ...", Event "WENN ..., SOLL ...",
-State "SOLANGE ..., SOLL ...", Unwanted "FALLS ..., SOLL ...",
-Optional "WO ..., SOLL ...".
-Bestands-Tickets mit englischem Schema ("When ..., the system shall ...")
-bleiben unveraendert; der Verifier akzeptiert beide Formen.
--->
-- [ ] WENN ..., SOLL das System ...
-- [ ] WENN ..., SOLL das System ...
+<!-- "When [Bedingung], the system shall [Aktion]." — eine Zeile pro Kriterium -->
+- [ ] When ..., the system shall ...
+- [ ] When ..., the system shall ...
 
 ## Loesungs-Skizze (Approach)
 

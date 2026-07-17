@@ -1,0 +1,30 @@
+# Copier-Konfiguration fuer Skill-Distribution (AgentischesArbeiten TICKET-313).
+# Die Schaltzentrale ist das Skill-Monorepo; pro Skill wird das passende
+# Unterverzeichnis unter skills_sources/ als Template-Wurzel ausgerollt.
+#
+# Verwendung (beraterseitig):
+#   copier copy   --data skill_name=<skill> --vcs-ref HEAD <schaltzentrale> <ziel>
+#   copier update --vcs-ref HEAD <ziel>      # zieht zentrale Aenderungen verlustfrei nach
+#
+# Bewusste Entscheidung (ADR-020): KEIN Repo pro Skill (bestaetigt TICKET-275/302),
+# copier laeuft beraterseitig gegen dieses Monorepo. Details im Ticket.
+
+skill_name:
+  type: str
+  help: "Welcher Skill soll ausgerollt werden (Verzeichnisname unter skills_sources/)?"
+
+# Nur dieses Skill-Unterverzeichnis ist die Template-Wurzel.
+_subdirectory: "skills_sources/{{ skill_name }}"
+
+# Reiner Datei-Sync: nur *.jinja-Dateien werden von Jinja verarbeitet, alle
+# anderen (SKILL.md, Skripte, Templates mit {{ }} im Inhalt) 1:1 kopiert.
+_templates_suffix: ".jinja"
+
+# Nicht ausrollen: lokale Backups, Python-/Test-Artefakte, node_modules.
+_exclude:
+  - "*.bak_*"
+  - "__pycache__"
+  - "*.pyc"
+  - ".pytest_cache"
+  - "node_modules"
+  - ".git"

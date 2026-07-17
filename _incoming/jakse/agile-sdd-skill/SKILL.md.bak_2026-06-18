@@ -1,6 +1,6 @@
 ---
 name: agile-sdd
-version: 0.7
+version: 0.5
 description: Agile Spec-Driven Development mit KI-Agenten. Aktivieren wenn ein Agent eigenstaendig Software-Features implementieren soll — Ticket-Erstellung, Spec-First-Entwicklung, ADRs, Living Documentation, Governance-Log, EARS-getriebene Verifikation (Verifier-Subagent), Cost-Tracking (Token/USD pro Ticket) und kontrollierte Parallelisierung (Git Worktrees). Verwende diesen Skill wenn der User Features implementieren, Tickets bearbeiten, Architektur-Entscheidungen treffen, einen Verify-Pass starten (`/sdd-verify TICKET-NNN`) oder den Projekt-Status aktualisieren will.
 ---
 
@@ -48,31 +48,13 @@ machen jede Mutation auffindbar, begruendet und wiederholbar.
 > Spec-First-Workflow Abschnitt C), dann die Aenderung als Code/Commit fahren —
 > erst dann anwenden. Nicht „erst fixen, Ticket spaeter".
 
-> [!important] Specen impliziert Umsetzen — der Mensch reviewt ueber Anforderungen und Tests (Jakob, 2026-07-14)
->
-> Ein Ticket bleibt NICHT bei „geschrieben/spec" stehen. Wer spect, setzt um und
-> verifiziert (Verifier/Tests gruen). „Specen und auf Freigabe warten" ist der
-> Default-Fehler, nicht der sichere Weg. Innehalten NUR bei: explizitem Stopp des
-> Menschen, schwer-reversiblem Aussen-Risiko (Prod-Deploy, Geld, Kunden-Daten nach
-> aussen), oder einer echten Menschen-Entscheidung (Prioritaet, Produkt, Budget).
->
-> **Mensch-Interface = Anforderungen (EARS) + Tests/Akzeptanz.** Der Agent traegt
-> die technischen Implementierungs-Details selbst und sichert sie ueber Tests ab.
-> KEINE technischen Detail-Rueckfragen an den Menschen — technische Details kann
-> ein nicht-technischer PO mental gar nicht rekonstruieren und sie sind teuer in
-> der Zeit. Wenn eine Entscheidung wirklich noetig ist, wird sie als Anforderung/
-> Outcome formuliert (Was + Akzeptanz), nie als technisches Wie. Die
-> Qualitaetssicherung ist der TEST (der muss gut sein) plus gute Anforderungen —
-> nicht das manuelle Nachvollziehen der Technik durch den Menschen. Konsequenz:
-> viel Sorgfalt in EARS + Verifier, Technik-Entscheidungen autonom.
-
 ---
 
 ## A) Agent Bootstrap-Sequenz
 
 Beim Start jeder neuen Session oder nach Erhalt eines neuen Tasks IMMER in dieser Reihenfolge lesen:
 
-1. **`CLAUDE.md`** (Projekt-Root) — Projektkontext, Stack, Pfade, Claude-spezifische Regeln. PFLICHT. Lese- **und** Pflege-Ziel: etabliert ein Ticket eine Dauer-Regel, gehoert sie hierher (Sektion E, "CLAUDE.md — Pflege-Pflicht").
+1. **`CLAUDE.md`** (Projekt-Root) — Projektkontext, Stack, Pfade, Claude-spezifische Regeln. PFLICHT.
 2. **`docs/PROJECT_SPEC.md`** — Systemzweck, Architektur, Datenmodell, Tech-Stack. Gibt den "Was-ist-das"-Kontext.
 3. **`docs/adr/`** (alle Dateien, neueste zuerst) — Warum das System so gebaut ist wie es ist. Verhindert Wiederholung schon verworfener Alternativen.
 4. **`docs/tickets/`** (nur Status `in_progress` und `spec`) — Was gerade aktiv ist. Maximal 10 Tickets.
@@ -126,17 +108,10 @@ Jedes Ticket lebt als eigene Datei unter `docs/tickets/TICKET-NNN.md` (dreistell
 ## Was soll erreicht werden? (Business-Ziel)
 <!-- In einem Satz: Wer profitiert wie davon? -->
 
-## Akzeptanzkriterien (EARS-Format, deutsch)
-<!-- "WENN <Ausloeser/Bedingung>, SOLL <System> <Verhalten>." -->
-- [ ] WENN ..., SOLL das System ...
-- [ ] WENN ..., SOLL das System ...
-
-## Loesungs-Skizze (Approach)
-<!-- SKILL-019: Pflicht ab Aufwand M/L/XL, optional bei XS/S. 3-6 Zeilen.
-     - Gewaehlter Ansatz: ...
-     - Verworfene Alternative(n): ...
-     - Betroffene Module: ...
-     Bei Architektur-Weiche stattdessen auf ADR-NNN verweisen, nicht doppeln. -->
+## Akzeptanzkriterien (EARS-Format)
+<!-- "When [Bedingung], the system shall [Aktion]." -->
+- [ ] When ..., the system shall ...
+- [ ] When ..., the system shall ...
 
 ## Technische Hinweise
 <!-- Nur wenn relevant: Pfade, APIs, Abhaengigkeiten, Risiken -->
@@ -144,41 +119,9 @@ Jedes Ticket lebt als eigene Datei unter `docs/tickets/TICKET-NNN.md` (dreistell
 ## Code-Referenzen
 <!-- Dateien/Funktionen die betroffen sind -->
 
-## Spec-Delta
-<!-- SKILL-018: NUR wenn dieses Ticket PROJECT_SPEC.md (oder eine andere
-     Spec-Datei) veraendert — sonst Block weglassen.
-     - Vorher: <was die Spec bisher sagte>
-     - Nachher: <was sie jetzt sagt>
-     - Anlass: <warum>
-     Beim done-Schritt im CHANGELOG ### Technical referenzieren. -->
-
 ## Ergebnis / Notizen
 <!-- Wird vom Agenten beim Abschliessen befuellt -->
 ```
-
-### EARS-Schema auf Deutsch (SKILL-074)
-
-Akzeptanzkriterien werden auf **Deutsch** geschrieben. Grundform:
-
-```
-WENN <Ausloeser/Bedingung>, SOLL <System> <Verhalten>.
-```
-
-Die fuenf EARS-Varianten, kurz:
-
-| Variante | Schema |
-|---|---|
-| Ubiquitous | "Das System SOLL <Verhalten>." |
-| Event-driven | "WENN <Ausloeser>, SOLL <System> <Verhalten>." |
-| State-driven | "SOLANGE <Zustand>, SOLL <System> <Verhalten>." |
-| Unwanted behaviour | "FALLS <unerwuenschte Bedingung>, SOLL <System> <Verhalten>." |
-| Optional feature | "WO <Feature vorhanden>, SOLL <System> <Verhalten>." |
-
-**Bestandsschutz:** Aeltere Tickets tragen das englische Original-Schema
-("When [Bedingung], the system shall [Aktion]."). Diese Tickets werden NICHT
-umgeschrieben (append-only-Historie, kein Massen-Rewrite); der Verifier
-akzeptiert beide Formen gleichwertig (siehe `verifier/VERIFIER.md`). Neue
-Tickets schreiben ausschliesslich das deutsche Schema.
 
 ### Status-Flow
 
@@ -248,11 +191,6 @@ das Projekt sie hat** (Opt-in: greift nur wenn die Worker-Module existieren):
 2. `python -m workers.project_overview_generator` — re-generiert
    `docs/PROJECT_OVERVIEW.html` (Vision + Prinzip-Karten + Feature-Mapping +
    Live-DB-Stats). Standalone-HTML, oeffnet auch ohne Backend im Browser.
-3. `python -m workers.traceability_generator` — re-generiert
-   `docs/TRACEABILITY.md`, die Requirement→Test→Code→Verify-Matrix (SKILL-017,
-   Sektion **F.7**). Aggregiert NUR vorhandene Artefakte (EARS-IDs aus Tickets,
-   `test_ears_N`-Tests, `# TICKET-NNN`-Code-Marker, Verify-Report-Status) — keine
-   neue Datenquelle. Opt-in: greift nur wenn das Projekt den Generator hat.
 
 Implementer-Bericht enthaelt die HTML-Update-Bestaetigung als Pflicht-Zeile
 (z.B. "Feature-Map + Projekt-Uebersicht regeneriert: 47 done-Tickets,
@@ -260,13 +198,11 @@ HTML-Datei aktualisiert"). Bei Fehlern: nicht das `done` blocken, aber im
 Bericht klar als WARN markieren — die Generatoren sind best-effort.
 
 Pruefung am Bootstrap (`A.8` Verify-Status): Wenn `docs/PROJECT_VISION.md`
-existiert UND es done-Tickets gibt aber `docs/FEATURE_MAP.md`,
-`docs/PROJECT_OVERVIEW.html` oder `docs/TRACEABILITY.md` (SKILL-017) fehlen /
-aelter als das juengste done-Ticket sind, schlaegt der Agent dem User aktiv vor,
-die entsprechenden Generatoren einmal zu laufen. (Der TRACEABILITY-Frische-Check
-greift auch ohne PROJECT_VISION.md, sobald done-Tickets existieren.) Strict-Mode
-(Hard-Block) ist nicht vorgesehen — die Datei-Pflege darf nie die eigentliche
-Ticket-Arbeit blockieren.
+existiert UND es done-Tickets gibt aber `docs/FEATURE_MAP.md` oder
+`docs/PROJECT_OVERVIEW.html` fehlen / aelter als das juengste done-Ticket
+sind, schlaegt der Agent dem User aktiv vor, die beiden Generatoren einmal
+zu laufen. Strict-Mode (Hard-Block) ist nicht vorgesehen — die Datei-Pflege
+darf nie das eigentliche Ticket-Arbeit blockieren.
 
 ### Implementer-Briefing-Standards (Pflicht-Bloecke pro Subagent)
 
@@ -284,40 +220,6 @@ Briefings kopiert werden. Default-Auswahl:
 
 Operator-Templates (`operator-templates` Skill) referenzieren diese Datei
 in ihren Briefing-Bloecken — siehe deren SKILL.md "MCP/API-Schema-Hinweis".
-
-### Implementer-Default: Subagent im Hintergrund (SKILL-073)
-
-> [!important] Tickets werden GRUNDSAETZLICH zuerst als Subagent-Umsetzung im Hintergrund versucht (Jakob, 2026-07-15)
->
-> Die Umsetzung eines gespecten Tickets laeuft per Default als
-> **Implementer-Subagent mit `run_in_background`**, nicht im Hauptkontext.
-> Das erlaubt Parallelisierung (mehrere Tickets mit disjunkten Datei-Sets
-> gleichzeitig) und senkt die Durchlaufzeit. Der Hauptagent bleibt
-> **Koordinator**: er brieft (Pflicht-Bloecke aus
-> `templates/IMPLEMENTER_BRIEFING_STANDARDS.md`), prueft vor dem Spawn die
-> Datei-Set-Disjunktheit nach Sektion **J**, sammelt die Ergebnisse ein und
-> stoesst den Verify-Pass an.
-
-**Ausnahmen (Ticket wird direkt im Hauptkontext bearbeitet):**
-
-1. **Hello-/op-/ssh-gegatete Schritte** (1Password-Bestaetigung, SSH-Agent,
-   interaktive Auth): der Subagent kann das Gate nicht bedienen.
-2. **Prod-Deploys** und andere schwer-reversible Aussen-Wirkung (Sektion 0 /
-   L.2 STOPP-Faelle greifen ohnehin).
-3. **Ueberlappende Datei-Sets** zu bereits laufender Arbeit (Sektion J):
-   dann sequenziell im Hauptkontext oder warten.
-4. **Winzige XS-Edits**, bei denen der Spawn-Overhead groesser ist als der
-   Nutzen (Einzeiler, Typo, eine Config-Zeile).
-5. **Schritte mit Mensch-Interaktion** (Rueckfrage laut STOPP-Liste,
-   PO-Abnahme, manuelle Bestaetigung noetig).
-
-**Konfliktregel geteilte Dateien (4x praktisch erprobt, 2026-07-15):**
-Subagents schreiben NICHT parallel in geteilte Dateien, insbesondere
-`docs/governance_log.md`, `CLAUDE.md` und `docs/PROJECT_SPEC.md`. Der
-Subagent liefert seine Eintraege (Governance-Log-Eintrag, CHANGELOG-Zeile,
-Spec-Delta) als **Textblock im Abschluss-Bericht**; der Hauptagent appended
-sie zentral. So bleiben die geteilten Dateien konfliktfrei, auch wenn
-mehrere Subagents gleichzeitig fertig werden.
 
 ### Code-Referenz-Pattern
 
@@ -341,52 +243,6 @@ Bei mehreren Tickets in einem Commit:
 [TICKET-041][TICKET-042] Status-Dropdown + Ampel-Farben
 ```
 
-### Loesungs-Skizze-Block (Design-Phase light) — SKILL-019
-
-Zwischen `## Akzeptanzkriterien` und Code fehlt sonst ein festgehaltener
-Design-Schritt. Kiro/spec-kit haben dafuer eine eigene **Design-Phase**
-(`Requirements → Design → Tasks`); wir holen das leichtgewichtig als
-ticket-lokalen Block nach — gegen die **Cognitive Debt** (ThoughtWorks v34: KI
-baut, Mensch versteht das "wie" nicht mehr).
-
-- **Pflicht ab Aufwand `M`/`L`/`XL`:** Bevor ein solches Ticket nach
-  `in_progress` wechselt, wird der `## Loesungs-Skizze (Approach)`-Block mit
-  (1) gewaehltem Ansatz, (2) mind. einer **verworfenen Alternative** und
-  (3) **betroffenen Modulen** ausgefuellt (3–6 Zeilen genuegen).
-- **Optional bei `XS`/`S`:** Trivial-Tickets brauchen den Block nicht — kein
-  Overhead.
-- **Status-Gate (weich):** Fehlt der Block bei einem M/L/XL-Ticket beim Wechsel
-  nach `in_progress`, gibt der Agent einen Hinweis aus ("Loesungs-Skizze fehlt —
-  bei M/L/XL erwartet"). Default ist **Warning**; Hard-Block nur bei
-  `docs/sdd-config.yaml: approach_block_required_for_ML: true`.
-- **Abgrenzung zu ADR (Sektion D):** Der Approach-Block ist das **ticket-lokale,
-  vergaengliche "wie"**. Beruehrt der gewaehlte Weg eine **projektweite
-  Architektur-Weiche** (ADR-Kriterium), wird im Block auf das ADR verwiesen statt
-  die Entscheidung doppelt auszuformulieren — kein Doppel-Dokument.
-- **Konsistenz:** Die "betroffene Module"-Angabe kuendigt an, was die spaeteren
-  `## Code-Referenzen` belegen — so weiss eine KI in einer neuen Session vorab,
-  **wo im Code einzugreifen ist**, und welche Alternative schon verworfen wurde.
-
-### Spec-Delta-Block (Brownfield-Nachvollziehbarkeit) — SKILL-018
-
-`PROJECT_SPEC.md` wird **waehrend** der Implementierung aktualisiert (Sektion C).
-Damit die konkrete Aenderung nicht in der Git-History verschwindet, fuehrt jedes
-Ticket mit Spec-Touch einen `## Spec-Delta`-Block:
-
-- **Pflicht bei Spec-Touch:** Veraendert das Ticket `PROJECT_SPEC.md` (oder eine
-  andere Spec-Datei), wird der Block mit **Vorher / Nachher / Anlass** ausgefuellt
-  (Kurzfassung, kein Voll-Diff).
-- **Weglassbar sonst:** Ohne Spec-Touch entfaellt der Block — kein leerer
-  Pflicht-Block.
-- **CHANGELOG-Kopplung:** Beim Uebergang nach `done` wird der Spec-Delta-Verweis
-  im CHANGELOG `### Technical` referenziert
-  (`[TICKET-NNN] Spec-Delta: <Kurzfassung>`).
-- **Governance bleibt:** Der Block **ergaenzt** die bestehende Governance-Log-
-  Pflicht "Jede Aenderung an PROJECT_SPEC.md" (Sektion I), ersetzt sie nicht.
-- **Bewusst leichtgewichtig:** Delta-Notiz **im Ticket**, KEIN separates
-  Delta-File pro Ticket und kein `propose/apply/archive`-Workflow wie OpenSpec —
-  das waere fuer dieses Setup Over-Engineering.
-
 ---
 
 ## C) Spec-First-Workflow
@@ -396,10 +252,7 @@ Vor dem Schreiben von neuem Code:
 1. Pruefen ob `docs/PROJECT_SPEC.md` existiert und aktuell ist.
 2. Wenn neue Architektur-Entscheidung noetig: ADR anlegen (Abschnitt D).
 3. Ticket auf Status `spec` setzen und alle Akzeptanzkriterien vollstaendig formulieren.
-4. Bei Aufwand `M`/`L`/`XL`: `## Loesungs-Skizze (Approach)`-Block im Ticket
-   ausfuellen, bevor der Status auf `in_progress` geht (Design-Phase light,
-   SKILL-019 — Details in Sektion B "Loesungs-Skizze").
-5. Erst dann mit Implementierung beginnen.
+4. Erst dann mit Implementierung beginnen.
 
 ### PROJECT_SPEC.md Pflichtinhalt
 
@@ -428,12 +281,7 @@ Vor dem Schreiben von neuem Code:
 <!-- YYYY-MM-DD, Anlass -->
 ```
 
-Die Spec wird **waehrend** der Implementierung aktualisiert, nie nachtraeglich in
-einer separaten Session. **Jede Spec-Aenderung wird zusaetzlich im
-`## Spec-Delta`-Block des ausloesenden Tickets als Vorher/Nachher-Kurzfassung
-festgehalten** (SKILL-018, Brownfield-Nachvollziehbarkeit) — so verschwindet die
-Aenderung nicht in der Git-History, sondern bleibt ticket-lokal auffindbar.
-Details: Sektion B "Spec-Delta-Block".
+Die Spec wird **waehrend** der Implementierung aktualisiert, nie nachtraeglich in einer separaten Session.
 
 ---
 
@@ -442,13 +290,6 @@ Details: Sektion B "Spec-Delta-Block".
 Format: MADR (Markdown Any Decision Records) — schlankes Format, listet Alternativen explizit.
 
 Ablage: `docs/adr/ADR-NNN-kurztitel.md` (dreistellig, Kebab-Case-Titel).
-
-> [!info] ADR vs. Loesungs-Skizze-Block (SKILL-019)
-> Ein **ADR** haelt eine **projektweite, immutable Architektur-Weiche** fest
-> (eigenes File, Status-Flow). Der **`## Loesungs-Skizze (Approach)`-Block** im
-> Ticket (Sektion B) ist das **ticket-lokale, vergaengliche "wie"** eines
-> einzelnen Tickets. Beruehrt eine Loesungs-Skizze eine Architektur-Weiche →
-> ADR anlegen und im Block darauf verweisen, nicht beides ausformulieren.
 
 ### Wann ein ADR anlegen
 
@@ -477,44 +318,6 @@ Ausnahme: Entscheidungen die externe Kosten erzeugen (neue bezahlte APIs, Cloud-
 
 ## E) Living Documentation
 
-### CLAUDE.md (Projekt-Kontext, lebend) — Pflege-Pflicht, nicht nur Lese-Pflicht
-
-Die `CLAUDE.md` ist nicht nur Bootstrap-**Lese**-Datei (Sektion A), sondern ein
-**lebendes Pflege-Ziel**. Jede dauerhafte, sessionuebergreifend geltende Regel, die
-ein Ticket etabliert, gehoert **im selben Ticket** als praegnanter Block hinein —
-sonst geht der Kontext beim naechsten Bootstrap verloren und der User muss ihn
-wiederholen. Der haeufigste Skill-Fehler ist, die CLAUDE.md NICHT anzufassen, weil
-sie als "heikle geteilte Datei" wahrgenommen wird; das ist falsch — sie zu pflegen
-ist Routine, genau wie die CHANGELOG-Zeile.
-
-**Was in die CLAUDE.md gehoert (wenn ein Ticket es etabliert):**
-- **Neue verbindliche Konvention** (z.B. "Rollout NUR via `deploy.ps1`", "Brand-Werte
-  NUR aus `branding.env`") — als `## Konvention: <Titel>`-Block.
-- **Verbindlicher Pfad / Command / Gate** (Skript, Runbook, Pflicht-Test vor `done`).
-- **Gotcha / Known-Failure in Kurzform** — eine Falle, die kuenftige Sessions kennen
-  muessen ("X bricht Y, deshalb immer Z"). Die Langfassung bleibt im Ticket bzw. in
-  `developer_notes/`.
-- **Pointer auf eine Architektur-Weiche** — die geltende Regel + `ADR-NNN`-Verweis,
-  NICHT das ADR nacherzaehlen.
-
-**Wann:** beim `done`-Uebergang des etablierenden Tickets — **Teil der Definition of
-Done**, genau wie die CHANGELOG-Zeile. Pruef-Frage beim Abschluss JEDES Tickets:
-*"Etabliert dieses Ticket eine Regel, die eine kuenftige Session ohne Ticket-Historie
-kennen muss?"* → wenn ja, CLAUDE.md-Block im selben Zug. (Im Subagent-Fall als
-Textblock im Abschluss-Bericht liefern; der Hauptagent appended — Konfliktregel
-Sektion B, damit geteilte Dateien konfliktfrei bleiben.)
-
-**Was NICHT in die CLAUDE.md gehoert:** ticket-lokale Details (bleiben im Ticket),
-vergaengliche Debug-Notizen (`developer_notes/`), die Vision (PO/Jakob, Append-only).
-CLAUDE.md bleibt **lean und praegnant** (Anthropic-Guidance, RESEARCH.md): geltende
-Regeln, keine Historie — eine abgeloeste Regel wird ersetzt, nicht gestapelt.
-
-> [!info] Abgrenzung zu DEF-001 (Auto-Memory, geparkt)
-> Dies ist **kein** autonomes In-Session-Memory (DEF-001): Es schreibt nicht jede
-> Erkenntnis selbsttaetig weg, sondern koppelt die CLAUDE.md-Pflege **deterministisch
-> an den Ticket-Abschluss** — wie CHANGELOG/ROADMAP. Ticket-gebunden, nachvollziehbar,
-> kein Black-Box-Verhalten.
-
 ### CHANGELOG.md
 
 Zwei Sektionen pro Release-Eintrag:
@@ -524,7 +327,6 @@ Zwei Sektionen pro Release-Eintrag:
 
 ### Technical
 - [TICKET-NNN] Was wurde implementiert (Pfad/Komponente)
-- [TICKET-NNN] Spec-Delta: <Kurzfassung der PROJECT_SPEC-Aenderung> (nur bei Spec-Touch, SKILL-018)
 - [TICKET-NNN] ...
 
 ### User-Facing
@@ -532,9 +334,7 @@ Zwei Sektionen pro Release-Eintrag:
 - Keine technischen Details, keine Dateinamen
 ```
 
-Wird nach jedem abgeschlossenen Ticket (Status `done`) aktualisiert. Nicht
-gesammelt am Ende. Hat ein Ticket einen `## Spec-Delta`-Block (SKILL-018), wird
-dessen Kurzfassung als eigene `### Technical`-Zeile referenziert.
+Wird nach jedem abgeschlossenen Ticket (Status `done`) aktualisiert. Nicht gesammelt am Ende.
 
 ### ROADMAP.md
 
@@ -552,13 +352,6 @@ Format: Now / Next / Later. Keine langen Beschreibungen.
 ```
 
 Wird vom Agenten nach jedem Sprint-Abschluss oder auf Jakobs Anfrage aktualisiert.
-
-### docs/TRACEABILITY.md (SKILL-017)
-
-Lebende Requirement→Test→Code→Verify-Matrix, beim done-Hook regeneriert
-(Sektion B + **F.7**). Aggregiert vorhandene Artefakte, keine Hand-Pflege.
-Zeigt auf einen Blick ungetestete EARS-Saetze, nicht-gruene Tests, verwaiste
-Code-Pfade und Tickets ohne Verify-Report. Template: `templates/TRACEABILITY.md`.
 
 ### docs/developer_notes/
 
@@ -783,54 +576,6 @@ Optionale Standard-Felder (empfohlen ab TICKET-005):
 Vollstaendige Begruendung, Tooling-Vergleich, Confounder-Analyse:
 [[Researcher/jakob/spec-driven-development/recherche/2026-05-21_Token_Tracking_pro_Ticket]].
 
-### F.7 Traceability-Matrix (`docs/TRACEABILITY.md`) — SKILL-017
-
-Die Traceability-Matrix fuehrt pro EARS-Akzeptanzkriterium die Kette
-**Requirement → Test → Code → Verify-Status** in **einer** abfragbaren Datei
-zusammen. Sie ist der industrielle Kern-Hebel fuer messbare Doku-Qualitaet (RTM,
-Six Sigma / Ketryx) und beantwortet einer KI in einer neuen Session auf einen
-Blick: *Welcher EARS-Satz hat keinen Test? Welcher Test ist nicht gruen? Wo im
-Code liegt die Implementierung? Welches Ticket steht ohne Verify-Report?* — ohne
-dass der gesamte Code interpretiert werden muss.
-
-> [!important] Reine Aggregation — keine neue Datenquelle
-> Die Matrix baut AUSSCHLIESSLICH auf bereits vorhandenen Artefakten auf:
-> EARS-Saetze aus den Tickets, `test_ears_N`-/`test_ticket_NNN_*`-Tests,
-> `# TICKET-NNN`-Code-Marker (Code-Referenz-Pattern, Sektion B) und der
-> `verify_status` aus den Verify-Reports. Es entsteht keine Pflege-Last neben dem
-> bestehenden Workflow — nur eine Zusammenfuehrung.
-
-#### Zeilen-Schema (eine Zeile pro EARS-Satz)
-
-| EARS-ID | Ticket | Test-Name | Code-Referenz | Verify-Status |
-|---|---|---|---|---|
-| EARS-1 | TICKET-042 | `tests/test_ticket_042.py::test_ears_1_dropdown` | `frontend/app/property.tsx:88-104` | pass |
-| EARS-2 | TICKET-042 | `⚠ kein Test` | `api/main.py:210-225` | partial |
-
-#### Markierungs-Regeln
-
-- **Kein zugeordneter Test** (`test_ears_N` / `test_ticket_NNN_*` nicht
-  gefunden) → Test-Spalte traegt `⚠ kein Test`.
-- **Verify-Report `fail`/`partial`** → Status-Spalte spiegelt diesen Status
-  (statt `pass`).
-- **Kein Verify-Report fuer das Ticket vorhanden** → Status-Spalte traegt
-  `⚠ kein Verify-Report` (komplementaer zum harten Verify-Gate aus SKILL-016).
-- **Keine `# TICKET-NNN`-Code-Referenz auffindbar** → Code-Spalte traegt
-  `⚠ Code-Referenz fehlt` (verwaister/nicht markierter Pfad).
-
-#### Generator + Best-effort-Charakter
-
-- Aufruf im done-Hook (Sektion B): `python -m workers.traceability_generator`.
-- **Best-effort wie FEATURE_MAP:** ein Fehler blockt NIE das `done` — er wird im
-  Implementer-Bericht als WARN markiert.
-- Wo ein Projekt (noch) keinen deterministischen Generator hat, ist die Matrix
-  agentisch pflegbar (LLM liest Tickets + Tests + Verify-Reports und fuellt
-  `docs/TRACEABILITY.md` nach `templates/TRACEABILITY.md`). Ein projekt-lokaler
-  `traceability_generator.py` ist das Lift-and-Shift-Ziel (analog
-  feature_map_generator) — kein Skill-Kern.
-
-Template: `templates/TRACEABILITY.md`.
-
 ---
 
 ## G) Monitoring und Betrieb
@@ -925,19 +670,10 @@ Wenn Jakob eine Entscheidung bestaetigt: `**Review:** bestaetigt YYYY-MM-DD` ein
 
 ## J) Parallelisierung (Git Worktrees)
 
-### Default: sequenziell (Worktrees), Hintergrund-Subagents sind der Standard-Weg
+### Default: sequenziell
 
-**Worktree-Parallelisierung** (eigene Branches + Verzeichnisse, dieser
-Abschnitt) ist ein bewusster Ausnahmefall, kein Default: Tickets werden auf
-Branch-Ebene **standardmaessig sequenziell** abgearbeitet.
-
-Davon getrennt gilt der leichtgewichtige Default aus Sektion B
-(**SKILL-073**): die Umsetzung eines einzelnen Tickets laeuft grundsaetzlich
-als **Implementer-Subagent im Hintergrund** (`run_in_background`) im selben
-Arbeitsverzeichnis. Mehrere Hintergrund-Subagents duerfen parallel laufen,
-wenn ihre Datei-Sets disjunkt sind (Pflicht-Check unten) und keine Ausnahme
-aus Sektion B greift; geteilte Dateien (governance_log, CLAUDE.md,
-PROJECT_SPEC) appended ausschliesslich der koordinierende Hauptagent.
+Tickets werden **standardmaessig sequenziell** abgearbeitet. Parallelisierung ist
+ein bewusster Ausnahmefall, kein Default.
 
 ### Erlaubt: max. 2-3 Worktrees, nur bei disjunkten Datei-Sets
 
@@ -1077,164 +813,6 @@ nicht geloescht). Default ist **archivieren, nicht loeschen**.
 
 ---
 
-## L) Default-Entscheidungs-Regel (statt Rueckfrage)
-
-> [!important] „Mein meistgenutzter Move ist 'rueckfragen, was er empfehlen wuerde'." (Jakob, 2026-06-18)
->
-> Rueckfragen sind Reibung, nicht Service. Der Agent **entscheidet selbst
-> und dokumentiert**, wo immer er es verantworten kann — er fragt nur, wo
-> die STOPP-Liste es verlangt. Dieses Prinzip ergaenzt Sektion 0
-> (Governance-Grundregel "Kein Fix ohne Ticket und Code") — Ticket-/Code-
-> Pflicht bleibt; was sich aendert ist die Entscheidungs-Schwelle, ob
-> vorher zurueckgefragt wird.
-
-### L.1 MUST-Regel: Agent entscheidet selbst, wenn ALLE Punkte zutreffen
-
-Der Agent **entscheidet eigenstaendig und dokumentiert die Entscheidung im
-`docs/governance_log.md`** (Format Sektion I, `Review: ausstehend`), wenn
-alle folgenden Punkte zutreffen:
-
-1. **Reversibel** — Code-Aenderung, additives Schema, neue Datei, neue
-   Konfig-Default-Wert. Kein irreversibler Datenverlust, kein
-   History-Rewrite.
-2. **Kein externer Kosten-Trigger** — keine bezahlte API wird neu
-   angesprochen, keine Cloud-Ressource erzeugt, keine kostenpflichtige
-   Dependency installiert.
-3. **Keine Outbound-Kommunikation an Dritte** — keine Mail, keine
-   WhatsApp/Trello/Webhook-Schreibvorgaenge nach aussen.
-4. **Vision-konform ableitbar** — entweder deckt ein Prinzip in
-   `docs/PROJECT_VISION.md` die Entscheidung, oder die Frage ist operativ
-   neutral (z.B. Default-Wert fuer Pagination, Format einer Log-Zeile,
-   Datei-Namens-Konvention).
-5. **Keine Vermischung mit Architektur** — Architektur-Entscheidungen
-   (neuer Service, neue DB, Tech-Stack-Wechsel) brauchen IMMER ein ADR +
-   Rueckfrage, nie eine stille autonome Setzung.
-
-Sind alle Punkte erfuellt: **entscheiden, dokumentieren, weiterarbeiten**.
-Nicht fragen.
-
-### L.2 Hartes STOPP — Agent fragt IMMER zuerst
-
-Diese sechs Faelle ueberstimmen L.1 immer. Bei JEDEM Treffer wird vor der
-Aktion zurueckgefragt:
-
-1. **Destruktive Operationen** — `DROP`, `DELETE`, `rm -rf`, Force-Push,
-   History-Rewrite, Branch-Loeschungen, irreversibles Aufraeumen.
-2. **Outbound-Kommunikation an Dritte** — Mail/WhatsApp/Trello-Schreiben/
-   Webhook-Call an externe Empfaenger. (Lesen ist OK, Schreiben braucht
-   Bestaetigung.)
-3. **Neue bezahlte Dependencies** — API-Key-Setup, Cloud-Resourcen-Erzeugung,
-   Subscription-Aktivierung.
-4. **Vision-relevante Architektur** — neuer Service, neue DB, Tech-Stack-
-   Wechsel, neue ADR. Architektur ist nie autonom.
-5. **Verifikations-Fehler** — siehe `feedback_workflow_hard_failure`:
-   wenn ein vorgelagerter Schritt nicht eindeutig erfolgreich war,
-   STOPPEN. Niemals durch eine autonome Entscheidung "drueber weg".
-6. **Direkte DB-Mutation ohne reproduzierbares Skript** — `UPDATE`/`cancel`/
-   Status-Setzen aus der Konsole. Greift Sektion 0: zuerst Ticket + Skript,
-   dann anwenden.
-
-### L.3 Dokumentations-Pflicht
-
-Jede autonom getroffene Entscheidung nach L.1 bekommt einen Eintrag in
-`docs/governance_log.md` mit:
-
-- Datum + Kurzbeschreibung
-- Ticket-Referenz (oder "kein Ticket — operativ neutral")
-- Begruendung, welcher L.1-Punkt warum erfuellt war
-- Liste betroffener Dateien
-- `Review: ausstehend` (Jakob reviewt asynchron, nicht synchron)
-
-So bleibt jede Entscheidung **auffindbar**, ohne dass sie den Flow
-unterbricht.
-
-### L.4 Anti-Pattern (verboten)
-
-- "Soll ich X oder Y machen?" wenn beide reversibel + vision-konform sind →
-  Agent entscheidet selbst (L.1).
-- "Magst du das so?" nach einer reversiblen Default-Setzung → ueberfluessig,
-  governance_log reicht.
-- Stille Mutation OHNE governance_log-Eintrag → verletzt L.3 und Sektion 0.
-
-### L.5 Verweis auf 2-Wochen-Plan
-
-Voice-Mode-Detection und Vision-Drift-Counter (Bestaetigungsfragen pro
-Session zaehlen, `/po-reconcile` empfehlen) sind aktuell OUT-OF-SCOPE. Sie
-werden in ca. 2 Wochen separat als SKILL-Tickets evaluiert. Sourcedoku:
-`skill_dev/proposals/2026-06-18_sdd_default_decision_plus_voice_mode.md`
-(Vorschlaege 3 + 4).
-
----
-
-## M) Antwort-Pattern „Empfehlungs-First"
-
-> [!important] Empfehlungs-First statt Optionen-Liste
->
-> Bei jeder echten Wahlsituation, in der eine Rueckfrage doch noetig ist
-> (Sektion L.2 greift, oder die Vision deckt die Frage wirklich nicht ab),
-> **liefert der Agent zuerst eine klare Empfehlung mit Begruendung und
-> Trade-off** — nicht eine neutrale 3-Option-Tabelle, die der User wieder
-> bewerten soll.
-
-### M.1 Pflicht-Format
-
-```
-Empfehlung: <eine Zeile, klare Aktion>
-Warum: <2-3 Saetze Begruendung, Bezug zu Vision-Prinzip / Memory / Live-Beleg>
-Trade-off: <1 Satz: was du dafuer aufgibst>
-[optional, nur auf Nachfrage] Alternativen: A | B | C
-```
-
-Konkretes Beispiel (gut):
-
-```
-Empfehlung: Migrate die DB-Datei jetzt mit additivem ALTER TABLE.
-Warum: TICKET-NNN braucht das Feld, ALTER ist reversibel + vision-konform
-  (Prinzip "additive Schema-Aenderungen"). Memory feedback_api_schema_pflicht
-  greift — Endpoints werden im selben Commit erweitert.
-Trade-off: 1 zusaetzlicher Deploy-Schritt fuer Bestands-DB; akzeptabel.
-```
-
-Konkretes Anti-Beispiel (verboten als Default):
-
-```
-Es gibt drei Optionen fuer die DB-Migration:
-1. ALTER TABLE additiv
-2. Neue Tabelle + View
-3. JSON-Spalte als Beifang
-Welche bevorzugst du?
-```
-
-### M.2 Anti-Pattern (explizit verboten als Default-Output)
-
-- **3-Option-Tabellen ohne Empfehlung.** Tabellen sind erlaubt **nach** der
-  Empfehlung als optionale Vertiefung — nie als Default-Output.
-- **"Welche bevorzugst du?"-Fragen** ohne dass eine Empfehlung vorausging.
-- **"Soll ich X oder Y?"-Auswahl** — der Agent waehlt, der User korrigiert
-  bei Bedarf.
-- **Neutrale Listen** ("hier sind ein paar Ideen, was meinst du?") ohne
-  klare Wertung.
-
-### M.3 Selbst-Check (Skill-Regel)
-
-Vor dem Senden: **Wenn die geplante Antwort > 2 gleichgewichtete Optionen
-enthaelt, ohne dass eine empfohlen ist → Antwort umschreiben.** Empfehlung
-zuerst, Alternativen nur auf Nachfrage.
-
-### M.4 Verhaeltnis zu Sektion L
-
-- Wenn L.1 greift: gar nicht erst fragen — entscheiden + governance_log.
-- Wenn L.2 (STOPP) greift: fragen, aber im Format M.1 (Empfehlungs-First).
-- Wenn unklar ist, ob L.1 oder L.2 greift: M.1-Format + STOPP-Reflex
-  bevorzugen (Sicherheits-Default).
-
-### M.5 Verweis auf 2-Wochen-Plan
-
-Antwort-Profil-Differenzierung nach Voice-/Text-Mode (Vorschlag 3 der
-Sourcedoku) ist aktuell OUT-OF-SCOPE und wird in ca. 2 Wochen evaluiert.
-
----
-
 ## Templates-Referenz
 
 | Template | Pfad | Verwenden fuer |
@@ -1247,7 +825,6 @@ Sourcedoku) ist aktuell OUT-OF-SCOPE und wird in ca. 2 Wochen evaluiert.
 | Sprint Summary | `templates/SPRINT_SUMMARY.md` | Sprint abschliessen |
 | Runbook | `templates/RUNBOOK.md` | Service-Runbook anlegen |
 | Verify-Report | `templates/verify-report.md` | Output-Schema des Verifier-Subagents (Pflicht-Format) |
-| Traceability-Matrix | `templates/TRACEABILITY.md` | Requirement→Test→Code→Verify-Matrix (SKILL-017, F.7) |
 | SDD-Config (Beispiel) | `templates/sdd-config.yaml.example` | Vorlage fuer `docs/sdd-config.yaml` pro Projekt |
 | Implementer-Briefing-Standards | `templates/IMPLEMENTER_BRIEFING_STANDARDS.md` | Wiederverwendbare Pflicht-Bloecke (API-Schema-Mitdenken, Hygiene, Skill-Code-Pfad) fuer jeden Implementer-Subagent-Prompt |
 
@@ -1268,8 +845,7 @@ Folgende Zeilen in die CLAUDE.md des Projekts einfuegen um den Skill zu aktivier
 Aktiv. Bootstrap-Sequenz: CLAUDE.md → docs/PROJECT_SPEC.md → docs/adr/ → docs/tickets/ → ROADMAP.md → CHANGELOG.md → docs/governance_log.md → Verify-Status (review-Tickets ohne Report?) → Parallelisierungs-Check
 Tickets: docs/tickets/TICKET-NNN.md | ADRs: docs/adr/ADR-NNN-titel.md | Governance: docs/governance_log.md
 Verifier: docs/tickets/verify/TICKET-NNN-verify-YYYY-MM-DD.md (Pflicht-Pass vor `done`, Aufruf: `/sdd-verify TICKET-NNN`)
-SDD-Config: docs/sdd-config.yaml (test_command, health_check, ticket_path, verify_report_path, manual_verify_required: ui_only|true|false, approach_block_required_for_ML: false)
-Doku-Artefakte (lebend): CLAUDE.md (Dauer-Regeln/Konventionen bei done, Pflege-Pflicht, SKILL-075) | docs/TRACEABILITY.md (Req→Test→Code→Verify, done-Hook, SKILL-017) | Ticket-Bloecke: ## Loesungs-Skizze (M/L/XL, SKILL-019) + ## Spec-Delta (bei Spec-Touch, SKILL-018)
+SDD-Config: docs/sdd-config.yaml (test_command, health_check, ticket_path, verify_report_path, manual_verify_required: ui_only|true|false)
 KI-Autonomie: voll — alle Entscheidungen ins Governance-Log, Jakob reviewed asynchron. PO-Abnahme: Klick-Anleitung im Verify-Report nur fuer UI-EARS (Default `ui_only`), Jakob setzt `po_acceptance: confirmed|rejected|not_required`. Backend-EARS = automatisch via Verifier-Output.
 ```
 

@@ -25,10 +25,7 @@ Anschliessend in dieser Reihenfolge handeln:
 2. **Test-Output sammeln:** `<test_command>` aus `sdd-config.yaml` ausfuehren.
 3. **Health-Check (falls definiert):** `<health_check>` ausfuehren.
 4. **Pruefen:** pro EARS-Satz Implementierung + Test + Pass/Fail-Status laut
-   Pruefungs-Algorithmus. Matching-Hinweis (SKILL-074): EARS-Saetze koennen im
-   deutschen Schema ("WENN ..., SOLL das System ...") ODER im aelteren
-   englischen Schema ("When ..., the system shall ...") stehen; beide Formen
-   gleichwertig akzeptieren, Bestands-Tickets nicht umschreiben.
+   Pruefungs-Algorithmus.
 5. **Report schreiben:** strikt nach Template. Die "Manuelle PO-Abnahme"-Sektion
    richtet sich nach `manual_verify_required` aus `sdd-config.yaml` (Default
    `ui_only` = Klick-Anleitung nur fuer UI-EARS, Backend-EARS automatisch

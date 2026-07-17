@@ -1,6 +1,6 @@
 ---
 name: agile-sdd
-version: 0.7
+version: 0.6
 description: Agile Spec-Driven Development mit KI-Agenten. Aktivieren wenn ein Agent eigenstaendig Software-Features implementieren soll — Ticket-Erstellung, Spec-First-Entwicklung, ADRs, Living Documentation, Governance-Log, EARS-getriebene Verifikation (Verifier-Subagent), Cost-Tracking (Token/USD pro Ticket) und kontrollierte Parallelisierung (Git Worktrees). Verwende diesen Skill wenn der User Features implementieren, Tickets bearbeiten, Architektur-Entscheidungen treffen, einen Verify-Pass starten (`/sdd-verify TICKET-NNN`) oder den Projekt-Status aktualisieren will.
 ---
 
@@ -48,31 +48,13 @@ machen jede Mutation auffindbar, begruendet und wiederholbar.
 > Spec-First-Workflow Abschnitt C), dann die Aenderung als Code/Commit fahren —
 > erst dann anwenden. Nicht „erst fixen, Ticket spaeter".
 
-> [!important] Specen impliziert Umsetzen — der Mensch reviewt ueber Anforderungen und Tests (Jakob, 2026-07-14)
->
-> Ein Ticket bleibt NICHT bei „geschrieben/spec" stehen. Wer spect, setzt um und
-> verifiziert (Verifier/Tests gruen). „Specen und auf Freigabe warten" ist der
-> Default-Fehler, nicht der sichere Weg. Innehalten NUR bei: explizitem Stopp des
-> Menschen, schwer-reversiblem Aussen-Risiko (Prod-Deploy, Geld, Kunden-Daten nach
-> aussen), oder einer echten Menschen-Entscheidung (Prioritaet, Produkt, Budget).
->
-> **Mensch-Interface = Anforderungen (EARS) + Tests/Akzeptanz.** Der Agent traegt
-> die technischen Implementierungs-Details selbst und sichert sie ueber Tests ab.
-> KEINE technischen Detail-Rueckfragen an den Menschen — technische Details kann
-> ein nicht-technischer PO mental gar nicht rekonstruieren und sie sind teuer in
-> der Zeit. Wenn eine Entscheidung wirklich noetig ist, wird sie als Anforderung/
-> Outcome formuliert (Was + Akzeptanz), nie als technisches Wie. Die
-> Qualitaetssicherung ist der TEST (der muss gut sein) plus gute Anforderungen —
-> nicht das manuelle Nachvollziehen der Technik durch den Menschen. Konsequenz:
-> viel Sorgfalt in EARS + Verifier, Technik-Entscheidungen autonom.
-
 ---
 
 ## A) Agent Bootstrap-Sequenz
 
 Beim Start jeder neuen Session oder nach Erhalt eines neuen Tasks IMMER in dieser Reihenfolge lesen:
 
-1. **`CLAUDE.md`** (Projekt-Root) — Projektkontext, Stack, Pfade, Claude-spezifische Regeln. PFLICHT. Lese- **und** Pflege-Ziel: etabliert ein Ticket eine Dauer-Regel, gehoert sie hierher (Sektion E, "CLAUDE.md — Pflege-Pflicht").
+1. **`CLAUDE.md`** (Projekt-Root) — Projektkontext, Stack, Pfade, Claude-spezifische Regeln. PFLICHT.
 2. **`docs/PROJECT_SPEC.md`** — Systemzweck, Architektur, Datenmodell, Tech-Stack. Gibt den "Was-ist-das"-Kontext.
 3. **`docs/adr/`** (alle Dateien, neueste zuerst) — Warum das System so gebaut ist wie es ist. Verhindert Wiederholung schon verworfener Alternativen.
 4. **`docs/tickets/`** (nur Status `in_progress` und `spec`) — Was gerade aktiv ist. Maximal 10 Tickets.
@@ -126,10 +108,10 @@ Jedes Ticket lebt als eigene Datei unter `docs/tickets/TICKET-NNN.md` (dreistell
 ## Was soll erreicht werden? (Business-Ziel)
 <!-- In einem Satz: Wer profitiert wie davon? -->
 
-## Akzeptanzkriterien (EARS-Format, deutsch)
-<!-- "WENN <Ausloeser/Bedingung>, SOLL <System> <Verhalten>." -->
-- [ ] WENN ..., SOLL das System ...
-- [ ] WENN ..., SOLL das System ...
+## Akzeptanzkriterien (EARS-Format)
+<!-- "When [Bedingung], the system shall [Aktion]." -->
+- [ ] When ..., the system shall ...
+- [ ] When ..., the system shall ...
 
 ## Loesungs-Skizze (Approach)
 <!-- SKILL-019: Pflicht ab Aufwand M/L/XL, optional bei XS/S. 3-6 Zeilen.
@@ -155,30 +137,6 @@ Jedes Ticket lebt als eigene Datei unter `docs/tickets/TICKET-NNN.md` (dreistell
 ## Ergebnis / Notizen
 <!-- Wird vom Agenten beim Abschliessen befuellt -->
 ```
-
-### EARS-Schema auf Deutsch (SKILL-074)
-
-Akzeptanzkriterien werden auf **Deutsch** geschrieben. Grundform:
-
-```
-WENN <Ausloeser/Bedingung>, SOLL <System> <Verhalten>.
-```
-
-Die fuenf EARS-Varianten, kurz:
-
-| Variante | Schema |
-|---|---|
-| Ubiquitous | "Das System SOLL <Verhalten>." |
-| Event-driven | "WENN <Ausloeser>, SOLL <System> <Verhalten>." |
-| State-driven | "SOLANGE <Zustand>, SOLL <System> <Verhalten>." |
-| Unwanted behaviour | "FALLS <unerwuenschte Bedingung>, SOLL <System> <Verhalten>." |
-| Optional feature | "WO <Feature vorhanden>, SOLL <System> <Verhalten>." |
-
-**Bestandsschutz:** Aeltere Tickets tragen das englische Original-Schema
-("When [Bedingung], the system shall [Aktion]."). Diese Tickets werden NICHT
-umgeschrieben (append-only-Historie, kein Massen-Rewrite); der Verifier
-akzeptiert beide Formen gleichwertig (siehe `verifier/VERIFIER.md`). Neue
-Tickets schreiben ausschliesslich das deutsche Schema.
 
 ### Status-Flow
 
@@ -284,40 +242,6 @@ Briefings kopiert werden. Default-Auswahl:
 
 Operator-Templates (`operator-templates` Skill) referenzieren diese Datei
 in ihren Briefing-Bloecken — siehe deren SKILL.md "MCP/API-Schema-Hinweis".
-
-### Implementer-Default: Subagent im Hintergrund (SKILL-073)
-
-> [!important] Tickets werden GRUNDSAETZLICH zuerst als Subagent-Umsetzung im Hintergrund versucht (Jakob, 2026-07-15)
->
-> Die Umsetzung eines gespecten Tickets laeuft per Default als
-> **Implementer-Subagent mit `run_in_background`**, nicht im Hauptkontext.
-> Das erlaubt Parallelisierung (mehrere Tickets mit disjunkten Datei-Sets
-> gleichzeitig) und senkt die Durchlaufzeit. Der Hauptagent bleibt
-> **Koordinator**: er brieft (Pflicht-Bloecke aus
-> `templates/IMPLEMENTER_BRIEFING_STANDARDS.md`), prueft vor dem Spawn die
-> Datei-Set-Disjunktheit nach Sektion **J**, sammelt die Ergebnisse ein und
-> stoesst den Verify-Pass an.
-
-**Ausnahmen (Ticket wird direkt im Hauptkontext bearbeitet):**
-
-1. **Hello-/op-/ssh-gegatete Schritte** (1Password-Bestaetigung, SSH-Agent,
-   interaktive Auth): der Subagent kann das Gate nicht bedienen.
-2. **Prod-Deploys** und andere schwer-reversible Aussen-Wirkung (Sektion 0 /
-   L.2 STOPP-Faelle greifen ohnehin).
-3. **Ueberlappende Datei-Sets** zu bereits laufender Arbeit (Sektion J):
-   dann sequenziell im Hauptkontext oder warten.
-4. **Winzige XS-Edits**, bei denen der Spawn-Overhead groesser ist als der
-   Nutzen (Einzeiler, Typo, eine Config-Zeile).
-5. **Schritte mit Mensch-Interaktion** (Rueckfrage laut STOPP-Liste,
-   PO-Abnahme, manuelle Bestaetigung noetig).
-
-**Konfliktregel geteilte Dateien (4x praktisch erprobt, 2026-07-15):**
-Subagents schreiben NICHT parallel in geteilte Dateien, insbesondere
-`docs/governance_log.md`, `CLAUDE.md` und `docs/PROJECT_SPEC.md`. Der
-Subagent liefert seine Eintraege (Governance-Log-Eintrag, CHANGELOG-Zeile,
-Spec-Delta) als **Textblock im Abschluss-Bericht**; der Hauptagent appended
-sie zentral. So bleiben die geteilten Dateien konfliktfrei, auch wenn
-mehrere Subagents gleichzeitig fertig werden.
 
 ### Code-Referenz-Pattern
 
@@ -476,44 +400,6 @@ Ausnahme: Entscheidungen die externe Kosten erzeugen (neue bezahlte APIs, Cloud-
 ---
 
 ## E) Living Documentation
-
-### CLAUDE.md (Projekt-Kontext, lebend) — Pflege-Pflicht, nicht nur Lese-Pflicht
-
-Die `CLAUDE.md` ist nicht nur Bootstrap-**Lese**-Datei (Sektion A), sondern ein
-**lebendes Pflege-Ziel**. Jede dauerhafte, sessionuebergreifend geltende Regel, die
-ein Ticket etabliert, gehoert **im selben Ticket** als praegnanter Block hinein —
-sonst geht der Kontext beim naechsten Bootstrap verloren und der User muss ihn
-wiederholen. Der haeufigste Skill-Fehler ist, die CLAUDE.md NICHT anzufassen, weil
-sie als "heikle geteilte Datei" wahrgenommen wird; das ist falsch — sie zu pflegen
-ist Routine, genau wie die CHANGELOG-Zeile.
-
-**Was in die CLAUDE.md gehoert (wenn ein Ticket es etabliert):**
-- **Neue verbindliche Konvention** (z.B. "Rollout NUR via `deploy.ps1`", "Brand-Werte
-  NUR aus `branding.env`") — als `## Konvention: <Titel>`-Block.
-- **Verbindlicher Pfad / Command / Gate** (Skript, Runbook, Pflicht-Test vor `done`).
-- **Gotcha / Known-Failure in Kurzform** — eine Falle, die kuenftige Sessions kennen
-  muessen ("X bricht Y, deshalb immer Z"). Die Langfassung bleibt im Ticket bzw. in
-  `developer_notes/`.
-- **Pointer auf eine Architektur-Weiche** — die geltende Regel + `ADR-NNN`-Verweis,
-  NICHT das ADR nacherzaehlen.
-
-**Wann:** beim `done`-Uebergang des etablierenden Tickets — **Teil der Definition of
-Done**, genau wie die CHANGELOG-Zeile. Pruef-Frage beim Abschluss JEDES Tickets:
-*"Etabliert dieses Ticket eine Regel, die eine kuenftige Session ohne Ticket-Historie
-kennen muss?"* → wenn ja, CLAUDE.md-Block im selben Zug. (Im Subagent-Fall als
-Textblock im Abschluss-Bericht liefern; der Hauptagent appended — Konfliktregel
-Sektion B, damit geteilte Dateien konfliktfrei bleiben.)
-
-**Was NICHT in die CLAUDE.md gehoert:** ticket-lokale Details (bleiben im Ticket),
-vergaengliche Debug-Notizen (`developer_notes/`), die Vision (PO/Jakob, Append-only).
-CLAUDE.md bleibt **lean und praegnant** (Anthropic-Guidance, RESEARCH.md): geltende
-Regeln, keine Historie — eine abgeloeste Regel wird ersetzt, nicht gestapelt.
-
-> [!info] Abgrenzung zu DEF-001 (Auto-Memory, geparkt)
-> Dies ist **kein** autonomes In-Session-Memory (DEF-001): Es schreibt nicht jede
-> Erkenntnis selbsttaetig weg, sondern koppelt die CLAUDE.md-Pflege **deterministisch
-> an den Ticket-Abschluss** — wie CHANGELOG/ROADMAP. Ticket-gebunden, nachvollziehbar,
-> kein Black-Box-Verhalten.
 
 ### CHANGELOG.md
 
@@ -925,19 +811,10 @@ Wenn Jakob eine Entscheidung bestaetigt: `**Review:** bestaetigt YYYY-MM-DD` ein
 
 ## J) Parallelisierung (Git Worktrees)
 
-### Default: sequenziell (Worktrees), Hintergrund-Subagents sind der Standard-Weg
+### Default: sequenziell
 
-**Worktree-Parallelisierung** (eigene Branches + Verzeichnisse, dieser
-Abschnitt) ist ein bewusster Ausnahmefall, kein Default: Tickets werden auf
-Branch-Ebene **standardmaessig sequenziell** abgearbeitet.
-
-Davon getrennt gilt der leichtgewichtige Default aus Sektion B
-(**SKILL-073**): die Umsetzung eines einzelnen Tickets laeuft grundsaetzlich
-als **Implementer-Subagent im Hintergrund** (`run_in_background`) im selben
-Arbeitsverzeichnis. Mehrere Hintergrund-Subagents duerfen parallel laufen,
-wenn ihre Datei-Sets disjunkt sind (Pflicht-Check unten) und keine Ausnahme
-aus Sektion B greift; geteilte Dateien (governance_log, CLAUDE.md,
-PROJECT_SPEC) appended ausschliesslich der koordinierende Hauptagent.
+Tickets werden **standardmaessig sequenziell** abgearbeitet. Parallelisierung ist
+ein bewusster Ausnahmefall, kein Default.
 
 ### Erlaubt: max. 2-3 Worktrees, nur bei disjunkten Datei-Sets
 
@@ -1269,7 +1146,7 @@ Aktiv. Bootstrap-Sequenz: CLAUDE.md → docs/PROJECT_SPEC.md → docs/adr/ → d
 Tickets: docs/tickets/TICKET-NNN.md | ADRs: docs/adr/ADR-NNN-titel.md | Governance: docs/governance_log.md
 Verifier: docs/tickets/verify/TICKET-NNN-verify-YYYY-MM-DD.md (Pflicht-Pass vor `done`, Aufruf: `/sdd-verify TICKET-NNN`)
 SDD-Config: docs/sdd-config.yaml (test_command, health_check, ticket_path, verify_report_path, manual_verify_required: ui_only|true|false, approach_block_required_for_ML: false)
-Doku-Artefakte (lebend): CLAUDE.md (Dauer-Regeln/Konventionen bei done, Pflege-Pflicht, SKILL-075) | docs/TRACEABILITY.md (Req→Test→Code→Verify, done-Hook, SKILL-017) | Ticket-Bloecke: ## Loesungs-Skizze (M/L/XL, SKILL-019) + ## Spec-Delta (bei Spec-Touch, SKILL-018)
+Doku-Artefakte (lebend): docs/TRACEABILITY.md (Req→Test→Code→Verify, done-Hook, SKILL-017) | Ticket-Bloecke: ## Loesungs-Skizze (M/L/XL, SKILL-019) + ## Spec-Delta (bei Spec-Touch, SKILL-018)
 KI-Autonomie: voll — alle Entscheidungen ins Governance-Log, Jakob reviewed asynchron. PO-Abnahme: Klick-Anleitung im Verify-Report nur fuer UI-EARS (Default `ui_only`), Jakob setzt `po_acceptance: confirmed|rejected|not_required`. Backend-EARS = automatisch via Verifier-Output.
 ```
 
